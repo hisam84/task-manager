@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card-bg: #0a0a0a;
+  --border-color: #222222;
+  --border-hover: #333333;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom sleek Vercel scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Vercel Glowing Border Utilities */
+.vercel-card {
+  background-color: #0a0a0a;
+  border: 1px solid #222222;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vercel-card:hover {
+  border-color: #333333;
+}
+
+.vercel-card-glow:hover {
+  border-color: rgba(0, 112, 243, 0.4);
+  box-shadow: 0 0 25px -5px rgba(0, 112, 243, 0.2);
+}
+
+.vercel-gradient-text {
+  background: linear-gradient(180deg, #ffffff 0%, #a1a1a1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vercel-gradient-blue {
+  background: linear-gradient(135deg, #0070f3 0%, #00dfd8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vercel-gradient-purple {
+  background: linear-gradient(135deg, #7928ca 0%, #ff0080 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Status Badges */
+.badge-todo {
+  background: rgba(255, 255, 255, 0.05);
+  color: #888888;
+  border: 1px solid #222222;
+}
+
+.badge-in_progress {
+  background: rgba(0, 112, 243, 0.1);
+  color: #0070f3;
+  border: 1px solid rgba(0, 112, 243, 0.3);
+}
+
+.badge-in_review {
+  background: rgba(245, 166, 35, 0.1);
+  color: #f5a623;
+  border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.badge-done {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Priority Badges */
+.priority-low {
+  color: #888888;
+  border-color: #222222;
+}
+
+.priority-medium {
+  color: #50e3c2;
+  border-color: rgba(80, 227, 194, 0.3);
+}
+
+.priority-high {
+  color: #f5a623;
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.priority-urgent {
+  color: #ff0080;
+  border-color: rgba(255, 0, 128, 0.4);
+  animation: pulse-urgent 2s infinite ease-in-out;
+}
+
+@keyframes pulse-urgent {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
