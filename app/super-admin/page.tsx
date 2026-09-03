@@ -53,17 +53,126 @@ export default function SuperAdminPage() {
     }
   }
 
+  const [loginIdentifier, setLoginIdentifier] = useState("superadmin");
+  const [loginPassword, setLoginPassword] = useState("password123");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  async function handleSuperAdminLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError(null);
+    setLoginSuccess(null);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          usernameOrEmail: loginIdentifier.trim(),
+          password: loginPassword.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Super Admin authentication failed");
+
+      if (data.user.role !== "SUPER_ADMIN") {
+        throw new Error("This account is not a Super Admin account");
+      }
+
+      setLoginSuccess(`Authenticated as ${data.user.name}`);
+      setTimeout(() => {
+        fetchSuperAdminData();
+        window.location.reload();
+      }, 800);
+    } catch (err: any) {
+      setLoginError(err.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
   if (currentUser && currentUser.role !== "SUPER_ADMIN") {
     return (
       <div className="min-h-screen flex flex-col bg-black text-white">
         <Navbar user={currentUser} />
-        <main className="flex-1 flex items-center justify-center p-6 text-center">
-          <div className="max-w-md p-6 rounded-xl bg-[#0a0a0a] border border-[#222222]">
-            <Shield className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-            <h2 className="text-sm font-bold">Super Admin Access Required</h2>
-            <p className="text-xs text-[#888888] mt-2 font-mono">
-              Only platform Super Admins can manage company tenants.
-            </p>
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_30px_rgba(121,40,202,0.15)] overflow-hidden animate-fadeIn">
+            {/* Panel Header */}
+            <div className="px-6 py-5 border-b border-[#1f1f1f] bg-gradient-to-r from-purple-950/40 to-black flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-purple-300 shadow-md">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white tracking-wide">Super Admin Portal</h2>
+                <p className="text-[11px] font-mono text-purple-300/80">Platform Management Console</p>
+              </div>
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleSuperAdminLogin} className="p-6 space-y-4 text-xs">
+              <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-900/30 text-purple-200/90 text-[11px] font-mono leading-relaxed">
+                🔐 Access to company tenant management requires Super Admin credentials.
+              </div>
+
+              {loginError && (
+                <div className="p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 font-mono">
+                  {loginError}
+                </div>
+              )}
+
+              {loginSuccess && (
+                <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 font-mono">
+                  {loginSuccess}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[#888888] font-mono mb-1">Username or Email *</label>
+                  <input
+                    type="text"
+                    required
+                    value={loginIdentifier}
+                    onChange={(e) => setLoginIdentifier(e.target.value)}
+                    placeholder="superadmin"
+                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-2 font-mono text-white placeholder-[#555555] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[#888888] font-mono mb-1">Password *</label>
+                  <input
+                    type="password"
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-2 font-mono text-white placeholder-[#555555] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full py-2.5 rounded-lg bg-[#7928ca] hover:bg-[#6820b3] font-medium text-white transition-all shadow-[0_0_20px_rgba(121,40,202,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>{loginLoading ? "Authenticating..." : "Login to Super Admin"}</span>
+                </button>
+              </div>
+
+              <div className="pt-3 border-t border-[#1f1f1f] text-center">
+                <span className="text-[10px] font-mono text-[#666666]">Demo Credentials:</span>
+                <p className="text-[11px] font-mono text-purple-300/80 mt-0.5">
+                  Username: <code className="text-white">superadmin</code> | Password: <code className="text-white">password123</code>
+                </p>
+              </div>
+            </form>
           </div>
         </main>
       </div>
