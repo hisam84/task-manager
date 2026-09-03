@@ -53,8 +53,8 @@ export default function SuperAdminPage() {
     }
   }
 
-  const [loginIdentifier, setLoginIdentifier] = useState("superadmin");
-  const [loginPassword, setLoginPassword] = useState("password123");
+  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginSuccess, setLoginSuccess] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -164,13 +164,6 @@ export default function SuperAdminPage() {
                   <Shield className="w-4 h-4" />
                   <span>{loginLoading ? "Authenticating..." : "Login to Super Admin"}</span>
                 </button>
-              </div>
-
-              <div className="pt-3 border-t border-[#1f1f1f] text-center">
-                <span className="text-[10px] font-mono text-[#666666]">Demo Credentials:</span>
-                <p className="text-[11px] font-mono text-purple-300/80 mt-0.5">
-                  Username: <code className="text-white">superadmin</code> | Password: <code className="text-white">password123</code>
-                </p>
               </div>
             </form>
           </div>

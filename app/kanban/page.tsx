@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
-import { RoleSwitcherBanner } from "@/components/role-switcher-banner";
 import { KanbanBoard } from "@/components/kanban-board";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
@@ -69,7 +68,6 @@ export default function KanbanPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      <RoleSwitcherBanner />
       <Navbar
         user={currentUser}
         onOpenCreateTask={() => setIsCreateTaskOpen(true)}

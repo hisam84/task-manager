@@ -52,11 +52,6 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
     }
   }
 
-  function fillDemoUser(username: string) {
-    setUsernameOrEmail(username);
-    setPassword("password123");
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-xl shadow-vercel-card overflow-hidden">
@@ -124,34 +119,6 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 />
                 <KeyRound className="w-4 h-4 text-[#555555] absolute left-2.5 top-2.5" />
               </div>
-            </div>
-          </div>
-
-          {/* Quick Demo Autofill */}
-          <div className="pt-2 border-t border-[#1f1f1f] space-y-1.5">
-            <span className="text-[10px] font-mono text-[#666666]">Demo Admin Accounts:</span>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => fillDemoUser("admin_vercel")}
-                className="px-2 py-0.5 rounded bg-[#151515] hover:bg-[#222222] border border-[#262626] font-mono text-[10px] text-blue-300"
-              >
-                @admin_vercel
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoUser("admin_acme")}
-                className="px-2 py-0.5 rounded bg-[#151515] hover:bg-[#222222] border border-[#262626] font-mono text-[10px] text-purple-300"
-              >
-                @admin_acme
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoUser("superadmin")}
-                className="px-2 py-0.5 rounded bg-[#151515] hover:bg-[#222222] border border-[#262626] font-mono text-[10px] text-amber-300"
-              >
-                @superadmin
-              </button>
             </div>
           </div>
 

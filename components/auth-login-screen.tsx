@@ -46,11 +46,6 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
     }
   }
 
-  function fillDemoUser(username: string) {
-    setUsernameOrEmail(username);
-    setPassword("password123");
-  }
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 bg-black text-white">
       <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_40px_rgba(0,112,243,0.15)] overflow-hidden animate-fadeIn">
@@ -128,48 +123,6 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
               <LogIn className="w-4 h-4" />
               <span>{loading ? "Authenticating..." : "Sign In to Task Manager"}</span>
             </button>
-          </div>
-
-          {/* Quick Demo Credentials */}
-          <div className="pt-4 border-t border-[#1f1f1f] space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-mono">
-              <span className="text-[#666666]">Demo Quick Fill:</span>
-              <span className="text-[#555555]">Pass: password123</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 font-mono text-[10px]">
-              <button
-                type="button"
-                onClick={() => fillDemoUser("admin_vercel")}
-                className="px-2.5 py-1.5 rounded-md bg-[#111111] hover:bg-[#1f1f1f] border border-[#222222] text-[#aaaaaa] hover:text-white transition-all text-left flex items-center justify-between"
-              >
-                <span>@admin_vercel</span>
-                <span className="text-[9px] text-blue-400">Vercel Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoUser("admin_acme")}
-                className="px-2.5 py-1.5 rounded-md bg-[#111111] hover:bg-[#1f1f1f] border border-[#222222] text-[#aaaaaa] hover:text-white transition-all text-left flex items-center justify-between"
-              >
-                <span>@admin_acme</span>
-                <span className="text-[9px] text-purple-400">Acme Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoUser("superadmin")}
-                className="px-2.5 py-1.5 rounded-md bg-[#111111] hover:bg-[#1f1f1f] border border-[#222222] text-[#aaaaaa] hover:text-white transition-all text-left flex items-center justify-between"
-              >
-                <span>@superadmin</span>
-                <span className="text-[9px] text-amber-400">Super Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoUser("elena")}
-                className="px-2.5 py-1.5 rounded-md bg-[#111111] hover:bg-[#1f1f1f] border border-[#222222] text-[#aaaaaa] hover:text-white transition-all text-left flex items-center justify-between"
-              >
-                <span>@elena</span>
-                <span className="text-[9px] text-emerald-400">Employee</span>
-              </button>
-            </div>
           </div>
         </form>
       </div>

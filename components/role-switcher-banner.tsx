@@ -13,6 +13,7 @@ interface Persona {
 }
 
 export function RoleSwitcherBanner() {
+  return null;
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
