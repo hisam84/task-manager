@@ -8,6 +8,7 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { Plus } from "lucide-react";
+import { AuthLoginScreen } from "@/components/auth-login-screen";
 
 export default function KanbanPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -55,6 +56,15 @@ export default function KanbanPage() {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  if (!loading && !currentUser) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar user={null} />
+        <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
+      </div>
+    );
   }
 
   return (

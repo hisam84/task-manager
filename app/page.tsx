@@ -6,6 +6,7 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { Search, Plus, Building2 } from "lucide-react";
+import { AuthLoginScreen } from "@/components/auth-login-screen";
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -66,6 +67,15 @@ export default function DashboardPage() {
     const matchesPriority = priorityFilter === "ALL" || t.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  if (!loading && !currentUser) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar user={null} />
+        <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">

@@ -6,6 +6,7 @@ import { InviteUserModal } from "@/components/invite-user-modal";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { UserPlus, Mail } from "lucide-react";
+import { AuthLoginScreen } from "@/components/auth-login-screen";
 
 export default function TeamPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -41,6 +42,15 @@ export default function TeamPage() {
   }
 
   const canInvite = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role);
+
+  if (!loading && !currentUser) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar user={null} />
+        <AuthLoginScreen onSuccess={fetchData} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
