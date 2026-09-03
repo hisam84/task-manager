@@ -6,6 +6,7 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
+  username?: string | null;
   role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE";
   department?: string | null;
   companyId?: string | null;
@@ -36,6 +37,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       id: superAdmin.id,
       name: superAdmin.name,
       email: superAdmin.email,
+      username: superAdmin.username,
       role: superAdmin.role as any,
       department: superAdmin.department,
       companyId: superAdmin.companyId,
@@ -55,6 +57,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     id: user.id,
     name: user.name,
     email: user.email,
+    username: user.username,
     role: user.role as any,
     department: user.department,
     companyId: user.companyId,
@@ -72,6 +75,7 @@ export async function getAllDemoPersonas() {
     id: u.id,
     name: u.name,
     email: u.email,
+    username: u.username,
     role: u.role,
     department: u.department,
     companyName: u.company?.name ?? "Platform Wide",

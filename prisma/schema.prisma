@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model Company {
@@ -22,6 +23,7 @@ model User {
   id           String   @id @default(cuid())
   name         String
   email        String   @unique
+  username     String?  @unique
   passwordHash String
   role         String   @default("EMPLOYEE") // SUPER_ADMIN, ADMIN, MANAGER, EMPLOYEE
   department   String?

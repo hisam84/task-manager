@@ -13,6 +13,7 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [adminName, setAdminName] = useState("");
+  const [adminUsername, setAdminUsername] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("password123");
   const [department, setDepartment] = useState("Executive Leadership");
@@ -25,14 +26,15 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
 
   function handleNameChange(val: string) {
     setName(val);
-    // Auto generate clean slug
-    setSlug(
-      val
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-    );
+    const generatedSlug = val
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+    setSlug(generatedSlug);
+    if (!adminUsername && generatedSlug) {
+      setAdminUsername(`admin_${generatedSlug.replace(/-/g, "_")}`);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -49,6 +51,7 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
           name: name.trim(),
           slug: slug.trim(),
           adminName: adminName.trim(),
+          adminUsername: adminUsername.trim(),
           adminEmail: adminEmail.trim(),
           adminPassword: adminPassword.trim(),
           department: department.trim(),
@@ -58,11 +61,12 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create company");
 
-      setSuccessMsg(`Company '${data.name}' and Admin '${adminName}' created successfully!`);
+      setSuccessMsg(`Company '${data.name}' and Admin '${adminName}' (@${adminUsername}) created successfully!`);
       setTimeout(() => {
         setName("");
         setSlug("");
         setAdminName("");
+        setAdminUsername("");
         setAdminEmail("");
         setSuccessMsg(null);
         onSuccess();
@@ -162,6 +166,20 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
                 />
               </div>
               <div>
+                <label className="block text-[#888888] font-mono mb-1">Admin Username *</label>
+                <input
+                  type="text"
+                  required
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  placeholder="admin_acme"
+                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white placeholder-[#555555] outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
                 <label className="block text-[#888888] font-mono mb-1">Admin Email *</label>
                 <input
                   type="email"
@@ -172,9 +190,6 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
                   className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white placeholder-[#555555] outline-none"
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[#888888] font-mono mb-1">Password *</label>
                 <input
@@ -185,16 +200,17 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
                   className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white outline-none"
                 />
               </div>
-              <div>
-                <label className="block text-[#888888] font-mono mb-1">Department</label>
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="Executive Leadership"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white outline-none"
-                />
-              </div>
+            </div>
+
+            <div>
+              <label className="block text-[#888888] font-mono mb-1">Department</label>
+              <input
+                type="text"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                placeholder="Executive Leadership"
+                className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white outline-none"
+              />
             </div>
           </div>
 

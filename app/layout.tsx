@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Vercel Task Manager — Multi-Tenant Enterprise",
-  description: "Next.js 15 multi-tenant employee task manager styled with Vercel design system.",
+  title: "Task Manager — Multi-Tenant Enterprise",
+  description: "Next.js 15 multi-tenant employee task manager.",
 };
 
 export default function RootLayout({

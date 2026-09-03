@@ -10,6 +10,10 @@ const createCompanySchema = z.object({
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, hyphens"),
   adminName: z.string().min(1, "Admin name is required"),
+  adminUsername: z
+    .string()
+    .min(3, "Admin username must be at least 3 characters")
+    .regex(/^[a-zA-Z0-9_.-]+$/, "Username can only contain letters, numbers, underscores, dots, and hyphens"),
   adminEmail: z.string().email("Valid admin email is required"),
   adminPassword: z.string().min(6, "Password must be at least 6 characters"),
   department: z.string().optional(),
@@ -25,7 +29,7 @@ export async function GET() {
     const companies = await prisma.company.findMany({
       include: {
         users: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, username: true, role: true, department: true },
         },
         _count: {
           select: { users: true, tasks: true },
@@ -64,6 +68,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Admin email already exists" }, { status: 400 });
     }
 
+    const existingUsername = await prisma.user.findFirst({
+      where: { username: data.adminUsername },
+    });
+    if (existingUsername) {
+      return NextResponse.json({ error: "Admin username already exists" }, { status: 400 });
+    }
+
     const passwordHash = await hashPassword(data.adminPassword);
 
     const company = await prisma.company.create({
@@ -75,6 +86,7 @@ export async function POST(req: Request) {
           create: {
             name: data.adminName,
             email: data.adminEmail,
+            username: data.adminUsername,
             passwordHash,
             role: "ADMIN",
             department: data.department || "Executive Leadership",

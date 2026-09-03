@@ -18,6 +18,7 @@ async function main() {
     data: {
       name: "Guillermo Rauch (Super Admin)",
       email: "superadmin@platform.com",
+      username: "superadmin",
       passwordHash,
       role: "SUPER_ADMIN",
       department: "Platform Operations",
@@ -37,6 +38,7 @@ async function main() {
     data: {
       name: "Sarah Connor",
       email: "admin@vercel.com",
+      username: "admin_vercel",
       passwordHash,
       role: "ADMIN",
       department: "Engineering Leadership",
@@ -48,6 +50,7 @@ async function main() {
     data: {
       name: "Alex Rivera",
       email: "manager@vercel.com",
+      username: "manager_vercel",
       passwordHash,
       role: "MANAGER",
       department: "Frontend Core",
@@ -59,6 +62,7 @@ async function main() {
     data: {
       name: "Elena Rostova",
       email: "elena@vercel.com",
+      username: "elena",
       passwordHash,
       role: "EMPLOYEE",
       department: "Design Systems",
@@ -70,6 +74,7 @@ async function main() {
     data: {
       name: "Marcus Chen",
       email: "marcus@vercel.com",
+      username: "marcus",
       passwordHash,
       role: "EMPLOYEE",
       department: "Backend Infrastructure",
@@ -90,6 +95,7 @@ async function main() {
     data: {
       name: "Robert Vance",
       email: "admin@acme.com",
+      username: "admin_acme",
       passwordHash,
       role: "ADMIN",
       department: "Executive Tech",
@@ -101,6 +107,7 @@ async function main() {
     data: {
       name: "Bruce Wayne",
       email: "bruce@acme.com",
+      username: "bruce",
       passwordHash,
       role: "EMPLOYEE",
       department: "Security & Reliability",

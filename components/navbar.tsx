@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, LayoutDashboard, Users, Shield, Building2 } from "lucide-react";
+import { Plus, LayoutDashboard, Users, Shield, Building2, LogIn } from "lucide-react";
+import { LoginModal } from "@/components/login-modal";
 
 interface NavbarProps {
   user: any;
@@ -12,6 +14,7 @@ interface NavbarProps {
 
 export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarProps) {
   const pathname = usePathname();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(user?.role);
@@ -39,7 +42,7 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
                 </svg>
               </div>
               <span className="font-semibold text-xs tracking-tight text-white">
-                Vercel Task Manager
+                Task Manager
               </span>
             </Link>
 
@@ -76,6 +79,15 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
 
           {/* Action Buttons & Profile */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsLoginOpen(true)}
+              className="px-2.5 py-1 rounded-md bg-[#161616] hover:bg-[#222222] text-[#aaaaaa] hover:text-white border border-[#2b2b2b] text-xs font-mono transition-all flex items-center gap-1.5"
+              title="Log in with Username & Password"
+            >
+              <LogIn className="w-3.5 h-3.5 text-blue-400" />
+              <span>Log In</span>
+            </button>
+
             {onOpenCreateCompany && (
               <button
                 onClick={onOpenCreateCompany}
@@ -97,12 +109,21 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
               </button>
             )}
 
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1">
+            <div
+              className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1 cursor-pointer"
+              title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
+            >
               {user?.name?.[0] || "U"}
             </div>
           </div>
         </div>
       </div>
+
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onSuccess={() => setIsLoginOpen(false)}
+      />
     </header>
   );
 }
