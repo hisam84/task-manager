@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, LayoutDashboard, Users, Shield, Building2, LogIn } from "lucide-react";
+import { Plus, LayoutDashboard, Users, Shield, Building2, LogIn, LogOut } from "lucide-react";
 import { LoginModal } from "@/components/login-modal";
 
 interface NavbarProps {
@@ -15,9 +15,22 @@ interface NavbarProps {
 export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarProps) {
   const pathname = usePathname();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(user?.role);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
 
   const navLinks = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -50,8 +63,8 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
 
             {/* Tenant Badge */}
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#111111] border border-[#222222] text-[11px] font-mono text-[#eaeaea]">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-              <span>{user?.companyName || "Super Admin Portal"}</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${user ? "bg-emerald-400" : "bg-zinc-600"}`} />
+              <span>{user ? (user.companyName || "Super Admin Portal") : "Guest Mode (Logged Out)"}</span>
             </div>
           </div>
 
@@ -79,42 +92,55 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
 
           {/* Action Buttons & Profile */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="px-2.5 py-1 rounded-md bg-[#161616] hover:bg-[#222222] text-[#aaaaaa] hover:text-white border border-[#2b2b2b] text-xs font-mono transition-all flex items-center gap-1.5"
-              title="Log in with Username & Password"
-            >
-              <LogIn className="w-3.5 h-3.5 text-blue-400" />
-              <span>Log In</span>
-            </button>
-
-            {onOpenCreateCompany && (
+            {!user ? (
               <button
-                onClick={onOpenCreateCompany}
-                className="px-2.5 py-1 rounded-md bg-[#7928ca]/20 text-purple-300 hover:bg-[#7928ca]/30 border border-[#7928ca]/40 text-xs font-medium transition-all flex items-center gap-1"
-                title="Create a new Tenant Company"
+                onClick={() => setIsLoginOpen(true)}
+                className="px-3 py-1 rounded-md bg-[#0070f3] hover:bg-[#0060df] text-white text-xs font-mono transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,112,243,0.3)]"
               >
-                <Building2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Create Company</span>
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Log In</span>
               </button>
-            )}
+            ) : (
+              <>
+                {onOpenCreateCompany && (
+                  <button
+                    onClick={onOpenCreateCompany}
+                    className="px-2.5 py-1 rounded-md bg-[#7928ca]/20 text-purple-300 hover:bg-[#7928ca]/30 border border-[#7928ca]/40 text-xs font-medium transition-all flex items-center gap-1"
+                    title="Create a new Tenant Company"
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Create Company</span>
+                  </button>
+                )}
 
-            {canCreateTask && onOpenCreateTask && (
-              <button
-                onClick={onOpenCreateTask}
-                className="px-3 py-1 rounded-md bg-[#0070f3] hover:bg-[#0060df] text-white text-xs font-medium transition-all flex items-center gap-1"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>New Task</span>
-              </button>
-            )}
+                {canCreateTask && onOpenCreateTask && (
+                  <button
+                    onClick={onOpenCreateTask}
+                    className="px-3 py-1 rounded-md bg-[#0070f3] hover:bg-[#0060df] text-white text-xs font-medium transition-all flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>New Task</span>
+                  </button>
+                )}
 
-            <div
-              className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1 cursor-pointer"
-              title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
-            >
-              {user?.name?.[0] || "U"}
-            </div>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="px-2.5 py-1 rounded-md bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-red-400 border border-[#2b2b2b] text-xs font-mono transition-all flex items-center gap-1"
+                  title="Log out of session"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{isLoggingOut ? "..." : "Log Out"}</span>
+                </button>
+
+                <div
+                  className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1 cursor-pointer"
+                  title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
+                >
+                  {user?.name?.[0] || "U"}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

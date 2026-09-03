@@ -27,23 +27,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const userId = cookieStore.get("session_user_id")?.value;
 
   if (!userId) {
-    // Default fallback to Super Admin if no cookie set initially
-    const superAdmin = await prisma.user.findFirst({
-      where: { role: "SUPER_ADMIN" },
-      include: { company: true },
-    });
-    if (!superAdmin) return null;
-    return {
-      id: superAdmin.id,
-      name: superAdmin.name,
-      email: superAdmin.email,
-      username: (superAdmin as any).username ?? null,
-      role: superAdmin.role as any,
-      department: superAdmin.department,
-      companyId: superAdmin.companyId,
-      companyName: superAdmin.company?.name ?? null,
-      companySlug: superAdmin.company?.slug ?? null,
-    };
+    return null; // By default logged out
   }
 
   const user = await prisma.user.findUnique({
