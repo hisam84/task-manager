@@ -3,47 +3,62 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { z } from "zod";
+import {
+  SESSION_COOKIE,
+  checkLoginRateLimit,
+  createSessionValue,
+  getClientIp,
+  sessionCookieOptions,
+} from "@/lib/session";
+import { apiError, jsonError } from "@/lib/http";
 
 const loginSchema = z.object({
-  usernameOrEmail: z.string().min(1, "Username or email is required"),
-  password: z.string().min(1, "Password is required"),
+  usernameOrEmail: z.string().min(1, "Username or email is required").max(255),
+  password: z.string().min(1, "Password is required").max(256),
 });
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    if (!checkLoginRateLimit(`login:${ip}`)) {
+      return jsonError("Too many login attempts. Try again later.", 429);
+    }
+
     const body = await req.json();
     const data = loginSchema.parse(body);
-
     const input = data.usernameOrEmail.trim();
 
-    // Find user by username OR email
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { username: input },
-          { email: input.toLowerCase() },
-        ],
+        OR: [{ username: input }, { email: input.toLowerCase() }],
       },
-      include: { company: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        role: true,
+        department: true,
+        passwordHash: true,
+        company: { select: { name: true, isActive: true } },
+      },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Invalid username/email or password" }, { status: 401 });
+      return jsonError("Invalid username/email or password", 401);
     }
 
     const isValid = await verifyPassword(data.password, user.passwordHash);
     if (!isValid) {
-      return NextResponse.json({ error: "Invalid username/email or password" }, { status: 401 });
+      return jsonError("Invalid username/email or password", 401);
     }
 
-    // Set cookie
+    if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
+      return jsonError("Company account is inactive", 403);
+    }
+
     const cookieStore = await cookies();
-    cookieStore.set("session_user_id", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    cookieStore.set(SESSION_COOKIE, createSessionValue(user.id), sessionCookieOptions);
 
     return NextResponse.json({
       success: true,
@@ -57,10 +72,7 @@ export async function POST(req: Request) {
         companyName: user.company?.name ?? null,
       },
     });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
-    }
-    return NextResponse.json({ error: error.message || "Failed to login" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to login");
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, AlertCircle, Calendar, User, Tag } from "lucide-react";
+import { X, Plus, AlertCircle } from "lucide-react";
 
 interface UserOption {
   id: string;
@@ -81,8 +81,8 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: CreateTaskModalP
       setDueDate("");
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create task");
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: CreateTaskModalP
               <label className="block text-xs font-mono text-[#888888] mb-1">Priority Level</label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
+                onChange={(e) => setPriority(e.target.value as "LOW" | "MEDIUM" | "HIGH" | "URGENT")}
                 className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg px-3 py-2 text-xs text-white outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="LOW">Low Priority</option>
@@ -177,7 +177,7 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: CreateTaskModalP
               <label className="block text-xs font-mono text-[#888888] mb-1">Initial Status</label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) => setStatus(e.target.value as "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE")}
                 className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg px-3 py-2 text-xs text-white outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="TODO">To Do</option>

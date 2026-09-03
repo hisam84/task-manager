@@ -1,18 +1,25 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { SESSION_COOKIE, parseSessionValue, sessionCookieOptions } from "@/lib/session";
+import type { SessionUser } from "@/lib/types";
 
-export interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  username?: string | null;
-  role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE";
-  department?: string | null;
-  companyId?: string | null;
-  companyName?: string | null;
-  companySlug?: string | null;
-}
+export type { SessionUser };
+export { sessionCookieOptions, SESSION_COOKIE };
+export { isManagerOrAdmin, canCreateCompany, canAccessTask } from "@/lib/access";
+
+const USER_SESSION_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  username: true,
+  role: true,
+  department: true,
+  companyId: true,
+  company: {
+    select: { id: true, name: true, slug: true, isActive: true },
+  },
+} as const;
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -22,27 +29,32 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
+export function demoSwitchEnabled(): boolean {
+  return process.env.ENABLE_DEMO_SWITCH === "true";
+}
+
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
-  const userId = cookieStore.get("session_user_id")?.value;
+  const userId = parseSessionValue(cookieStore.get(SESSION_COOKIE)?.value);
 
-  if (!userId) {
-    return null; // By default logged out
-  }
+  if (!userId) return null;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { company: true },
+    select: USER_SESSION_SELECT,
   });
 
   if (!user) return null;
+  if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
+    return null;
+  }
 
   return {
     id: user.id,
     name: user.name,
     email: user.email,
-    username: (user as any).username ?? null,
-    role: user.role as any,
+    username: user.username,
+    role: user.role as SessionUser["role"],
     department: user.department,
     companyId: user.companyId,
     companyName: user.company?.name ?? null,
@@ -51,15 +63,27 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 }
 
 export async function getAllDemoPersonas() {
+  if (!demoSwitchEnabled()) return [];
+
   const users = await prisma.user.findMany({
-    include: { company: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      username: true,
+      role: true,
+      department: true,
+      company: { select: { name: true } },
+    },
     orderBy: { role: "asc" },
+    take: 50,
   });
+
   return users.map((u) => ({
     id: u.id,
     name: u.name,
     email: u.email,
-    username: (u as any).username ?? null,
+    username: u.username,
     role: u.role,
     department: u.department,
     companyName: u.company?.name ?? "Platform Wide",

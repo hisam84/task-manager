@@ -7,20 +7,24 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { UserPlus, Mail } from "lucide-react";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
+import type { SessionUser } from "@/lib/types";
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department?: string | null;
+  taskStats?: { active: number; done: number };
+}
 
 export default function TeamPage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Modals
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   async function fetchData() {
     setLoading(true);
@@ -28,6 +32,11 @@ export default function TeamPage() {
       const authRes = await fetch("/api/auth/me");
       const authData = await authRes.json();
       setCurrentUser(authData.user);
+
+      if (!authData.user) {
+        setTeamMembers([]);
+        return;
+      }
 
       const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
@@ -41,7 +50,13 @@ export default function TeamPage() {
     }
   }
 
-  const canInvite = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const canInvite = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
+  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
+  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
 
   if (!loading && !currentUser) {
     return (
@@ -56,8 +71,8 @@ export default function TeamPage() {
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar
         user={currentUser}
-        onOpenCreateTask={() => setIsCreateTaskOpen(true)}
-        onOpenCreateCompany={() => setIsCreateCompanyOpen(true)}
+        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
+        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -85,10 +100,8 @@ export default function TeamPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {teamMembers.map((member) => {
-              const activeCount =
-                member.assignedTasks?.filter((t: any) => t.status !== "DONE").length || 0;
-              const completedCount =
-                member.assignedTasks?.filter((t: any) => t.status === "DONE").length || 0;
+              const activeCount = member.taskStats?.active ?? 0;
+              const completedCount = member.taskStats?.done ?? 0;
 
               return (
                 <div

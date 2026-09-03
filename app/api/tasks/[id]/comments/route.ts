@@ -1,23 +1,37 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { canAccessTask, getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { apiError, jsonError } from "@/lib/http";
 
 const createCommentSchema = z.object({
-  body: z.string().min(1, "Comment cannot be empty"),
+  body: z.string().min(1, "Comment cannot be empty").max(2000),
 });
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonError("Unauthorized", 401);
     }
 
     const { id } = await params;
+
+    const task = await prisma.task.findUnique({
+      where: { id },
+      select: { id: true, companyId: true, assigneeId: true },
+    });
+
+    if (!task) {
+      return jsonError("Task not found", 404);
+    }
+
+    if (!canAccessTask(user, task)) {
+      return jsonError("Forbidden", 403);
+    }
 
     const comments = await prisma.comment.findMany({
       where: { taskId: id },
@@ -27,11 +41,12 @@ export async function GET(
         },
       },
       orderBy: { createdAt: "asc" },
+      take: 100,
     });
 
     return NextResponse.json(comments);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch comments" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to fetch comments");
   }
 }
 
@@ -42,7 +57,7 @@ export async function POST(
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonError("Unauthorized", 401);
     }
 
     const { id: taskId } = await params;
@@ -51,14 +66,15 @@ export async function POST(
 
     const task = await prisma.task.findUnique({
       where: { id: taskId },
+      select: { id: true, companyId: true, assigneeId: true },
     });
 
     if (!task) {
-      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+      return jsonError("Task not found", 404);
     }
 
-    if (user.role !== "SUPER_ADMIN" && task.companyId !== user.companyId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!canAccessTask(user, task)) {
+      return jsonError("Forbidden", 403);
     }
 
     const comment = await prisma.comment.create({
@@ -75,10 +91,7 @@ export async function POST(
     });
 
     return NextResponse.json(comment, { status: 201 });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
-    }
-    return NextResponse.json({ error: error.message || "Failed to add comment" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to add comment");
   }
 }

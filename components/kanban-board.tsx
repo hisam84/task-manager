@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, MessageSquare, AlertCircle, CheckCircle2, Circle, ArrowRight, User, Plus } from "lucide-react";
+import { MessageSquare, Plus } from "lucide-react";
 
 interface Task {
   id: string;
@@ -163,7 +163,7 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                               onClick={(e) => e.stopPropagation()}
                               onChange={(e) => {
                                 e.stopPropagation();
-                                onStatusChange(task.id, e.target.value as any);
+                                onStatusChange(task.id, e.target.value as Task["status"]);
                               }}
                               className="bg-[#111111] hover:bg-[#1a1a1a] text-[10px] text-[#aaaaaa] border border-[#2e2e2e] rounded px-1.5 py-0.5 font-mono cursor-pointer outline-none"
                             >

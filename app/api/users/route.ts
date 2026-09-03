@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, hashPassword } from "@/lib/auth";
+import { getCurrentUser, hashPassword, isManagerOrAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { apiError, jsonError } from "@/lib/http";
 
 const createUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Valid email is required"),
+  name: z.string().min(1, "Name is required").max(120),
+  email: z.string().email("Valid email is required").max(255),
   role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
-  department: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters").default("password123"),
+  department: z.string().max(120).optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").max(128),
   companyId: z.string().optional(),
 });
 
@@ -16,16 +17,16 @@ export async function GET(req: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonError("Unauthorized", 401);
     }
 
     const { searchParams } = new URL(req.url);
     const requestedCompanyId = searchParams.get("companyId");
-
-    const targetCompanyId = user.role === "SUPER_ADMIN" ? requestedCompanyId || user.companyId : user.companyId;
+    const targetCompanyId =
+      user.role === "SUPER_ADMIN" ? requestedCompanyId || user.companyId : user.companyId;
 
     if (!targetCompanyId && user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Company ID required" }, { status: 400 });
+      return jsonError("Company ID required", 400);
     }
 
     const users = await prisma.user.findMany({
@@ -36,6 +37,7 @@ export async function GET(req: Request) {
         id: true,
         name: true,
         email: true,
+        username: true,
         role: true,
         department: true,
         createdAt: true,
@@ -49,44 +51,55 @@ export async function GET(req: Request) {
           },
         },
         assignedTasks: {
-          select: {
-            id: true,
-            status: true,
-            priority: true,
-          },
+          select: { status: true },
         },
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
 
-    return NextResponse.json(users);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch users" }, { status: 500 });
+    const payload = users.map(({ assignedTasks, ...rest }) => ({
+      ...rest,
+      taskStats: {
+        active: assignedTasks.filter((t) => t.status !== "DONE").length,
+        done: assignedTasks.filter((t) => t.status === "DONE").length,
+      },
+    }));
+
+    return NextResponse.json(payload);
+  } catch (error) {
+    return apiError(error, "Failed to fetch users");
   }
 }
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (!user || !["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(user.role)) {
-      return NextResponse.json({ error: "Forbidden: Admin or Manager required" }, { status: 403 });
+    if (!user || !isManagerOrAdmin(user.role)) {
+      return jsonError("Forbidden: Admin or Manager required", 403);
     }
 
     const body = await req.json();
     const data = createUserSchema.parse(body);
 
-    const targetCompanyId = user.role === "SUPER_ADMIN" ? data.companyId || user.companyId : user.companyId;
+    const targetCompanyId =
+      user.role === "SUPER_ADMIN" ? data.companyId || user.companyId : user.companyId;
 
     if (!targetCompanyId) {
-      return NextResponse.json({ error: "Target company is required" }, { status: 400 });
+      return jsonError("Target company is required", 400);
+    }
+
+    if (user.role === "MANAGER" && data.role !== "EMPLOYEE") {
+      return jsonError("Managers can only invite employees", 403);
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: data.email.toLowerCase() },
+      select: { id: true },
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: "User with this email already exists" }, { status: 400 });
+      return jsonError("User with this email already exists", 400);
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -94,7 +107,7 @@ export async function POST(req: Request) {
     const newUser = await prisma.user.create({
       data: {
         name: data.name,
-        email: data.email,
+        email: data.email.toLowerCase(),
         passwordHash,
         role: data.role,
         department: data.department || "General",
@@ -111,10 +124,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(newUser, { status: 201 });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
-    }
-    return NextResponse.json({ error: error.message || "Failed to create user" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to create user");
   }
 }

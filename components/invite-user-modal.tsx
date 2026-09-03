@@ -46,8 +46,8 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
       setEmail("");
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to invite user");
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
               <label className="block text-xs font-mono text-[#888888] mb-1">Role *</label>
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value as any)}
+                onChange={(e) => setRole(e.target.value as "ADMIN" | "MANAGER" | "EMPLOYEE")}
                 className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg px-3 py-2 text-xs font-mono text-white outline-none cursor-pointer"
               >
                 <option value="EMPLOYEE">Employee</option>
@@ -134,7 +134,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
           <div>
             <label className="block text-xs font-mono text-[#888888] mb-1">Default Password</label>
             <input
-              type="text"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Send, MessageSquare, User, Calendar, Trash2 } from "lucide-react";
+import { X, Send, MessageSquare, Trash2 } from "lucide-react";
+import type { SessionUser } from "@/lib/types";
 
 interface Comment {
   id: string;
@@ -11,21 +12,32 @@ interface Comment {
 }
 
 interface TaskDetailModalProps {
-  task: any | null;
-  currentUser: any;
+  task: { id: string } | null;
+  currentUser: SessionUser | null;
   isOpen: boolean;
   onClose: () => void;
   onTaskUpdated: () => void;
 }
 
 export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpdated }: TaskDetailModalProps) {
-  const [taskDetail, setTaskDetail] = useState<any>(null);
+  const [taskDetail, setTaskDetail] = useState<{
+    id: string;
+    title: string;
+    description?: string | null;
+    status: string;
+    priority: string;
+    dueDate?: string | null;
+    assignee?: { name?: string };
+    company?: { name?: string };
+    comments?: Comment[];
+  } | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loadingComment, setLoadingComment] = useState(false);
-  const [status, setStatus] = useState<string>("TODO");
-  const [priority, setPriority] = useState<string>("MEDIUM");
+  const [status, setStatus] = useState("TODO");
+  const [priority, setPriority] = useState("MEDIUM");
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (task && isOpen) {
@@ -42,9 +54,13 @@ export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpda
         setStatus(data.status);
         setPriority(data.priority);
         setComments(data.comments || []);
+        setError(null);
+      } else {
+        setError(data.error || "Unable to load task");
       }
     } catch (e) {
       console.error(e);
+      setError("Unable to load task");
     }
   }
 
@@ -124,14 +140,25 @@ export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpda
     }
   }
 
-  if (!isOpen || !taskDetail) return null;
+  if (!isOpen) return null;
+  if (!taskDetail) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-xl p-6 text-xs font-mono text-[#888888]">
+          {error || "Loading task..."}
+          <button onClick={onClose} className="mt-4 block text-white">
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser?.role);
+  const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser?.role ?? "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-2xl bg-[#0a0a0a] border border-[#222222] rounded-xl shadow-vercel-card overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f] bg-[#050505]">
           <div className="flex items-center gap-2">
             <select
@@ -178,7 +205,6 @@ export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpda
           </div>
         </div>
 
-        {/* Content Body */}
         <div className="p-5 flex-1 overflow-y-auto space-y-5">
           <div>
             <h2 className="text-sm font-bold text-white tracking-tight">{taskDetail.title}</h2>
@@ -187,7 +213,6 @@ export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpda
             </p>
           </div>
 
-          {/* Details Bar */}
           <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-[#111111] border border-[#1f1f1f] text-xs font-mono">
             <div>
               <span className="text-[#666666] block text-[10px]">ASSIGNEE</span>
@@ -209,7 +234,6 @@ export function TaskDetailModal({ task, currentUser, isOpen, onClose, onTaskUpda
             </div>
           </div>
 
-          {/* Threaded Comments */}
           <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
             <h4 className="text-xs font-mono font-medium text-[#eaeaea] flex items-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5 text-[#0070f3]" />

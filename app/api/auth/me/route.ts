@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getAllDemoPersonas } from "@/lib/auth";
+import { apiError } from "@/lib/http";
 
 export async function GET() {
   try {
@@ -10,7 +11,7 @@ export async function GET() {
       user,
       personas,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch session" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to fetch session");
   }
 }

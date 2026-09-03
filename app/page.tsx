@@ -1,46 +1,95 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/navbar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { Search, Plus, Building2 } from "lucide-react";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
+import { fetchTaskList } from "@/lib/api";
+import type { SessionUser } from "@/lib/types";
+
+interface TaskRow {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  assignee?: { name?: string };
+}
 
 export default function DashboardPage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
-
-  // Modals
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
 
   useEffect(() => {
-    fetchSessionAndTasks();
-  }, []);
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  async function fetchSessionAndTasks() {
+  const loadTasks = useCallback(
+    async (cursor?: string | null) => {
+      const params = {
+        status: statusFilter === "ALL" ? undefined : statusFilter,
+        priority: priorityFilter === "ALL" ? undefined : priorityFilter,
+        q: debouncedSearch || undefined,
+        cursor: cursor || undefined,
+        take: "50",
+      };
+      const data = await fetchTaskList(params);
+      return data;
+    },
+    [statusFilter, priorityFilter, debouncedSearch]
+  );
+
+  const fetchSessionAndTasks = useCallback(async () => {
     setLoading(true);
     try {
       const authRes = await fetch("/api/auth/me");
       const authData = await authRes.json();
       setCurrentUser(authData.user);
 
-      const tasksRes = await fetch("/api/tasks");
-      const tasksData = await tasksRes.json();
-      if (Array.isArray(tasksData)) {
-        setTasks(tasksData);
+      if (!authData.user) {
+        setTasks([]);
+        setNextCursor(null);
+        return;
       }
+
+      const data = await loadTasks();
+      setTasks(data.tasks as TaskRow[]);
+      setNextCursor(data.nextCursor);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  }, [loadTasks]);
+
+  useEffect(() => {
+    fetchSessionAndTasks();
+  }, [fetchSessionAndTasks]);
+
+  async function handleLoadMore() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const data = await loadTasks(nextCursor);
+      setTasks((prev) => [...prev, ...(data.tasks as TaskRow[])]);
+      setNextCursor(data.nextCursor);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMore(false);
     }
   }
 
@@ -52,21 +101,13 @@ export default function DashboardPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        fetchSessionAndTasks();
+        const updated = await res.json();
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)));
       }
     } catch (e) {
       console.error(e);
     }
   }
-
-  const filteredTasks = tasks.filter((t) => {
-    const matchesSearch =
-      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.assignee?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
-    const matchesPriority = priorityFilter === "ALL" || t.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
 
   if (!loading && !currentUser) {
     return (
@@ -77,34 +118,39 @@ export default function DashboardPage() {
     );
   }
 
+  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
+  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar
         user={currentUser}
-        onOpenCreateTask={() => setIsCreateTaskOpen(true)}
-        onOpenCreateCompany={() => setIsCreateCompanyOpen(true)}
+        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
+        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#1f1f1f] pb-4">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-white">Tasks Overview</h1>
             <p className="text-xs text-[#888888] font-mono mt-0.5">
-              {currentUser?.companyName || "Platform Wide"} ({tasks.length} total tasks)
+              {currentUser?.companyName || "Platform Wide"} ({tasks.length}
+              {nextCursor ? "+" : ""} tasks)
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsCreateCompanyOpen(true)}
-              className="px-3.5 py-1.5 rounded-lg bg-[#7928ca]/20 text-purple-300 hover:bg-[#7928ca]/30 border border-[#7928ca]/40 text-xs font-medium transition-all flex items-center gap-1.5"
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Create Company</span>
-            </button>
+            {canCreateCompany && (
+              <button
+                onClick={() => setIsCreateCompanyOpen(true)}
+                className="px-3.5 py-1.5 rounded-lg bg-[#7928ca]/20 text-purple-300 hover:bg-[#7928ca]/30 border border-[#7928ca]/40 text-xs font-medium transition-all flex items-center gap-1.5"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Create Company</span>
+              </button>
+            )}
 
-            {["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role) && (
+            {canCreateTask && (
               <button
                 onClick={() => setIsCreateTaskOpen(true)}
                 className="px-3.5 py-1.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] text-xs font-medium text-white transition-all shadow-[0_0_15px_rgba(0,112,243,0.3)] flex items-center gap-1.5"
@@ -116,7 +162,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Filter Controls */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0a0a0a] p-3 rounded-xl border border-[#1f1f1f]">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
@@ -124,7 +169,7 @@ export default function DashboardPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by title or assignee..."
+              placeholder="Search by title..."
               className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-[#555555] outline-none"
             />
           </div>
@@ -156,11 +201,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Task List */}
         <div className="vercel-card rounded-xl overflow-hidden">
           {loading ? (
             <div className="p-10 text-center text-xs font-mono text-[#888888]">Loading tasks...</div>
-          ) : filteredTasks.length === 0 ? (
+          ) : tasks.length === 0 ? (
             <div className="p-10 text-center text-xs font-mono text-[#666666]">No tasks found.</div>
           ) : (
             <div className="overflow-x-auto">
@@ -175,7 +219,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#181818]">
-                  {filteredTasks.map((t) => (
+                  {tasks.map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => setSelectedTask(t)}
@@ -217,9 +261,7 @@ export default function DashboardPage() {
                           {t.priority}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-[#cccccc]">
-                        {t.assignee?.name}
-                      </td>
+                      <td className="py-3 px-4 font-mono text-[#cccccc]">{t.assignee?.name}</td>
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={(e) => {
@@ -238,6 +280,18 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {nextCursor && (
+          <div className="flex justify-center">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-4 py-1.5 rounded-lg bg-[#111111] border border-[#222222] text-xs font-mono text-[#eaeaea] hover:bg-[#1a1a1a] disabled:opacity-50"
+            >
+              {loadingMore ? "Loading..." : "Load more"}
+            </button>
+          </div>
+        )}
       </main>
 
       <CreateTaskModal

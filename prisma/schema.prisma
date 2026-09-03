@@ -62,6 +62,8 @@ model Task {
 
   @@index([companyId, status])
   @@index([assigneeId, status])
+  @@index([companyId, priority])
+  @@index([companyId, createdAt])
 }
 
 model Comment {
@@ -74,4 +76,7 @@ model Comment {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+
+  @@index([taskId, createdAt])
+  @@index([authorId])
 }

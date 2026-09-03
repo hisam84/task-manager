@@ -45,8 +45,8 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         onClose();
         window.location.reload();
       }, 1000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to log in");
     } finally {
       setLoading(false);
     }

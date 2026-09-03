@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LogIn, KeyRound, User, AlertCircle, CheckCircle2, Shield, Check } from "lucide-react";
+import { LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface AuthLoginScreenProps {
   onSuccess?: () => void;
@@ -39,8 +39,8 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
         if (onSuccess) onSuccess();
         window.location.reload();
       }, 800);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }

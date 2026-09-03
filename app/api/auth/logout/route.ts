@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "@/lib/session";
+import { apiError } from "@/lib/http";
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete("session_user_id");
-
+    cookieStore.delete(SESSION_COOKIE);
     return NextResponse.json({ success: true, message: "Logged out successfully" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to log out" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to log out");
   }
 }

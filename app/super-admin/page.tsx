@@ -5,10 +5,19 @@ import { Navbar } from "@/components/navbar";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { Building2, Plus, Shield } from "lucide-react";
+import type { SessionUser } from "@/lib/types";
+
+interface CompanyCard {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  _count?: { users: number; tasks: number };
+}
 
 export default function SuperAdminPage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
+  const [companies, setCompanies] = useState<CompanyCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modals
@@ -87,8 +96,8 @@ export default function SuperAdminPage() {
         fetchSuperAdminData();
         window.location.reload();
       }, 800);
-    } catch (err: any) {
-      setLoginError(err.message);
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : "Super Admin authentication failed");
     } finally {
       setLoginLoading(false);
     }
@@ -114,7 +123,7 @@ export default function SuperAdminPage() {
             {/* Login Form */}
             <form onSubmit={handleSuperAdminLogin} className="p-6 space-y-4 text-xs">
               <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-900/30 text-purple-200/90 text-[11px] font-mono leading-relaxed">
-                🔐 Access to company tenant management requires Super Admin credentials.
+                Access to company tenant management requires Super Admin credentials.
               </div>
 
               {loginError && (

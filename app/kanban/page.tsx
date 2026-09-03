@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/navbar";
 import { KanbanBoard } from "@/components/kanban-board";
 import { CreateTaskModal } from "@/components/create-task-modal";
@@ -8,41 +8,55 @@ import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { Plus } from "lucide-react";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
+import { fetchTaskList } from "@/lib/api";
+import type { SessionUser, TaskStatus } from "@/lib/types";
+
+interface KanbanTask {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  dueDate?: string | null;
+  assignee: { id: string; name: string; email: string; department?: string | null };
+  creator: { id: string; name: string };
+  _count?: { comments: number };
+}
 
 export default function KanbanPage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
+  const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Modals
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
 
-  useEffect(() => {
-    fetchSessionAndTasks();
-  }, []);
-
-  async function fetchSessionAndTasks() {
+  const fetchSessionAndTasks = useCallback(async () => {
     setLoading(true);
     try {
       const authRes = await fetch("/api/auth/me");
       const authData = await authRes.json();
       setCurrentUser(authData.user);
 
-      const tasksRes = await fetch("/api/tasks");
-      const tasksData = await tasksRes.json();
-      if (Array.isArray(tasksData)) {
-        setTasks(tasksData);
+      if (!authData.user) {
+        setTasks([]);
+        return;
       }
+
+      const data = await fetchTaskList({ take: "50" });
+      setTasks(data.tasks as KanbanTask[]);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function handleStatusChange(taskId: string, newStatus: any) {
+  useEffect(() => {
+    fetchSessionAndTasks();
+  }, [fetchSessionAndTasks]);
+
+  async function handleStatusChange(taskId: string, newStatus: TaskStatus) {
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
@@ -50,7 +64,7 @@ export default function KanbanPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        fetchSessionAndTasks();
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
       }
     } catch (e) {
       console.error(e);
@@ -66,12 +80,15 @@ export default function KanbanPage() {
     );
   }
 
+  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
+  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar
         user={currentUser}
-        onOpenCreateTask={() => setIsCreateTaskOpen(true)}
-        onOpenCreateCompany={() => setIsCreateCompanyOpen(true)}
+        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
+        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -85,7 +102,7 @@ export default function KanbanPage() {
             </p>
           </div>
 
-          {["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role) && (
+          {canCreateTask && (
             <button
               onClick={() => setIsCreateTaskOpen(true)}
               className="px-4 py-2 rounded-lg bg-[#0070f3] hover:bg-[#0060df] text-xs font-medium text-white transition-all shadow-[0_0_20px_rgba(0,112,243,0.3)] flex items-center gap-2"
@@ -105,11 +122,7 @@ export default function KanbanPage() {
             tasks={tasks}
             onTaskClick={(t) => setSelectedTask(t)}
             onStatusChange={handleStatusChange}
-            onNewTaskClick={
-              ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role)
-                ? () => setIsCreateTaskOpen(true)
-                : undefined
-            }
+            onNewTaskClick={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
           />
         )}
       </main>

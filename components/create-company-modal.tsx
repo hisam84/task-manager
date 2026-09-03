@@ -72,8 +72,8 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
         onSuccess();
         onClose();
       }, 1200);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create company");
     } finally {
       setLoading(false);
     }
@@ -192,13 +192,13 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
               </div>
               <div>
                 <label className="block text-[#888888] font-mono mb-1">Password *</label>
-                <input
-                  type="text"
-                  required
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white outline-none"
-                />
+                  <input
+                    type="password"
+                    required
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white outline-none"
+                  />
               </div>
             </div>
 

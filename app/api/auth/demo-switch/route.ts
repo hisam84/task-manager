@@ -1,30 +1,44 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { demoSwitchEnabled } from "@/lib/auth";
+import {
+  SESSION_COOKIE,
+  createSessionValue,
+  sessionCookieOptions,
+} from "@/lib/session";
+import { apiError, jsonError } from "@/lib/http";
 
 export async function POST(req: Request) {
   try {
+    if (!demoSwitchEnabled()) {
+      return jsonError("Demo persona switch is disabled", 403);
+    }
+
     const { userId } = await req.json();
-    if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    if (!userId || typeof userId !== "string") {
+      return jsonError("User ID is required", 400);
     }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { company: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        companyId: true,
+        company: { select: { name: true } },
+      },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return jsonError("User not found", 404);
     }
 
     const cookieStore = await cookies();
-    cookieStore.set("session_user_id", user.id, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    });
+    cookieStore.set(SESSION_COOKIE, createSessionValue(user.id), sessionCookieOptions);
 
     return NextResponse.json({
       success: true,
@@ -38,7 +52,7 @@ export async function POST(req: Request) {
         companyName: user.company?.name ?? "Platform Wide",
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to switch persona" }, { status: 500 });
+  } catch (error) {
+    return apiError(error, "Failed to switch persona");
   }
 }
