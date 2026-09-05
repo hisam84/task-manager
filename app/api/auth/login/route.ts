@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   SESSION_COOKIE,
   checkLoginRateLimit,
+  resetLoginRateLimit,
   createSessionValue,
   getClientIp,
   sessionCookieOptions,
@@ -30,7 +31,10 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ username: input }, { email: input.toLowerCase() }],
+        OR: [
+          { username: { equals: input, mode: "insensitive" } },
+          { email: input.toLowerCase() },
+        ],
       },
       select: {
         id: true,
@@ -52,6 +56,8 @@ export async function POST(req: Request) {
     if (!isValid) {
       return jsonError("Invalid username/email or password", 401);
     }
+
+    resetLoginRateLimit(`login:${ip}`);
 
     if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
       return jsonError("Company account is inactive", 403);

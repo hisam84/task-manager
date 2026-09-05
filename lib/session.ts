@@ -77,3 +77,7 @@ export function checkLoginRateLimit(key: string, now = Date.now()): boolean {
   existing.count += 1;
   return true;
 }
+
+export function resetLoginRateLimit(key: string): void {
+  loginAttempts.delete(key);
+}
