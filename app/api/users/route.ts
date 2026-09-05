@@ -9,6 +9,7 @@ const createUserSchema = z.object({
   email: z.string().email("Valid email is required").max(255),
   role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
   department: z.string().max(120).optional(),
+  departmentId: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
   companyId: z.string().optional(),
 });
@@ -40,6 +41,10 @@ export async function GET(req: Request) {
         username: true,
         role: true,
         department: true,
+        departmentId: true,
+        departmentRel: {
+          select: { id: true, name: true },
+        },
         createdAt: true,
         company: {
           select: { id: true, name: true, slug: true },
@@ -60,7 +65,9 @@ export async function GET(req: Request) {
 
     const payload = users.map(({ assignedTasks, ...rest }) => ({
       ...rest,
+      departmentName: rest.departmentRel?.name || rest.department || "General",
       taskStats: {
+        total: assignedTasks.length,
         active: assignedTasks.filter((t) => t.status !== "DONE").length,
         done: assignedTasks.filter((t) => t.status === "DONE").length,
       },
@@ -90,7 +97,7 @@ export async function POST(req: Request) {
     }
 
     if (user.role === "MANAGER" && data.role !== "EMPLOYEE") {
-      return jsonError("Managers can only invite employees", 403);
+      return jsonError("Managers can only create employees", 403);
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -104,13 +111,21 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(data.password);
 
+    // Check department name if departmentId is supplied
+    let deptName = data.department || "General";
+    if (data.departmentId) {
+      const dept = await prisma.department.findUnique({ where: { id: data.departmentId } });
+      if (dept) deptName = dept.name;
+    }
+
     const newUser = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email.toLowerCase(),
         passwordHash,
         role: data.role,
-        department: data.department || "General",
+        department: deptName,
+        departmentId: data.departmentId || null,
         companyId: targetCompanyId,
       },
       select: {
@@ -119,6 +134,7 @@ export async function POST(req: Request) {
         email: true,
         role: true,
         department: true,
+        departmentId: true,
         createdAt: true,
       },
     });

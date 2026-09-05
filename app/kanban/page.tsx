@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Navbar } from "@/components/navbar";
+import React, { useState, useEffect, useCallback } from "react";
+import { Sidebar } from "@/components/sidebar";
 import { KanbanBoard } from "@/components/kanban-board";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
-import { Plus } from "lucide-react";
-import { AuthLoginScreen } from "@/components/auth-login-screen";
+import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Plus, KanbanSquare, Loader2 } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser, TaskStatus } from "@/lib/types";
 
@@ -27,8 +27,10 @@ export default function KanbanPage() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
 
   const fetchSessionAndTasks = useCallback(async () => {
@@ -71,66 +73,64 @@ export default function KanbanPage() {
     }
   }
 
-  if (!loading && !currentUser) {
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
+
+  if (loading || !currentUser) {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar user={null} />
-        <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
+      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
   }
 
-  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
-  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
-
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      <Sidebar
         user={currentUser}
-        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
-        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
+        onOpenChangePassword={() => setChangePasswordOpen(true)}
+        onLogout={handleLogout}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-5">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-              Interactive Kanban Board
-            </h1>
-            <p className="text-xs text-[#888888] mt-1 font-mono">
-              Drag or click column selectors to update task progress in real time
-            </p>
-          </div>
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                <KanbanSquare className="w-6 h-6 text-indigo-400" />
+                Interactive Kanban Progression Board
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">
+                Visual workflow columns (To Do, In Progress, In Review, Completed)
+              </p>
+            </div>
 
-          {canCreateTask && (
             <button
               onClick={() => setIsCreateTaskOpen(true)}
-              className="px-4 py-2 rounded-lg bg-[#0070f3] hover:bg-[#0060df] text-xs font-medium text-white transition-all shadow-[0_0_20px_rgba(0,112,243,0.3)] flex items-center gap-2"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25"
             >
               <Plus className="w-4 h-4" />
               <span>Create Task</span>
             </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="p-16 text-center text-xs font-mono text-[#888888] animate-pulse">
-            Loading Kanban board...
           </div>
-        ) : (
+
           <KanbanBoard
             tasks={tasks}
             onTaskClick={(t) => setSelectedTask(t)}
             onStatusChange={handleStatusChange}
-            onNewTaskClick={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
+            onNewTaskClick={() => setIsCreateTaskOpen(true)}
           />
-        )}
+        </div>
       </main>
 
       <CreateTaskModal
         isOpen={isCreateTaskOpen}
         onClose={() => setIsCreateTaskOpen(false)}
         onSuccess={fetchSessionAndTasks}
+        currentUserId={currentUser.id}
+        currentUserRole={currentUser.role}
       />
 
       <CreateCompanyModal
@@ -145,6 +145,11 @@ export default function KanbanPage() {
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         onTaskUpdated={fetchSessionAndTasks}
+      />
+
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
       />
     </div>
   );

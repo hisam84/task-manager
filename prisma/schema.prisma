@@ -15,8 +15,23 @@ model Company {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
+  users       User[]
+  tasks       Task[]
+  departments Department[]
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
   users User[]
   tasks Task[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
 }
 
 model User {
@@ -32,11 +47,15 @@ model User {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
+  departmentId    String?
+  departmentRel  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   assignedTasks Task[]    @relation("AssignedTo")
   createdTasks  Task[]    @relation("CreatedBy")
   comments      Comment[]
 
   @@index([companyId])
+  @@index([departmentId])
 }
 
 model Task {
@@ -52,6 +71,9 @@ model Task {
   companyId String
   company   Company @relation(fields: [companyId], references: [id])
 
+  departmentId    String?
+  departmentRel  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   assigneeId String
   assignee   User   @relation("AssignedTo", fields: [assigneeId], references: [id])
 
@@ -64,6 +86,7 @@ model Task {
   @@index([assigneeId, status])
   @@index([companyId, priority])
   @@index([companyId, createdAt])
+  @@index([departmentId])
 }
 
 model Comment {

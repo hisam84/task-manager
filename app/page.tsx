@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Navbar } from "@/components/navbar";
+import React, { useState, useEffect, useCallback } from "react";
+import { Sidebar } from "@/components/sidebar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
-import { Search, Plus, Building2 } from "lucide-react";
+import { ChangePasswordModal } from "@/components/change-password-modal";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
+import { ProgressCard, DonutChart, WorkloadBarChart } from "@/components/charts";
+import { Search, Plus, Building2, LayoutDashboard, Loader2, Filter, Layers, Users, CheckCircle2, Clock } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser } from "@/lib/types";
 
@@ -15,12 +17,14 @@ interface TaskRow {
   title: string;
   status: string;
   priority: string;
+  dueDate?: string | null;
   assignee?: { name?: string };
 }
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [reportData, setReportData] = useState<any | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -28,8 +32,10 @@ export default function DashboardPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
 
   useEffect(() => {
@@ -55,7 +61,11 @@ export default function DashboardPage() {
   const fetchSessionAndTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const authRes = await fetch("/api/auth/me");
+      const [authRes, repRes] = await Promise.all([
+        fetch("/api/auth/me"),
+        fetch("/api/reports"),
+      ]);
+
       const authData = await authRes.json();
       setCurrentUser(authData.user);
 
@@ -63,6 +73,11 @@ export default function DashboardPage() {
         setTasks([]);
         setNextCursor(null);
         return;
+      }
+
+      const repData = await repRes.json();
+      if (repData && !repData.error) {
+        setReportData(repData);
       }
 
       const data = await loadTasks();
@@ -103,201 +118,276 @@ export default function DashboardPage() {
       if (res.ok) {
         const updated = await res.json();
         setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)));
+        fetchSessionAndTasks();
       }
     } catch (e) {
       console.error(e);
     }
   }
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.reload();
+  };
+
   if (!loading && !currentUser) {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar user={null} />
+      <div className="min-h-screen flex flex-col bg-slate-950 text-white font-sans">
         <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
       </div>
     );
   }
 
-  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
-  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
+  if (loading || !currentUser) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  const isSuperAdmin = currentUser.role === "SUPER_ADMIN";
+  const isCompanyAdmin = currentUser.role === "ADMIN" || currentUser.role === "MANAGER";
+  const isEmployee = currentUser.role === "EMPLOYEE";
+
+  const metrics = reportData?.metrics || {};
+  const statusBreakdown = reportData?.statusBreakdown || {
+    TODO: tasks.filter((t) => t.status === "TODO").length,
+    IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS").length,
+    IN_REVIEW: tasks.filter((t) => t.status === "IN_REVIEW").length,
+    DONE: tasks.filter((t) => t.status === "DONE").length,
+  };
+
+  const donutItems = [
+    { label: "Completed", count: statusBreakdown.DONE || 0, color: "#10b981" },
+    { label: "In Progress", count: statusBreakdown.IN_PROGRESS || 0, color: "#3b82f6" },
+    { label: "In Review", count: statusBreakdown.IN_REVIEW || 0, color: "#8b5cf6" },
+    { label: "To Do", count: statusBreakdown.TODO || 0, color: "#f59e0b" },
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      <Sidebar
         user={currentUser}
-        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
-        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
+        onOpenChangePassword={() => setChangePasswordOpen(true)}
+        onLogout={handleLogout}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#1f1f1f] pb-4">
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-white">Tasks Overview</h1>
-            <p className="text-xs text-[#888888] font-mono mt-0.5">
-              {currentUser?.companyName || "Platform Wide"} ({tasks.length}
-              {nextCursor ? "+" : ""} tasks)
-            </p>
-          </div>
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                <LayoutDashboard className="w-6 h-6 text-indigo-400" />
+                {isSuperAdmin
+                  ? "Platform Global Dashboard"
+                  : isCompanyAdmin
+                  ? `${currentUser.companyName || "Company"} Admin Dashboard`
+                  : "My Task Progression Workspace"}
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">
+                Welcome back, <span className="text-white font-medium">{currentUser.name}</span>! Role:{" "}
+                <span className="text-indigo-400 font-semibold">{currentUser.role}</span>
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2">
-            {canCreateCompany && (
-              <button
-                onClick={() => setIsCreateCompanyOpen(true)}
-                className="px-3.5 py-1.5 rounded-lg bg-[#7928ca]/20 text-purple-300 hover:bg-[#7928ca]/30 border border-[#7928ca]/40 text-xs font-medium transition-all flex items-center gap-1.5"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Create Company</span>
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {isSuperAdmin && (
+                <button
+                  onClick={() => setIsCreateCompanyOpen(true)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Create Company
+                </button>
+              )}
 
-            {canCreateTask && (
               <button
                 onClick={() => setIsCreateTaskOpen(true)}
-                className="px-3.5 py-1.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] text-xs font-medium text-white transition-all shadow-[0_0_15px_rgba(0,112,243,0.3)] flex items-center gap-1.5"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Task</span>
+                <Plus className="w-4 h-4" />
+                {isEmployee ? "Create Self Task" : "Create Task"}
               </button>
-            )}
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0a0a0a] p-3 rounded-xl border border-[#1f1f1f]">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by title..."
-              className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-[#555555] outline-none"
+          {/* Metric Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ProgressCard
+              title="Task Completion Rate"
+              value={`${metrics.overallCompletionRate || metrics.completionRate || 0}%`}
+              percentage={metrics.overallCompletionRate || metrics.completionRate || 0}
+              subtitle="Completion Progress"
+              color="emerald"
+            />
+            <ProgressCard
+              title={isSuperAdmin ? "Total Platform Companies" : isCompanyAdmin ? "Total Employees" : "My Assigned Tasks"}
+              value={isSuperAdmin ? metrics.totalCompanies || 0 : isCompanyAdmin ? metrics.totalEmployees || 0 : metrics.totalAssigned || tasks.length}
+              subtitle={isSuperAdmin ? "Tenant Workspaces" : isCompanyAdmin ? "Company Team" : "Active & Completed"}
+              color="indigo"
+            />
+            <ProgressCard
+              title="Completed Tasks"
+              value={statusBreakdown.DONE || 0}
+              subtitle="Done Workflow"
+              color="blue"
+            />
+            <ProgressCard
+              title="In Progress / Pending"
+              value={(statusBreakdown.IN_PROGRESS || 0) + (statusBreakdown.TODO || 0)}
+              subtitle="Active Tasks"
+              color="amber"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#111111] border border-[#222222] text-xs font-mono text-[#eaeaea] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="TODO">To Do</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="IN_REVIEW">In Review</option>
-              <option value="DONE">Completed</option>
-            </select>
-
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="bg-[#111111] border border-[#222222] text-xs font-mono text-[#eaeaea] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer"
-            >
-              <option value="ALL">All Priorities</option>
-              <option value="URGENT">Urgent</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="vercel-card rounded-xl overflow-hidden">
-          {loading ? (
-            <div className="p-10 text-center text-xs font-mono text-[#888888]">Loading tasks...</div>
-          ) : tasks.length === 0 ? (
-            <div className="p-10 text-center text-xs font-mono text-[#666666]">No tasks found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-[#1f1f1f] bg-[#050505] text-[#666666] font-mono uppercase text-[10px]">
-                    <th className="py-2.5 px-4">Title</th>
-                    <th className="py-2.5 px-4">Status</th>
-                    <th className="py-2.5 px-4">Priority</th>
-                    <th className="py-2.5 px-4">Assignee</th>
-                    <th className="py-2.5 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#181818]">
-                  {tasks.map((t) => (
-                    <tr
-                      key={t.id}
-                      onClick={() => setSelectedTask(t)}
-                      className="hover:bg-[#111111] transition-all cursor-pointer group"
-                    >
-                      <td className="py-3 px-4">
-                        <span className="font-semibold text-white group-hover:text-[#0070f3] transition-colors">
-                          {t.title}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <select
-                          value={t.status}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleQuickStatusChange(t.id, e.target.value);
-                          }}
-                          className="bg-[#111111] border border-[#2a2a2a] rounded px-2 py-0.5 text-[11px] font-mono text-[#eaeaea] outline-none cursor-pointer"
-                        >
-                          <option value="TODO">To Do</option>
-                          <option value="IN_PROGRESS">In Progress</option>
-                          <option value="IN_REVIEW">In Review</option>
-                          <option value="DONE">Completed</option>
-                        </select>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                            t.priority === "URGENT"
-                              ? "bg-pink-950/60 text-pink-400 border-pink-800/50"
-                              : t.priority === "HIGH"
-                              ? "bg-amber-950/50 text-amber-400 border-amber-800/40"
-                              : t.priority === "MEDIUM"
-                              ? "bg-cyan-950/50 text-cyan-400 border-cyan-800/40"
-                              : "bg-zinc-900 text-zinc-400 border-zinc-800"
-                          }`}
-                        >
-                          {t.priority}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 font-mono text-[#cccccc]">{t.assignee?.name}</td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTask(t);
-                          }}
-                          className="px-2.5 py-1 rounded bg-[#1f1f1f] hover:bg-[#2b2b2b] text-[11px] font-mono text-[#eaeaea] transition-all"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Donut Chart & Filter Controls */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <h3 className="text-sm font-semibold text-white mb-3">Status Distribution</h3>
+              <DonutChart items={donutItems} totalLabel="Tasks" />
             </div>
-          )}
-        </div>
 
-        {nextCursor && (
-          <div className="flex justify-center">
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="px-4 py-1.5 rounded-lg bg-[#111111] border border-[#222222] text-xs font-mono text-[#eaeaea] hover:bg-[#1a1a1a] disabled:opacity-50"
-            >
-              {loadingMore ? "Loading..." : "Load more"}
-            </button>
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search task title..."
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="IN_REVIEW">In Review</option>
+                    <option value="DONE">Completed</option>
+                  </select>
+
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                  >
+                    <option value="ALL">All Priorities</option>
+                    <option value="URGENT">Urgent</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tasks Table */}
+              <div className="overflow-x-auto rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                {tasks.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    No tasks found matching your filters.
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                        <th className="py-3 px-4">Task Title</th>
+                        <th className="py-3 px-4">Status Progression</th>
+                        <th className="py-3 px-4">Priority</th>
+                        <th className="py-3 px-4">Assignee</th>
+                        <th className="py-3 px-4 text-right">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {tasks.map((t) => (
+                        <tr
+                          key={t.id}
+                          onClick={() => setSelectedTask(t)}
+                          className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        >
+                          <td className="py-3 px-4 font-semibold text-white group-hover:text-indigo-400 transition-colors">
+                            {t.title}
+                          </td>
+                          <td className="py-3 px-4">
+                            <select
+                              value={t.status}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleQuickStatusChange(t.id, e.target.value);
+                              }}
+                              className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-200 outline-none cursor-pointer hover:border-indigo-500 transition-colors"
+                            >
+                              <option value="TODO">To Do</option>
+                              <option value="IN_PROGRESS">In Progress</option>
+                              <option value="IN_REVIEW">In Review</option>
+                              <option value="DONE">Completed</option>
+                            </select>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                t.priority === "URGENT"
+                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                  : t.priority === "HIGH"
+                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                  : t.priority === "MEDIUM"
+                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                  : "bg-slate-800 text-slate-400 border-slate-700"
+                              }`}
+                            >
+                              {t.priority}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-300 font-medium">{t.assignee?.name || "Unassigned"}</td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTask(t);
+                              }}
+                              className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition-colors"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {nextCursor && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="px-5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? "Loading..." : "Load More Tasks"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </main>
 
       <CreateTaskModal
         isOpen={isCreateTaskOpen}
         onClose={() => setIsCreateTaskOpen(false)}
         onSuccess={fetchSessionAndTasks}
+        currentUserId={currentUser.id}
+        currentUserRole={currentUser.role}
       />
 
       <CreateCompanyModal
@@ -312,6 +402,11 @@ export default function DashboardPage() {
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         onTaskUpdated={fetchSessionAndTasks}
+      />
+
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
       />
     </div>
   );

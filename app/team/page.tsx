@@ -1,162 +1,247 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Navbar } from "@/components/navbar";
-import { InviteUserModal } from "@/components/invite-user-modal";
-import { CreateTaskModal } from "@/components/create-task-modal";
-import { CreateCompanyModal } from "@/components/create-company-modal";
-import { UserPlus, Mail } from "lucide-react";
-import { AuthLoginScreen } from "@/components/auth-login-screen";
+import React, { useState, useEffect } from "react";
+import { Sidebar } from "@/components/sidebar";
+import { EmployeeModal } from "@/components/employee-modal";
+import { ResetPasswordModal } from "@/components/reset-password-modal";
+import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Users, Plus, Edit2, Trash2, KeyRound, Loader2, Search } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department?: string | null;
-  taskStats?: { active: number; done: number };
-}
-
 export default function TeamPage() {
-  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
-  const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  async function fetchData() {
-    setLoading(true);
+  const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetTargetUser, setResetTargetUser] = useState<any | null>(null);
+
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+
+  useEffect(() => {
+    fetchSessionAndTeamData();
+  }, []);
+
+  async function fetchSessionAndTeamData() {
     try {
-      const authRes = await fetch("/api/auth/me");
-      const authData = await authRes.json();
-      setCurrentUser(authData.user);
+      setLoading(true);
+      const [meRes, empRes, deptRes] = await Promise.all([
+        fetch("/api/auth/me"),
+        fetch("/api/users"),
+        fetch("/api/departments"),
+      ]);
 
-      if (!authData.user) {
-        setTeamMembers([]);
-        return;
-      }
+      const meData = await meRes.json();
+      if (meData?.user) setUser(meData.user);
 
-      const usersRes = await fetch("/api/users");
-      const usersData = await usersRes.json();
-      if (Array.isArray(usersData)) {
-        setTeamMembers(usersData);
-      }
-    } catch (e) {
-      console.error(e);
+      const empData = await empRes.json();
+      if (Array.isArray(empData)) setEmployees(empData);
+
+      const deptData = await deptRes.json();
+      if (Array.isArray(deptData)) setDepartments(deptData);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleDeleteEmployee = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete ${name}'s account?`)) return;
+    try {
+      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchSessionAndTeamData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  const canInvite = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
-  const canCreateCompany = currentUser?.role === "SUPER_ADMIN";
-  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(currentUser?.role ?? "");
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
 
-  if (!loading && !currentUser) {
+  const filteredEmployees = employees.filter(
+    (e) =>
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.email.toLowerCase().includes(search.toLowerCase()) ||
+      (e.departmentName && e.departmentName.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar user={null} />
-        <AuthLoginScreen onSuccess={fetchData} />
+      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar
-        user={currentUser}
-        onOpenCreateTask={canCreateTask ? () => setIsCreateTaskOpen(true) : undefined}
-        onOpenCreateCompany={canCreateCompany ? () => setIsCreateCompanyOpen(true) : undefined}
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      <Sidebar
+        user={user}
+        onOpenChangePassword={() => setChangePasswordOpen(true)}
+        onLogout={handleLogout}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-4">
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-white">Team Directory</h1>
-            <p className="text-xs text-[#888888] font-mono mt-0.5">
-              {currentUser?.companyName || "Platform Wide"} members
-            </p>
-          </div>
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                <Users className="w-6 h-6 text-emerald-400" />
+                Employee Team Directory
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">
+                Manage employees, assign roles, reset passwords, and assign departments
+              </p>
+            </div>
 
-          {canInvite && (
             <button
-              onClick={() => setIsInviteOpen(true)}
-              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-medium text-white transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5"
+              onClick={() => {
+                setEditingEmployee(null);
+                setEmployeeModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-600/25"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Add Member</span>
+              <Plus className="w-4 h-4" />
+              Add Employee
             </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="p-10 text-center text-xs font-mono text-[#888888]">Loading team...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teamMembers.map((member) => {
-              const activeCount = member.taskStats?.active ?? 0;
-              const completedCount = member.taskStats?.done ?? 0;
-
-              return (
-                <div
-                  key={member.id}
-                  className="vercel-card rounded-xl p-4 flex flex-col justify-between hover:border-[#333333] transition-all space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-[#151515] border border-[#2e2e2e] flex items-center justify-center text-xs font-mono font-bold text-white">
-                        {member.name?.[0]}
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-semibold text-white">{member.name}</h3>
-                        <span className="text-[11px] font-mono text-[#888888] flex items-center gap-1 mt-0.5">
-                          <Mail className="w-3 h-3 text-[#555555]" />
-                          {member.email}
-                        </span>
-                      </div>
-                    </div>
-
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#111111] border border-[#222222] text-cyan-300">
-                      {member.role}
-                    </span>
-                  </div>
-
-                  <div className="pt-2.5 border-t border-[#1a1a1a] flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#777777]">{member.department || "General"}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-400">{activeCount} active</span>
-                      <span className="text-emerald-400">{completedCount} done</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
-        )}
+
+          {/* Controls Bar */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or department..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          {/* Employees Table */}
+          <div className="overflow-x-auto rounded-2xl bg-slate-900/60 border border-slate-800/80">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                  <th className="p-4">Employee</th>
+                  <th className="p-4">Role</th>
+                  <th className="p-4">Department</th>
+                  <th className="p-4">Assigned Tasks</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {filteredEmployees.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                      No employees found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEmployees.map((emp) => (
+                    <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-4 font-medium">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs">
+                            {emp.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-white">{emp.name}</div>
+                            <div className="text-[11px] text-slate-400">{emp.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            emp.role === "ADMIN"
+                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                              : emp.role === "MANAGER"
+                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                              : "bg-slate-800 text-slate-300 border-slate-700"
+                          }`}
+                        >
+                          {emp.role}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-[11px]">
+                          {emp.departmentName || "General"}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-medium text-white">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => {
+                              setResetTargetUser(emp);
+                              setResetModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            title="Reset Employee Password"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingEmployee(emp);
+                              setEmployeeModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            title="Edit Employee"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEmployee(emp.id, emp.name)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Delete Employee"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </main>
 
-      <InviteUserModal
-        isOpen={isInviteOpen}
-        onClose={() => setIsInviteOpen(false)}
-        onSuccess={fetchData}
+      <EmployeeModal
+        isOpen={employeeModalOpen}
+        onClose={() => setEmployeeModalOpen(false)}
+        onSuccess={fetchSessionAndTeamData}
+        employeeToEdit={editingEmployee}
+        departments={departments}
       />
 
-      <CreateTaskModal
-        isOpen={isCreateTaskOpen}
-        onClose={() => setIsCreateTaskOpen(false)}
-        onSuccess={fetchData}
+      <ResetPasswordModal
+        isOpen={resetModalOpen}
+        onClose={() => setResetModalOpen(false)}
+        targetUser={resetTargetUser}
       />
 
-      <CreateCompanyModal
-        isOpen={isCreateCompanyOpen}
-        onClose={() => setIsCreateCompanyOpen(false)}
-        onSuccess={fetchData}
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
       />
     </div>
   );

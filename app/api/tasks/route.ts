@@ -12,9 +12,10 @@ const createTaskSchema = z.object({
   description: z.string().max(5000).optional().nullable(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
-  assigneeId: z.string().min(1, "Assignee is required"),
+  assigneeId: z.string().optional(),
   dueDate: z.string().optional().nullable(),
   companyId: z.string().optional(),
+  departmentId: z.string().optional(),
 });
 
 const MAX_PAGE_SIZE = 50;
@@ -46,18 +47,25 @@ export async function GET(req: Request) {
     }
 
     const manager = isManagerOrAdmin(user.role);
-    const filterAssignee = manager ? assigneeParam : user.id;
-
+    // Non-managers can see tasks assigned to them OR created by them (self tasks)
     const where = {
       ...(targetCompanyId ? { companyId: targetCompanyId } : {}),
       ...(statusParam ? { status: statusParam } : {}),
       ...(priorityParam ? { priority: priorityParam } : {}),
-      ...(filterAssignee ? { assigneeId: filterAssignee } : {}),
+      ...(manager
+        ? assigneeParam
+          ? { assigneeId: assigneeParam }
+          : {}
+        : { OR: [{ assigneeId: user.id }, { creatorId: user.id }] }),
       ...(q
         ? {
-            OR: [
-              { title: { contains: q, mode: "insensitive" as const } },
-              { description: { contains: q, mode: "insensitive" as const } },
+            AND: [
+              {
+                OR: [
+                  { title: { contains: q, mode: "insensitive" as const } },
+                  { description: { contains: q, mode: "insensitive" as const } },
+                ],
+              },
             ],
           }
         : {}),
@@ -84,8 +92,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (!user || !isManagerOrAdmin(user.role)) {
-      return jsonError("Forbidden: Manager or Admin required", 403);
+    if (!user) {
+      return jsonError("Unauthorized", 401);
     }
 
     const body = await req.json();
@@ -98,8 +106,12 @@ export async function POST(req: Request) {
       return jsonError("Target company required", 400);
     }
 
+    const isManager = isManagerOrAdmin(user.role);
+    // If not manager, forced self-assignment
+    const finalAssigneeId = isManager ? data.assigneeId || user.id : user.id;
+
     const assignee = await prisma.user.findUnique({
-      where: { id: data.assigneeId },
+      where: { id: finalAssigneeId },
       select: { id: true, companyId: true },
     });
 
@@ -117,9 +129,10 @@ export async function POST(req: Request) {
         description: data.description,
         priority: data.priority,
         status: data.status,
-        assigneeId: data.assigneeId,
+        assigneeId: finalAssigneeId,
         creatorId: user.id,
         companyId: targetCompanyId,
+        departmentId: data.departmentId || null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
       },
       select: TASK_LIST_SELECT,
