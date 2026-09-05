@@ -1,130 +1,113 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, hashPassword, isManagerOrAdmin } from "@/lib/auth";
+import { getCurrentUser, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { apiError, jsonError } from "@/lib/http";
-
-const createUserSchema = z.object({
-  name: z.string().min(1, "Name is required").max(120),
-  email: z.string().email("Valid email is required").max(255),
-  role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
-  department: z.string().max(120).optional(),
-  password: z.string().min(6, "Password must be at least 6 characters").max(128),
-  companyId: z.string().optional(),
-});
+import { apiError, jsonError, USER_PUBLIC_SELECT } from "@/lib/http";
+import { createEmployeeSchema } from "@/lib/validations";
+import { canManageEmployees } from "@/lib/domain";
+import { summarizeTasks } from "@/lib/task-stats";
 
 export async function GET(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return jsonError("Unauthorized", 401);
-    }
+    if (!user) return jsonError("Unauthorized", 401);
+    if (!user.companyId) return jsonError("No company assigned", 403);
 
     const { searchParams } = new URL(req.url);
-    const requestedCompanyId = searchParams.get("companyId");
-    const targetCompanyId =
-      user.role === "SUPER_ADMIN" ? requestedCompanyId || user.companyId : user.companyId;
-
-    if (!targetCompanyId && user.role !== "SUPER_ADMIN") {
-      return jsonError("Company ID required", 400);
-    }
+    const q = searchParams.get("q")?.trim() ?? "";
+    const departmentId = searchParams.get("departmentId");
+    const status = searchParams.get("status");
 
     const users = await prisma.user.findMany({
       where: {
-        ...(targetCompanyId ? { companyId: targetCompanyId } : {}),
+        companyId: user.companyId,
+        role: "EMPLOYEE",
+        ...(departmentId ? { departmentId } : {}),
+        ...(status === "active" ? { isActive: true } : {}),
+        ...(status === "inactive" ? { isActive: false } : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: "insensitive" } },
+                { email: { contains: q, mode: "insensitive" } },
+                { employeeCode: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        role: true,
-        department: true,
-        createdAt: true,
-        company: {
-          select: { id: true, name: true, slug: true },
-        },
-        _count: {
-          select: {
-            assignedTasks: true,
-            createdTasks: true,
-          },
-        },
+        ...USER_PUBLIC_SELECT,
         assignedTasks: {
-          select: { status: true },
+          select: { status: true, dueDate: true, completedAt: true, createdAt: true },
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 100,
+      take: 200,
     });
 
     const payload = users.map(({ assignedTasks, ...rest }) => ({
       ...rest,
-      taskStats: {
-        active: assignedTasks.filter((t) => t.status !== "DONE").length,
-        done: assignedTasks.filter((t) => t.status === "DONE").length,
-      },
+      taskStats: summarizeTasks(assignedTasks),
     }));
 
     return NextResponse.json(payload);
   } catch (error) {
-    return apiError(error, "Failed to fetch users");
+    return apiError(error, "Failed to fetch employees");
   }
 }
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (!user || !isManagerOrAdmin(user.role)) {
-      return jsonError("Forbidden: Admin or Manager required", 403);
+    if (!user || !canManageEmployees(user.role) || !user.companyId) {
+      return jsonError("Forbidden", 403);
     }
 
     const body = await req.json();
-    const data = createUserSchema.parse(body);
+    const data = createEmployeeSchema.parse(body);
+    const email = data.email.toLowerCase();
 
-    const targetCompanyId =
-      user.role === "SUPER_ADMIN" ? data.companyId || user.companyId : user.companyId;
-
-    if (!targetCompanyId) {
-      return jsonError("Target company is required", 400);
-    }
-
-    if (user.role === "MANAGER" && data.role !== "EMPLOYEE") {
-      return jsonError("Managers can only invite employees", 403);
-    }
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email.toLowerCase() },
-      select: { id: true },
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          ...(data.username ? [{ username: data.username }] : []),
+        ],
+      },
+      select: { id: true, email: true, username: true },
     });
-
-    if (existingUser) {
-      return jsonError("User with this email already exists", 400);
+    if (existing) {
+      if (existing.email === email) return jsonError("An employee with this email already exists", 400);
+      return jsonError("Username already exists", 400);
     }
 
-    const passwordHash = await hashPassword(data.password);
+    if (data.departmentId) {
+      const dept = await prisma.department.findFirst({
+        where: { id: data.departmentId, companyId: user.companyId },
+        select: { id: true },
+      });
+      if (!dept) return jsonError("Department not found", 400);
+    }
 
     const newUser = await prisma.user.create({
       data: {
         name: data.name,
-        email: data.email.toLowerCase(),
-        passwordHash,
-        role: data.role,
-        department: data.department || "General",
-        companyId: targetCompanyId,
+        email,
+        username: data.username || null,
+        passwordHash: await hashPassword(data.password),
+        role: "EMPLOYEE",
+        phone: data.phone ?? null,
+        employeeCode: data.employeeCode ?? null,
+        designation: data.designation ?? null,
+        isActive: data.isActive ?? true,
+        joiningDate: data.joiningDate ? new Date(data.joiningDate) : new Date(),
+        companyId: user.companyId,
+        departmentId: data.departmentId ?? null,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        createdAt: true,
-      },
+      select: USER_PUBLIC_SELECT,
     });
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
-    return apiError(error, "Failed to create user");
+    return apiError(error, "Failed to create employee");
   }
 }

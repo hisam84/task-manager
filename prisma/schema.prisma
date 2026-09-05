@@ -9,61 +9,107 @@ datasource db {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  isActive     Boolean  @default(true)
+  contactEmail String?
+  contactPhone String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users       User[]
+  tasks       Task[]
+  departments Department[]
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   users User[]
   tasks Task[]
+
+  @@unique([companyId, name])
+  @@index([companyId, isActive])
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  username     String?  @unique
-  passwordHash String
-  role         String   @default("EMPLOYEE") // SUPER_ADMIN, ADMIN, MANAGER, EMPLOYEE
-  department   String?
-  createdAt    DateTime @default(now())
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  username      String?   @unique
+  passwordHash  String
+  role          String    @default("EMPLOYEE")
+  phone         String?
+  employeeCode  String?
+  designation   String?
+  isActive      Boolean   @default(true)
+  joiningDate   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  assignedTasks Task[]    @relation("AssignedTo")
-  createdTasks  Task[]    @relation("CreatedBy")
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  assignedTasks Task[]          @relation("AssignedTo")
+  createdTasks  Task[]          @relation("CreatedBy")
   comments      Comment[]
+  activities    TaskActivity[]
 
-  @@index([companyId])
+  @@index([companyId, role])
+  @@index([departmentId])
+  @@index([companyId, isActive])
 }
 
 model Task {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  status      String    @default("TODO") // TODO, IN_PROGRESS, IN_REVIEW, DONE
-  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  title            String
+  description      String?
+  status           String    @default("PENDING")
+  priority         String    @default("MEDIUM")
+  progress         Int       @default(0)
+  startDate        DateTime?
+  dueDate          DateTime?
+  completedAt      DateTime?
+  isSelfTask       Boolean   @default(false)
+  adminComment     String?
+  employeeComment  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   companyId String
-  company   Company @relation(fields: [companyId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   assigneeId String
-  assignee   User   @relation("AssignedTo", fields: [assigneeId], references: [id])
+  assignee   User   @relation("AssignedTo", fields: [assigneeId], references: [id], onDelete: Cascade)
 
   creatorId String
-  creator   User   @relation("CreatedBy", fields: [creatorId], references: [id])
+  creator   User   @relation("CreatedBy", fields: [creatorId], references: [id], onDelete: Restrict)
 
-  comments Comment[]
+  comments   Comment[]
+  activities TaskActivity[]
 
   @@index([companyId, status])
   @@index([assigneeId, status])
   @@index([companyId, priority])
   @@index([companyId, createdAt])
+  @@index([companyId, dueDate])
+  @@index([departmentId])
+  @@index([isSelfTask])
 }
 
 model Comment {
@@ -75,8 +121,23 @@ model Comment {
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([taskId, createdAt])
   @@index([authorId])
+}
+
+model TaskActivity {
+  id        String   @id @default(cuid())
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
 }

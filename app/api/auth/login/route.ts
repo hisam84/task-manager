@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { z } from "zod";
 import {
   SESSION_COOKIE,
   checkLoginRateLimit,
@@ -11,11 +10,8 @@ import {
   sessionCookieOptions,
 } from "@/lib/session";
 import { apiError, jsonError } from "@/lib/http";
-
-const loginSchema = z.object({
-  usernameOrEmail: z.string().min(1, "Username or email is required").max(255),
-  password: z.string().min(1, "Password is required").max(256),
-});
+import { loginSchema } from "@/lib/validations";
+import { homePathForRole } from "@/lib/domain";
 
 export async function POST(req: Request) {
   try {
@@ -38,8 +34,9 @@ export async function POST(req: Request) {
         email: true,
         username: true,
         role: true,
-        department: true,
+        isActive: true,
         passwordHash: true,
+        department: { select: { name: true } },
         company: { select: { name: true, isActive: true } },
       },
     });
@@ -53,6 +50,10 @@ export async function POST(req: Request) {
       return jsonError("Invalid username/email or password", 401);
     }
 
+    if (!user.isActive) {
+      return jsonError("This account is inactive", 403);
+    }
+
     if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
       return jsonError("Company account is inactive", 403);
     }
@@ -62,13 +63,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
+      redirectTo: homePathForRole(user.role),
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         username: user.username,
         role: user.role,
-        department: user.department,
+        department: user.department?.name ?? null,
         companyName: user.company?.name ?? null,
       },
     });

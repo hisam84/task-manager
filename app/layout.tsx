@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Task Manager — Multi-Tenant Enterprise",
-  description: "Next.js 15 multi-tenant employee task manager.",
+  title: "Task Manager",
+  description: "Role-based task manager for companies, departments, and employees.",
 };
 
 export default function RootLayout({

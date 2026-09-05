@@ -1,31 +1,14 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 import { apiError, jsonError } from "@/lib/http";
-
-const createCompanySchema = z.object({
-  name: z.string().min(1, "Company name is required").max(120),
-  slug: z
-    .string()
-    .min(1, "Slug is required")
-    .max(80)
-    .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, hyphens"),
-  adminName: z.string().min(1, "Admin name is required").max(120),
-  adminUsername: z
-    .string()
-    .min(3, "Admin username must be at least 3 characters")
-    .max(40)
-    .regex(/^[a-zA-Z0-9_.-]+$/, "Username can only contain letters, numbers, underscores, dots, and hyphens"),
-  adminEmail: z.string().email("Valid admin email is required").max(255),
-  adminPassword: z.string().min(6, "Password must be at least 6 characters").max(128),
-  department: z.string().max(120).optional(),
-});
+import { createCompanySchema } from "@/lib/validations";
+import { canManageCompanies } from "@/lib/domain";
 
 export async function GET() {
   try {
     const user = await getCurrentUser();
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!user || !canManageCompanies(user.role)) {
       return jsonError("Forbidden: Super Admin required", 403);
     }
 
@@ -35,9 +18,16 @@ export async function GET() {
         name: true,
         slug: true,
         isActive: true,
+        contactEmail: true,
+        contactPhone: true,
         createdAt: true,
+        users: {
+          where: { role: { in: ["ADMIN", "MANAGER"] } },
+          select: { id: true, name: true, email: true, username: true },
+          take: 3,
+        },
         _count: {
-          select: { users: true, tasks: true },
+          select: { users: true, tasks: true, departments: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -53,7 +43,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser || currentUser.role !== "SUPER_ADMIN") {
+    if (!currentUser || !canManageCompanies(currentUser.role)) {
       return jsonError("Forbidden: Super Admin required", 403);
     }
 
@@ -66,42 +56,60 @@ export async function POST(req: Request) {
       prisma.user.findUnique({ where: { username: data.adminUsername }, select: { id: true } }),
     ]);
 
-    if (existingSlug) {
-      return jsonError("Company slug already exists", 400);
-    }
-    if (existingEmail) {
-      return jsonError("Admin email already exists", 400);
-    }
-    if (existingUsername) {
-      return jsonError("Admin username already exists", 400);
-    }
+    if (existingSlug) return jsonError("Company code already exists", 400);
+    if (existingEmail) return jsonError("Admin email already exists", 400);
+    if (existingUsername) return jsonError("Admin username already exists", 400);
 
     const passwordHash = await hashPassword(data.adminPassword);
 
     const company = await prisma.$transaction(async (tx) => {
-      return tx.company.create({
+      const created = await tx.company.create({
         data: {
           name: data.name,
           slug: data.slug,
-          isActive: true,
-          users: {
-            create: {
-              name: data.adminName,
-              email: data.adminEmail.toLowerCase(),
-              username: data.adminUsername,
-              passwordHash,
-              role: "ADMIN",
-              department: data.department || "Executive Leadership",
-            },
-          },
+          isActive: data.isActive ?? true,
+          contactEmail: data.contactEmail || null,
+          contactPhone: data.contactPhone || null,
         },
+      });
+
+      const general = await tx.department.create({
+        data: {
+          name: "General",
+          description: "Default department",
+          companyId: created.id,
+        },
+      });
+
+      await tx.user.create({
+        data: {
+          name: data.adminName,
+          email: data.adminEmail.toLowerCase(),
+          username: data.adminUsername,
+          passwordHash,
+          role: "ADMIN",
+          designation: "Company Admin",
+          companyId: created.id,
+          departmentId: general.id,
+        },
+      });
+
+      return tx.company.findUniqueOrThrow({
+        where: { id: created.id },
         select: {
           id: true,
           name: true,
           slug: true,
           isActive: true,
+          contactEmail: true,
+          contactPhone: true,
           createdAt: true,
-          _count: { select: { users: true, tasks: true } },
+          users: {
+            where: { role: { in: ["ADMIN", "MANAGER"] } },
+            select: { id: true, name: true, email: true, username: true },
+            take: 3,
+          },
+          _count: { select: { users: true, tasks: true, departments: true } },
         },
       });
     });

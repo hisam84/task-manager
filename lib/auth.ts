@@ -14,8 +14,14 @@ const USER_SESSION_SELECT = {
   email: true,
   username: true,
   role: true,
-  department: true,
+  phone: true,
+  employeeCode: true,
+  designation: true,
+  isActive: true,
+  joiningDate: true,
   companyId: true,
+  departmentId: true,
+  department: { select: { id: true, name: true } },
   company: {
     select: { id: true, name: true, slug: true, isActive: true },
   },
@@ -33,6 +39,41 @@ export function demoSwitchEnabled(): boolean {
   return process.env.ENABLE_DEMO_SWITCH === "true";
 }
 
+function toSessionUser(user: {
+  id: string;
+  name: string;
+  email: string;
+  username: string | null;
+  role: string;
+  phone: string | null;
+  employeeCode: string | null;
+  designation: string | null;
+  isActive: boolean;
+  joiningDate: Date | null;
+  companyId: string | null;
+  departmentId: string | null;
+  department: { id: string; name: string } | null;
+  company: { id: string; name: string; slug: string; isActive: boolean } | null;
+}): SessionUser {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    username: user.username,
+    role: user.role as SessionUser["role"],
+    phone: user.phone,
+    employeeCode: user.employeeCode,
+    designation: user.designation,
+    isActive: user.isActive,
+    joiningDate: user.joiningDate?.toISOString() ?? null,
+    departmentId: user.departmentId,
+    departmentName: user.department?.name ?? null,
+    companyId: user.companyId,
+    companyName: user.company?.name ?? null,
+    companySlug: user.company?.slug ?? null,
+  };
+}
+
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const userId = parseSessionValue(cookieStore.get(SESSION_COOKIE)?.value);
@@ -44,22 +85,12 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     select: USER_SESSION_SELECT,
   });
 
-  if (!user) return null;
+  if (!user || !user.isActive) return null;
   if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
     return null;
   }
 
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    username: user.username,
-    role: user.role as SessionUser["role"],
-    department: user.department,
-    companyId: user.companyId,
-    companyName: user.company?.name ?? null,
-    companySlug: user.company?.slug ?? null,
-  };
+  return toSessionUser(user);
 }
 
 export async function getAllDemoPersonas() {
@@ -72,7 +103,7 @@ export async function getAllDemoPersonas() {
       email: true,
       username: true,
       role: true,
-      department: true,
+      department: { select: { name: true } },
       company: { select: { name: true } },
     },
     orderBy: { role: "asc" },
@@ -85,7 +116,7 @@ export async function getAllDemoPersonas() {
     email: u.email,
     username: u.username,
     role: u.role,
-    department: u.department,
+    department: u.department?.name ?? null,
     companyName: u.company?.name ?? "Platform Wide",
   }));
 }

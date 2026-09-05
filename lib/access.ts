@@ -1,19 +1,25 @@
 import type { SessionUser } from "@/lib/types";
+import { isCompanyAdmin, isSuperAdmin } from "@/lib/domain";
 
 export function isManagerOrAdmin(role: string): boolean {
-  return role === "SUPER_ADMIN" || role === "ADMIN" || role === "MANAGER";
+  return isCompanyAdmin(role);
 }
 
 export function canCreateCompany(role?: string | null): boolean {
-  return role === "SUPER_ADMIN";
+  return isSuperAdmin(role ?? "");
 }
 
 export function canAccessTask(
   user: SessionUser,
   task: { companyId: string; assigneeId: string }
 ): boolean {
-  if (user.role === "SUPER_ADMIN") return true;
+  if (isSuperAdmin(user.role)) return false;
   if (!user.companyId || task.companyId !== user.companyId) return false;
-  if (isManagerOrAdmin(user.role)) return true;
+  if (isCompanyAdmin(user.role)) return true;
   return task.assigneeId === user.id;
+}
+
+export function requireCompanyId(user: SessionUser): string | null {
+  if (isSuperAdmin(user.role)) return null;
+  return user.companyId ?? null;
 }

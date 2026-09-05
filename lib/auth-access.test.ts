@@ -15,12 +15,12 @@ function user(partial: Partial<SessionUser>): SessionUser {
 }
 
 describe("canAccessTask", () => {
-  it("lets super admins access any task", () => {
+  it("does not let super admins access company tasks", () => {
     const ok = canAccessTask(user({ role: "SUPER_ADMIN", companyId: null }), {
       companyId: "other",
       assigneeId: "someone",
     });
-    assert.equal(ok, true);
+    assert.equal(ok, false);
   });
 
   it("blocks employees from another user's task in the same company", () => {
@@ -45,5 +45,13 @@ describe("canAccessTask", () => {
       assigneeId: "emp1",
     });
     assert.equal(ok, false);
+  });
+
+  it("allows company admins to access tasks in their company", () => {
+    const ok = canAccessTask(user({ role: "ADMIN", companyId: "c1" }), {
+      companyId: "c1",
+      assigneeId: "emp1",
+    });
+    assert.equal(ok, true);
   });
 });

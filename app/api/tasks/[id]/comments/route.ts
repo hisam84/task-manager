@@ -3,6 +3,7 @@ import { canAccessTask, getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError } from "@/lib/http";
+import { logTaskActivity } from "@/lib/activity";
 
 const createCommentSchema = z.object({
   body: z.string().min(1, "Comment cannot be empty").max(2000),
@@ -14,30 +15,21 @@ export async function GET(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return jsonError("Unauthorized", 401);
-    }
+    if (!user) return jsonError("Unauthorized", 401);
 
     const { id } = await params;
-
     const task = await prisma.task.findUnique({
       where: { id },
       select: { id: true, companyId: true, assigneeId: true },
     });
-
-    if (!task) {
-      return jsonError("Task not found", 404);
-    }
-
-    if (!canAccessTask(user, task)) {
-      return jsonError("Forbidden", 403);
-    }
+    if (!task) return jsonError("Task not found", 404);
+    if (!canAccessTask(user, task)) return jsonError("Forbidden", 403);
 
     const comments = await prisma.comment.findMany({
       where: { taskId: id },
       include: {
         author: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, role: true },
         },
       },
       orderBy: { createdAt: "asc" },
@@ -56,9 +48,7 @@ export async function POST(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return jsonError("Unauthorized", 401);
-    }
+    if (!user) return jsonError("Unauthorized", 401);
 
     const { id: taskId } = await params;
     const body = await req.json();
@@ -68,14 +58,8 @@ export async function POST(
       where: { id: taskId },
       select: { id: true, companyId: true, assigneeId: true },
     });
-
-    if (!task) {
-      return jsonError("Task not found", 404);
-    }
-
-    if (!canAccessTask(user, task)) {
-      return jsonError("Forbidden", 403);
-    }
+    if (!task) return jsonError("Task not found", 404);
+    if (!canAccessTask(user, task)) return jsonError("Forbidden", 403);
 
     const comment = await prisma.comment.create({
       data: {
@@ -85,9 +69,16 @@ export async function POST(
       },
       include: {
         author: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, role: true },
         },
       },
+    });
+
+    await logTaskActivity({
+      taskId,
+      actorId: user.id,
+      action: "comment_added",
+      detail: "Comment added",
     });
 
     return NextResponse.json(comment, { status: 201 });
