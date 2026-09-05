@@ -2,15 +2,14 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 export function apiError(error: unknown, fallback: string, status = 500) {
+  console.error("[API_ERROR]", error);
   if (error instanceof ZodError) {
     return NextResponse.json(
       { error: error.errors[0]?.message ?? "Invalid input" },
       { status: 400 }
     );
   }
-  const isProd = process.env.NODE_ENV === "production";
-  const message =
-    !isProd && error instanceof Error && error.message ? error.message : fallback;
+  const message = error instanceof Error && error.message ? error.message : fallback;
   return NextResponse.json({ error: message }, { status });
 }
 
