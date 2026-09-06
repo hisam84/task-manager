@@ -11,11 +11,19 @@ interface Employee {
   designation?: string | null;
   departmentId?: string | null;
   department?: string | null;
+  shiftId?: string | null;
 }
 
 interface Department {
   id: string;
   name: string;
+}
+
+export interface ShiftOption {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
 }
 
 interface EmployeeModalProps {
@@ -24,6 +32,7 @@ interface EmployeeModalProps {
   onSuccess: () => void;
   employeeToEdit?: Employee | null;
   departments: Department[];
+  shifts?: ShiftOption[];
 }
 
 export function EmployeeModal({
@@ -32,6 +41,7 @@ export function EmployeeModal({
   onSuccess,
   employeeToEdit,
   departments,
+  shifts: propShifts,
 }: EmployeeModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,8 +49,23 @@ export function EmployeeModal({
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("EMPLOYEE");
   const [departmentId, setDepartmentId] = useState("");
+  const [shiftId, setShiftId] = useState("");
+  const [shifts, setShifts] = useState<ShiftOption[]>(propShifts || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (propShifts && propShifts.length > 0) {
+      setShifts(propShifts);
+    } else if (isOpen) {
+      fetch("/api/shifts")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setShifts(data);
+        })
+        .catch(console.error);
+    }
+  }, [propShifts, isOpen]);
 
   useEffect(() => {
     if (employeeToEdit) {
@@ -49,6 +74,7 @@ export function EmployeeModal({
       setDesignation(employeeToEdit.designation || "");
       setRole(employeeToEdit.role);
       setDepartmentId(employeeToEdit.departmentId || "");
+      setShiftId(employeeToEdit.shiftId || "");
       setPassword("");
     } else {
       setName("");
@@ -57,6 +83,7 @@ export function EmployeeModal({
       setPassword("EmpPass2026!");
       setRole("EMPLOYEE");
       setDepartmentId(departments[0]?.id || "");
+      setShiftId("");
     }
     setError(null);
   }, [employeeToEdit, isOpen, departments]);
@@ -89,6 +116,7 @@ export function EmployeeModal({
         role,
         designation: designation.trim() || null,
         departmentId: departmentId || null,
+        shiftId: shiftId || null,
       };
 
       if (!isEdit) {
@@ -196,6 +224,24 @@ export function EmployeeModal({
               />
             </div>
           )}
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">
+              Assigned Work Shift
+            </label>
+            <select
+              value={shiftId}
+              onChange={(e) => setShiftId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-500"
+            >
+              <option value="">Default (09:00 - 18:00)</option>
+              {shifts.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.startTime} - {s.endTime})
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>

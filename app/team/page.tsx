@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
 import { EmployeeModal } from "@/components/employee-modal";
 import { ResetPasswordModal } from "@/components/reset-password-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
-import { Users, Plus, Edit2, Trash2, KeyRound, Loader2, Search } from "lucide-react";
+import { Users, Plus, Edit2, Trash2, KeyRound, Loader2, Search, CalendarCheck2 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
 export default function TeamPage() {
@@ -141,6 +142,7 @@ export default function TeamPage() {
                   <th className="p-4">Employee</th>
                   <th className="p-4">Role</th>
                   <th className="p-4">Department</th>
+                  <th className="p-4">Work Shift</th>
                   <th className="p-4">Assigned Tasks</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -148,7 +150,7 @@ export default function TeamPage() {
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                    <td colSpan={6} className="p-8 text-center text-slate-500">
                       No employees found.
                     </td>
                   </tr>
@@ -198,10 +200,22 @@ export default function TeamPage() {
                         </span>
                       </td>
                       <td className="p-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-indigo-300 text-[11px] font-mono">
+                          {emp.shift ? `${emp.shift.name} (${emp.shift.startTime}-${emp.shift.endTime})` : "Default (09:00-18:00)"}
+                        </span>
+                      </td>
+                      <td className="p-4">
                         <span className="font-medium text-white">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/attendance`}
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                            title="View Attendance Sheet"
+                          >
+                            <CalendarCheck2 className="w-4 h-4" />
+                          </Link>
                           <button
                             onClick={() => {
                               setResetTargetUser(emp);

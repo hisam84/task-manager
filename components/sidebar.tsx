@@ -10,6 +10,7 @@ import {
   Users,
   Building2,
   BarChart3,
+  CalendarCheck2,
   KeyRound,
   LogOut,
   ChevronLeft,
@@ -62,6 +63,12 @@ export function Sidebar({
       label: "Dashboard",
       href: "/",
       icon: LayoutDashboard,
+      show: true,
+    },
+    {
+      label: "Attendance Sheet",
+      href: "/attendance",
+      icon: CalendarCheck2,
       show: true,
     },
     {

@@ -11,6 +11,7 @@ const createUserSchema = z.object({
   designation: z.string().max(120).optional().nullable(),
   department: z.string().max(120).optional().nullable(),
   departmentId: z.string().optional().nullable(),
+  shiftId: z.string().optional().nullable(),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
   companyId: z.string().optional().nullable(),
 });
@@ -47,6 +48,10 @@ export async function GET(req: Request) {
         departmentId: true,
         departmentRel: {
           select: { id: true, name: true },
+        },
+        shiftId: true,
+        shift: {
+          select: { id: true, name: true, startTime: true, endTime: true },
         },
         createdAt: true,
         company: {
@@ -130,6 +135,7 @@ export async function POST(req: Request) {
         designation: data.designation?.trim() || null,
         department: deptName,
         departmentId: data.departmentId || null,
+        shiftId: data.shiftId || null,
         companyId: targetCompanyId,
       },
       select: {
@@ -140,6 +146,10 @@ export async function POST(req: Request) {
         designation: true,
         department: true,
         departmentId: true,
+        shiftId: true,
+        shift: {
+          select: { id: true, name: true, startTime: true, endTime: true },
+        },
         createdAt: true,
       },
     });

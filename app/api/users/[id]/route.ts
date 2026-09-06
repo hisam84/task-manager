@@ -15,7 +15,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, email, role, designation, departmentId, department } = body || {};
+    const { name, email, role, designation, departmentId, department, shiftId } = body || {};
 
     const targetUser = await prisma.user.findUnique({ where: { id } });
     if (!targetUser) {
@@ -43,6 +43,7 @@ export async function PUT(
         ...(role ? { role } : {}),
         ...(designation !== undefined ? { designation: designation ? designation.trim() : null } : {}),
         ...(departmentId !== undefined ? { departmentId: departmentId || null } : {}),
+        ...(shiftId !== undefined ? { shiftId: shiftId || null } : {}),
         department: deptName,
       },
       select: {
@@ -54,6 +55,10 @@ export async function PUT(
         designation: true,
         department: true,
         departmentId: true,
+        shiftId: true,
+        shift: {
+          select: { id: true, name: true, startTime: true, endTime: true },
+        },
         createdAt: true,
       },
     });

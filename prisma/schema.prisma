@@ -18,6 +18,9 @@ model Company {
   users       User[]
   tasks       Task[]
   departments Department[]
+  shifts      Shift[]
+  holidays    Holiday[]
+  attendances Attendance[]
 }
 
 model Department {
@@ -52,12 +55,17 @@ model User {
   departmentId    String?
   departmentRel  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  assignedTasks Task[]    @relation("AssignedTo")
-  createdTasks  Task[]    @relation("CreatedBy")
+  shiftId String?
+  shift   Shift?  @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+
+  assignedTasks Task[]       @relation("AssignedTo")
+  createdTasks  Task[]       @relation("CreatedBy")
   comments      Comment[]
+  attendances   Attendance[]
 
   @@index([companyId])
   @@index([departmentId])
+  @@index([shiftId])
 }
 
 model Task {
@@ -105,3 +113,57 @@ model Comment {
   @@index([taskId, createdAt])
   @@index([authorId])
 }
+
+model Shift {
+  id           String   @id @default(cuid())
+  name         String
+  startTime    String   // e.g. "09:00"
+  endTime      String   // e.g. "18:00"
+  graceMinutes Int      @default(15)
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users        User[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  date      DateTime
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, date])
+  @@index([companyId])
+}
+
+model Attendance {
+  id              String   @id @default(cuid())
+  date            DateTime
+  inTime          String?  // e.g. "09:25"
+  outTime         String?  // e.g. "18:30"
+  status          String   @default("PRESENT") // PRESENT, LATE, ABSENT, HOLIDAY, WEEKEND, LEAVE, HALF_DAY
+  lateMinutes     Int      @default(0)
+  latePenalty     Float    @default(0)
+  overtimeMinutes Int      @default(0)
+  workingMinutes  Int      @default(0)
+  notes           String?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([companyId, date])
+  @@index([userId, status])
+}
+
