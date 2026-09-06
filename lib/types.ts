@@ -9,6 +9,7 @@ export interface SessionUser {
   username?: string | null;
   role: UserRole;
   avatar?: string | null;
+  designation?: string | null;
   department?: string | null;
   companyId?: string | null;
   companyName?: string | null;

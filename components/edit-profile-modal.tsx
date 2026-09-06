@@ -31,6 +31,7 @@ export function EditProfileModal({
   onUserUpdated,
 }: EditProfileModalProps) {
   const [name, setName] = useState(user.name || "");
+  const [designation, setDesignation] = useState(user.designation || "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar || null);
   const [avatarDirty, setAvatarDirty] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ export function EditProfileModal({
   useEffect(() => {
     if (isOpen) {
       setName(user.name || "");
+      setDesignation(user.designation || "");
       setAvatarPreview(user.avatar || null);
       setAvatarDirty(false);
       setError(null);
@@ -142,6 +144,7 @@ export function EditProfileModal({
 
       const payload: any = {
         name: trimmedName,
+        designation: designation.trim() || null,
       };
 
       if (avatarDirty) {
@@ -164,6 +167,7 @@ export function EditProfileModal({
       const updatedUser: SessionUser = {
         ...user,
         name: trimmedName,
+        designation: designation.trim() || null,
         avatar: avatarPreview,
       };
 
@@ -309,6 +313,20 @@ export function EditProfileModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. John Doe"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+
+          {/* Designation Field */}
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Designation
+            </label>
+            <input
+              type="text"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
+              placeholder="e.g. Senior Software Engineer, UI/UX Designer"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>

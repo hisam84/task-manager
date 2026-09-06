@@ -18,6 +18,7 @@ export async function GET() {
         username: true,
         role: true,
         avatar: true,
+        designation: true,
         department: true,
         companyId: true,
         company: {
@@ -48,7 +49,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { name, avatar } = body || {};
+    const { name, avatar, designation } = body || {};
 
     const updateData: any = {};
 
@@ -67,6 +68,10 @@ export async function PATCH(req: Request) {
         );
       }
       updateData.name = trimmedName;
+    }
+
+    if (designation !== undefined) {
+      updateData.designation = typeof designation === "string" ? designation.trim() || null : null;
     }
 
     if (avatar !== undefined) {
@@ -99,6 +104,7 @@ export async function PATCH(req: Request) {
         username: true,
         role: true,
         avatar: true,
+        designation: true,
         department: true,
         companyId: true,
       },

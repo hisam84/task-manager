@@ -72,6 +72,7 @@ export default function TeamPage() {
     (e) =>
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.email.toLowerCase().includes(search.toLowerCase()) ||
+      (e.designation && e.designation.toLowerCase().includes(search.toLowerCase())) ||
       (e.departmentName && e.departmentName.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -124,7 +125,7 @@ export default function TeamPage() {
               <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search by name, email, or department..."
+                placeholder="Search by name, email, designation, or department..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full min-h-11 bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
@@ -169,6 +170,11 @@ export default function TeamPage() {
                           )}
                           <div>
                             <div className="font-semibold text-white">{emp.name}</div>
+                            {emp.designation && (
+                              <div className="text-[11px] text-indigo-400 font-medium truncate">
+                                {emp.designation}
+                              </div>
+                            )}
                             <div className="text-[11px] text-slate-400">{emp.email}</div>
                           </div>
                         </div>

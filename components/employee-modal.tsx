@@ -8,6 +8,7 @@ interface Employee {
   name: string;
   email: string;
   role: string;
+  designation?: string | null;
   departmentId?: string | null;
   department?: string | null;
 }
@@ -34,6 +35,7 @@ export function EmployeeModal({
 }: EmployeeModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [designation, setDesignation] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("EMPLOYEE");
   const [departmentId, setDepartmentId] = useState("");
@@ -44,12 +46,14 @@ export function EmployeeModal({
     if (employeeToEdit) {
       setName(employeeToEdit.name);
       setEmail(employeeToEdit.email);
+      setDesignation(employeeToEdit.designation || "");
       setRole(employeeToEdit.role);
       setDepartmentId(employeeToEdit.departmentId || "");
       setPassword("");
     } else {
       setName("");
       setEmail("");
+      setDesignation("");
       setPassword("EmpPass2026!");
       setRole("EMPLOYEE");
       setDepartmentId(departments[0]?.id || "");
@@ -83,6 +87,7 @@ export function EmployeeModal({
         name: name.trim(),
         email: email.trim(),
         role,
+        designation: designation.trim() || null,
         departmentId: departmentId || null,
       };
 
@@ -163,6 +168,19 @@ export function EmployeeModal({
               placeholder="alex@company.com"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">
+              Designation (Job Title)
+            </label>
+            <input
+              type="text"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
+              placeholder="e.g. Senior Software Engineer, UI/UX Designer, Accounts Officer"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600"
             />
           </div>
 
