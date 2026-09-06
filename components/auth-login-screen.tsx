@@ -46,20 +46,6 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
     }
   }
 
-  const demoAccounts = [
-    { label: "Super Admin", username: "superadmin", role: "SUPER_ADMIN", badge: "Platform" },
-    { label: "Vercel Admin", username: "admin_vercel", role: "ADMIN", badge: "Vercel" },
-    { label: "Vercel Manager", username: "manager_vercel", role: "MANAGER", badge: "Vercel" },
-    { label: "Elena (Employee)", username: "elena", role: "EMPLOYEE", badge: "Vercel" },
-    { label: "Acme Admin", username: "admin_acme", role: "ADMIN", badge: "Acme" },
-  ];
-
-  function handleSelectDemo(username: string) {
-    setUsernameOrEmail(username);
-    setPassword("password123");
-    setError(null);
-  }
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 bg-black text-white">
       <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_40px_rgba(0,112,243,0.15)] overflow-hidden animate-fadeIn">
@@ -105,7 +91,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
                   required
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  placeholder="e.g. superadmin, admin_vercel, or email"
+                  placeholder="Enter your username or email"
                   className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-[#555555] outline-none font-mono transition-all"
                 />
                 <User className="w-4 h-4 text-[#555555] absolute left-3 top-3" />
@@ -137,29 +123,6 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
               <LogIn className="w-4 h-4" />
               <span>{loading ? "Authenticating..." : "Sign In to Task Manager"}</span>
             </button>
-          </div>
-
-          {/* Quick Demo Accounts Helper */}
-          <div className="pt-4 border-t border-[#1a1a1a]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-mono text-[#888888]">Quick Demo Accounts:</span>
-              <span className="text-[10px] font-mono text-[#666666]">Password: password123</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-              {demoAccounts.map((acc) => (
-                <button
-                  type="button"
-                  key={acc.username}
-                  onClick={() => handleSelectDemo(acc.username)}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] border border-[#222222] hover:border-[#333333] text-left transition-all text-[10px] font-mono group"
-                >
-                  <div className="text-white font-medium group-hover:text-[#0070f3] truncate">
-                    {acc.label}
-                  </div>
-                  <div className="text-[#666666] truncate">{acc.username}</div>
-                </button>
-              ))}
-            </div>
           </div>
         </form>
       </div>
