@@ -409,7 +409,7 @@ export function TaskDetailModal({
                     <Calendar className="w-4 h-4" />
                   </div>
                   <h3 className="text-xs font-semibold text-white">
-                    Reschedule Deadline (টাস্ক রিসিডিউল করুন)
+                    Reschedule Deadline
                   </h3>
                 </div>
                 <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
@@ -432,7 +432,7 @@ export function TaskDetailModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                      New Due Date & Time (নতুন তারিখ ও সময়) *
+                      New Due Date & Time *
                     </label>
                     <input
                       type="datetime-local"
@@ -465,7 +465,7 @@ export function TaskDetailModal({
 
                 <div>
                   <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                    Reason for Rescheduling (রিসিডিউল করার কারণ) *
+                    Reason for Rescheduling *
                   </label>
                   <input
                     type="text"
@@ -550,7 +550,7 @@ export function TaskDetailModal({
 
                 <div>
                   <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                    Due Date & Time / ডেডলাইন (তারিখ ও সময়)
+                    Due Date & Time
                   </label>
                   <input
                     type="datetime-local"
@@ -601,7 +601,7 @@ export function TaskDetailModal({
 
             <div>
               <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
-                Deadline (তারিখ ও সময়)
+                Deadline (Date & Time)
               </span>
               <span className="text-slate-100 font-medium block mt-1 flex items-center gap-1.5 font-mono text-[11px]">
                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />

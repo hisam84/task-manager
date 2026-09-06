@@ -213,7 +213,7 @@ export function CreateTaskModal({
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">
-                Due Date & Time / ডেডলাইন (তারিখ ও সময়)
+                Due Date & Time
               </label>
               <input
                 type="datetime-local"

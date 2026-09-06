@@ -458,7 +458,7 @@ export default function DashboardPage() {
                                 </div>
                               </div>
 
-                              {/* Short Details Preview (নাম এবং শর্ট ডিটেইলস) */}
+                              {/* Short Details Preview */}
                               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
                                 <span
                                   className={`px-2 py-0.5 rounded text-[10px] font-medium ${
@@ -511,13 +511,13 @@ export default function DashboardPage() {
                               )}
                             </div>
 
-                            {/* Dropdown Full Details (ক্লিক করলে ড্রপডাউনে পুরো ডিটেইলস দেখাবে) */}
+                            {/* Dropdown Full Details */}
                             {isExpanded && (
                               <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-3 animate-fadeIn">
                                 {t.description && (
                                   <div>
                                     <span className="text-[10px] uppercase font-semibold text-slate-500 block mb-1">
-                                      Description (বিবরণ)
+                                      Description
                                     </span>
                                     <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
                                       {t.description}
@@ -527,7 +527,7 @@ export default function DashboardPage() {
 
                                 <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">Status (স্ট্যাটাস)</span>
+                                    <span className="text-[10px] text-slate-500 block">Status</span>
                                     <select
                                       value={t.status}
                                       onClick={(e) => e.stopPropagation()}
@@ -542,14 +542,14 @@ export default function DashboardPage() {
                                   </div>
 
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">Assignee (দায়িত্বপ্রাপ্ত)</span>
+                                    <span className="text-[10px] text-slate-500 block">Assignee</span>
                                     <span className="text-slate-200 font-medium block mt-2 truncate">
                                       {t.assignee?.name || "Unassigned"}
                                     </span>
                                   </div>
 
                                   <div className="col-span-2 pt-1 border-t border-slate-800/60 flex items-center justify-between">
-                                    <span className="text-[10px] text-slate-500">Deadline (তারিখ ও সময়):</span>
+                                    <span className="text-[10px] text-slate-500">Deadline (Date & Time):</span>
                                     <span
                                       className={`font-mono text-xs font-medium flex items-center gap-1 ${
                                         isOverdue ? "text-rose-400" : "text-amber-300"
