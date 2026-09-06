@@ -8,10 +8,10 @@ const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(120),
   email: z.string().email("Valid email is required").max(255),
   role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
-  department: z.string().max(120).optional(),
-  departmentId: z.string().optional(),
+  department: z.string().max(120).optional().nullable(),
+  departmentId: z.string().optional().nullable(),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
-  companyId: z.string().optional(),
+  companyId: z.string().optional().nullable(),
 });
 
 export async function GET(req: Request) {

@@ -12,10 +12,10 @@ const createTaskSchema = z.object({
   description: z.string().max(5000).optional().nullable(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
-  assigneeId: z.string().optional(),
+  assigneeId: z.string().optional().nullable(),
   dueDate: z.string().optional().nullable(),
-  companyId: z.string().optional(),
-  departmentId: z.string().optional(),
+  companyId: z.string().optional().nullable(),
+  departmentId: z.string().optional().nullable(),
 });
 
 const MAX_PAGE_SIZE = 50;
