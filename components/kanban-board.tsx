@@ -55,7 +55,7 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
               <button
                 key={p}
                 onClick={() => setFilterPriority(p)}
-                className={`px-2.5 py-1 rounded-md text-xs font-mono transition-all ${
+                className={`min-h-11 px-2.5 py-1 rounded-md text-xs font-mono transition-all ${
                   filterPriority === p
                     ? "bg-[#222222] text-white border border-[#444444]"
                     : "text-[#888888] hover:text-white"
@@ -74,7 +74,7 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
           {onNewTaskClick && (
             <button
               onClick={onNewTaskClick}
-              className="px-3 py-1.5 rounded-md bg-[#0070f3] text-white text-xs font-medium hover:bg-[#0060df] transition-all flex items-center gap-1.5 ml-2"
+              className="min-h-11 px-3 py-1.5 rounded-md bg-[#0070f3] text-white text-xs font-medium hover:bg-[#0060df] transition-all flex items-center gap-1.5 ml-0 sm:ml-2"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Task</span>

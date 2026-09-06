@@ -46,7 +46,7 @@ export default function ReportsPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
@@ -64,14 +64,14 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={user}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
@@ -138,7 +138,7 @@ export default function ReportsPage() {
                 Employee-Wise Task Breakdown Matrix
               </h3>
 
-              <div className="overflow-x-auto rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">

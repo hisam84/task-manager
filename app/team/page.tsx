@@ -77,21 +77,21 @@ export default function TeamPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={user}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
@@ -110,7 +110,7 @@ export default function TeamPage() {
                 setEditingEmployee(null);
                 setEmployeeModalOpen(true);
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-600/25"
+              className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-600/25 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               Add Employee
@@ -126,13 +126,13 @@ export default function TeamPage() {
                 placeholder="Search by name, email, or department..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full min-h-11 bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
               />
             </div>
           </div>
 
           {/* Employees Table */}
-          <div className="overflow-x-auto rounded-2xl bg-slate-900/60 border border-slate-800/80">
+          <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
@@ -192,7 +192,7 @@ export default function TeamPage() {
                               setResetTargetUser(emp);
                               setResetModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
                             title="Reset Employee Password"
                           >
                             <KeyRound className="w-4 h-4" />
@@ -202,14 +202,14 @@ export default function TeamPage() {
                               setEditingEmployee(emp);
                               setEmployeeModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                             title="Edit Employee"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteEmployee(emp.id, emp.name)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                             title="Delete Employee"
                           >
                             <Trash2 className="w-4 h-4" />

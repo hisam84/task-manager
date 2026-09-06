@@ -264,7 +264,7 @@ export function TaskDetailModal({
   if (!isOpen) return null;
   if (!taskDetail) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm">
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-6 text-xs font-mono text-slate-400">
           {error || "Loading task details..."}
           <button onClick={onClose} className="mt-4 block text-white hover:underline">
@@ -278,17 +278,17 @@ export function TaskDetailModal({
   const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser?.role ?? "");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950/70">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-slate-800 bg-slate-950/70">
+          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             {/* Status Dropdown */}
             <select
               value={status}
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={updatingStatus}
-              className="bg-slate-900 border border-slate-700 hover:border-indigo-500 text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
             >
               <option value="TODO">To Do</option>
               <option value="IN_PROGRESS">In Progress</option>
@@ -300,7 +300,7 @@ export function TaskDetailModal({
             <select
               value={priority}
               onChange={(e) => handlePriorityChange(e.target.value)}
-              className="bg-slate-900 border border-slate-700 hover:border-indigo-500 text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
             >
               <option value="LOW">Low Priority</option>
               <option value="MEDIUM">Medium Priority</option>
@@ -309,7 +309,7 @@ export function TaskDetailModal({
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Edit Task Button */}
             <button
               onClick={() => {
@@ -317,7 +317,7 @@ export function TaskDetailModal({
                 setIsRescheduling(false);
               }}
               title="Edit Task"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isEditing
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                   : "text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700"
@@ -334,7 +334,7 @@ export function TaskDetailModal({
                 setIsEditing(false);
               }}
               title="Reschedule Due Date"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isRescheduling
                   ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
                   : "text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30"
@@ -349,7 +349,7 @@ export function TaskDetailModal({
               <button
                 onClick={handleDeleteTask}
                 title="Delete Task"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -357,7 +357,7 @@ export function TaskDetailModal({
 
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800"
+              className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
             >
               <X className="w-4 h-4" />
             </button>
@@ -377,7 +377,7 @@ export function TaskDetailModal({
           {isRescheduling && (
             <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-3.5 animate-fadeIn">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
                     <Calendar className="w-4 h-4" />
                   </div>

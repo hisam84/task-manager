@@ -132,7 +132,7 @@ export default function DashboardPage() {
 
   if (!loading && !currentUser) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-950 text-white font-sans">
+      <div className="min-h-dvh flex flex-col bg-slate-950 text-white font-sans">
         <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
       </div>
     );
@@ -140,7 +140,7 @@ export default function DashboardPage() {
 
   if (loading || !currentUser) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
@@ -166,14 +166,14 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
@@ -192,11 +192,11 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               {isSuperAdmin && (
                 <button
                   onClick={() => setIsCreateCompanyOpen(true)}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25"
+                  className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 w-full sm:w-auto"
                 >
                   <Building2 className="w-4 h-4" />
                   Create Company
@@ -205,7 +205,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => setIsCreateTaskOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25"
+                className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
                 {isEmployee ? "Create Self Task" : "Create Task"}
@@ -258,15 +258,15 @@ export default function DashboardPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search task title..."
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
+                    className="w-full min-h-11 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-11 flex-1 bg-slate-950 border border-slate-800 text-base md:text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="TODO">To Do</option>
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-11 flex-1 bg-slate-950 border border-slate-800 text-base md:text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Priorities</option>
                     <option value="URGENT">Urgent</option>
@@ -290,7 +290,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tasks Table */}
-              <div className="overflow-x-auto rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
                 {tasks.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-500">
                     No tasks found matching your filters.

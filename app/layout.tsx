@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   description: "Next.js 15 multi-tenant employee task manager.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -13,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-black text-white antialiased selection:bg-[#0070f3] selection:text-white">
+      <body className="min-h-dvh overflow-x-hidden bg-black text-white antialiased selection:bg-[#0070f3] selection:text-white">
         {children}
       </body>
     </html>

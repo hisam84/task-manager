@@ -53,8 +53,8 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-xl shadow-vercel-card overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-[#0a0a0a] border border-[#222222] rounded-t-xl sm:rounded-xl shadow-vercel-card pb-[env(safe-area-inset-bottom)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f1f] bg-[#050505]">
           <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="text-[#777777] hover:text-white transition-colors p-1 rounded hover:bg-[#1a1a1a]"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#777777] hover:text-white transition-colors rounded hover:bg-[#1a1a1a]"
           >
             <X className="w-4 h-4" />
           </button>
