@@ -30,7 +30,7 @@ interface TaskItem {
   status: string;
   priority: string;
   dueDate?: string | null;
-  assignee?: { id?: string; name?: string; email?: string; department?: string | null };
+  assignee?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null };
   creator?: { id?: string; name?: string; role?: string };
   company?: { id?: string; name?: string };
   _count?: { comments?: number };
@@ -179,6 +179,7 @@ export default function TasksPage() {
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
+        onUserUpdated={(u) => setCurrentUser(u)}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
@@ -410,9 +411,17 @@ export default function TasksPage() {
                             {/* Assignee Info */}
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
-                                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold text-[10px] border border-slate-700">
-                                  {t.assignee?.name?.[0]?.toUpperCase() || "U"}
-                                </div>
+                                {t.assignee?.avatar ? (
+                                  <img
+                                    src={t.assignee.avatar}
+                                    alt={t.assignee.name || "Assignee"}
+                                    className="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold text-[10px] border border-slate-700 shrink-0">
+                                    {t.assignee?.name?.[0]?.toUpperCase() || "U"}
+                                  </div>
+                                )}
                                 <span className="text-slate-300 font-medium truncate max-w-[120px]">
                                   {t.assignee?.name || "Unassigned"}
                                 </span>

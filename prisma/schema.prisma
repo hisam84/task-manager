@@ -41,6 +41,7 @@ model User {
   username     String?  @unique
   passwordHash String
   role         String   @default("EMPLOYEE") // SUPER_ADMIN, ADMIN, MANAGER, EMPLOYEE
+  avatar       String?  @db.Text
   department   String?
   createdAt    DateTime @default(now())
 

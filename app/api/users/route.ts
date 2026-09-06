@@ -40,6 +40,7 @@ export async function GET(req: Request) {
         email: true,
         username: true,
         role: true,
+        avatar: true,
         department: true,
         departmentId: true,
         departmentRel: {

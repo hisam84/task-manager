@@ -8,6 +8,7 @@ export interface SessionUser {
   email: string;
   username?: string | null;
   role: UserRole;
+  avatar?: string | null;
   department?: string | null;
   companyId?: string | null;
   companyName?: string | null;

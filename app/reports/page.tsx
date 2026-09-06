@@ -67,6 +67,7 @@ export default function ReportsPage() {
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={user}
+        onUserUpdated={(u) => setUser(u)}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />

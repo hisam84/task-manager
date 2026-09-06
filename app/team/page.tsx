@@ -87,6 +87,7 @@ export default function TeamPage() {
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={user}
+        onUserUpdated={(u) => setUser(u)}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
@@ -155,9 +156,17 @@ export default function TeamPage() {
                     <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
                       <td className="p-4 font-medium">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs">
-                            {emp.name.slice(0, 2).toUpperCase()}
-                          </div>
+                          {emp.avatar ? (
+                            <img
+                              src={emp.avatar}
+                              alt={emp.name}
+                              className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs shrink-0">
+                              {emp.name.slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
                           <div>
                             <div className="font-semibold text-white">{emp.name}</div>
                             <div className="text-[11px] text-slate-400">{emp.email}</div>

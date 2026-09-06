@@ -19,7 +19,7 @@ interface Comment {
   id: string;
   body: string;
   createdAt: string;
-  author: { id: string; name: string; email: string; role: string; department?: string | null };
+  author: { id: string; name: string; email: string; role: string; avatar?: string | null; department?: string | null };
 }
 
 interface TaskDetailModalProps {
@@ -643,6 +643,13 @@ export function TaskDetailModal({
                     >
                       <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
                         <span className="font-semibold text-white flex items-center gap-1.5">
+                          {c.author?.avatar ? (
+                            <img
+                              src={c.author.avatar}
+                              alt={c.author.name}
+                              className="w-4 h-4 rounded-full object-cover shrink-0 border border-slate-700 inline"
+                            />
+                          ) : null}
                           {isRescheduleEvent && (
                             <Calendar className="w-3.5 h-3.5 text-amber-400 inline" />
                           )}

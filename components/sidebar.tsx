@@ -19,19 +19,39 @@ import {
   Layers,
   Menu,
   X,
+  User,
+  Edit3,
 } from "lucide-react";
+import { EditProfileModal } from "@/components/edit-profile-modal";
 import type { SessionUser } from "@/lib/types";
 
 interface SidebarProps {
   user: SessionUser;
   onOpenChangePassword?: () => void;
+  onOpenEditProfile?: () => void;
+  onUserUpdated?: (updatedUser: SessionUser) => void;
   onLogout?: () => void;
 }
 
-export function Sidebar({ user, onOpenChangePassword, onLogout }: SidebarProps) {
+export function Sidebar({
+  user,
+  onOpenChangePassword,
+  onOpenEditProfile,
+  onUserUpdated,
+  onLogout,
+}: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalEditProfileOpen, setInternalEditProfileOpen] = useState(false);
+
+  const handleOpenEditProfile = () => {
+    if (onOpenEditProfile) {
+      onOpenEditProfile();
+    } else {
+      setInternalEditProfileOpen(true);
+    }
+  };
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
   const isCompanyAdmin = user.role === "ADMIN" || user.role === "MANAGER";
@@ -157,21 +177,55 @@ export function Sidebar({ user, onOpenChangePassword, onLogout }: SidebarProps) 
 
       {/* User Profile Footer */}
       <div className="p-3 border-t border-slate-800/80 bg-slate-950/40">
-        <div className={`flex items-center ${showLabels ? "gap-3" : "flex-col gap-2"}`}>
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-800 text-indigo-400 font-bold text-sm border border-slate-700 shrink-0">
-            {user.name?.slice(0, 2).toUpperCase() || "U"}
-          </div>
+        <button
+          type="button"
+          onClick={handleOpenEditProfile}
+          className={`w-full flex items-center text-left p-1.5 -m-1.5 rounded-xl hover:bg-slate-800/50 transition-colors group cursor-pointer ${
+            showLabels ? "gap-3" : "flex-col gap-2"
+          }`}
+          title="Click to edit profile & photo"
+        >
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-9 h-9 rounded-full object-cover border border-indigo-500/50 shrink-0 group-hover:ring-2 group-hover:ring-indigo-500/50 transition-all"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-800 text-indigo-400 font-bold text-sm border border-slate-700 shrink-0 group-hover:border-indigo-500/60 transition-colors">
+              {user.name?.slice(0, 2).toUpperCase() || "U"}
+            </div>
+          )}
 
           {showLabels && (
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-sm font-semibold text-white truncate">{user.name}</span>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                  {user.name}
+                </span>
+                <Edit3 className="w-3.5 h-3.5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
               <span className="text-[11px] text-slate-400 truncate">{user.email}</span>
             </div>
           )}
-        </div>
+        </button>
 
         {/* Quick Action Buttons */}
-        <div className={`mt-3 pt-2 border-t border-slate-800/60 flex items-center ${showLabels ? "gap-2" : "flex-col gap-2"}`}>
+        <div
+          className={`mt-3 pt-2 border-t border-slate-800/60 flex items-center ${
+            showLabels ? "gap-2" : "flex-col gap-2"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={handleOpenEditProfile}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 min-h-11 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+            title="Edit Profile"
+          >
+            <User className="w-3.5 h-3.5 text-indigo-400" />
+            {showLabels && <span>Profile</span>}
+          </button>
+
           {onOpenChangePassword && (
             <button
               type="button"
@@ -211,9 +265,24 @@ export function Sidebar({ user, onOpenChangePassword, onLogout }: SidebarProps) 
           <Menu className="w-5 h-5" />
         </button>
         <span className="text-sm font-semibold truncate">{user.companyName || "Task Manager"}</span>
-        <span className="min-h-11 min-w-11 inline-flex items-center justify-center">
-          <Building2 className="w-4 h-4 text-indigo-400" />
-        </span>
+        <button
+          type="button"
+          onClick={handleOpenEditProfile}
+          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
+          title="Edit Profile"
+        >
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-7 h-7 rounded-full object-cover border border-indigo-500/50"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-slate-800 text-indigo-400 text-xs font-bold flex items-center justify-center border border-slate-700">
+              {user.name?.slice(0, 2).toUpperCase() || "U"}
+            </div>
+          )}
+        </button>
       </header>
 
       {mobileOpen ? (
@@ -247,6 +316,17 @@ export function Sidebar({ user, onOpenChangePassword, onLogout }: SidebarProps) 
       >
         {asideInner}
       </aside>
+
+      <EditProfileModal
+        isOpen={internalEditProfileOpen}
+        onClose={() => setInternalEditProfileOpen(false)}
+        user={user}
+        onUserUpdated={(updated) => {
+          if (onUserUpdated) {
+            onUserUpdated(updated);
+          }
+        }}
+      />
     </>
   );
 }

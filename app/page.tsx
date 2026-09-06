@@ -32,7 +32,7 @@ interface TaskRow {
   status: string;
   priority: string;
   dueDate?: string | null;
-  assignee?: { name?: string };
+  assignee?: { name?: string; avatar?: string | null };
 }
 
 export default function DashboardPage() {
@@ -184,6 +184,7 @@ export default function DashboardPage() {
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
+        onUserUpdated={(u) => setCurrentUser(u)}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
@@ -384,7 +385,18 @@ export default function DashboardPage() {
                                   <span className="text-slate-500 text-[11px] font-mono">—</span>
                                 )}
                               </td>
-                              <td className="py-3 px-4 text-slate-300 font-medium">{t.assignee?.name || "Unassigned"}</td>
+                              <td className="py-3 px-4 text-slate-300 font-medium">
+                                <div className="flex items-center gap-2">
+                                  {t.assignee?.avatar ? (
+                                    <img
+                                      src={t.assignee.avatar}
+                                      alt={t.assignee.name || "Assignee"}
+                                      className="w-5 h-5 rounded-full object-cover border border-slate-700 shrink-0"
+                                    />
+                                  ) : null}
+                                  <span>{t.assignee?.name || "Unassigned"}</span>
+                                </div>
+                              </td>
                               <td className="py-3 px-4 text-right">
                                 <button
                                   onClick={(e) => {

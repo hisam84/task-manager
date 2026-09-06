@@ -37,7 +37,7 @@ export async function GET(
       where: { taskId: id },
       include: {
         author: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, role: true, avatar: true, department: true },
         },
       },
       orderBy: { createdAt: "asc" },
@@ -85,7 +85,7 @@ export async function POST(
       },
       include: {
         author: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, role: true, avatar: true, department: true },
         },
       },
     });

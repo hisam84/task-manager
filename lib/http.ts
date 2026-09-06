@@ -30,10 +30,10 @@ export const TASK_LIST_SELECT = {
   assigneeId: true,
   creatorId: true,
   assignee: {
-    select: { id: true, name: true, email: true, department: true },
+    select: { id: true, name: true, email: true, avatar: true, department: true },
   },
   creator: {
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, avatar: true },
   },
   company: {
     select: { id: true, name: true, slug: true },
@@ -49,6 +49,7 @@ export const USER_PUBLIC_SELECT = {
   email: true,
   username: true,
   role: true,
+  avatar: true,
   department: true,
   createdAt: true,
   companyId: true,

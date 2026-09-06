@@ -90,6 +90,7 @@ export default function KanbanPage() {
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
+        onUserUpdated={(u) => setCurrentUser(u)}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />

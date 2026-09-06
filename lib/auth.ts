@@ -14,6 +14,7 @@ const USER_SESSION_SELECT = {
   email: true,
   username: true,
   role: true,
+  avatar: true,
   department: true,
   companyId: true,
   company: {
@@ -55,6 +56,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: user.email,
     username: user.username,
     role: user.role as SessionUser["role"],
+    avatar: user.avatar,
     department: user.department,
     companyId: user.companyId,
     companyName: user.company?.name ?? null,
