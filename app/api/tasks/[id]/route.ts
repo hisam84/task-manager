@@ -12,6 +12,7 @@ const patchTaskSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   assigneeId: z.string().min(1).optional().nullable(),
   dueDate: z.string().optional().nullable(),
+  rescheduleReason: z.string().max(1000).optional().nullable(),
 });
 
 export async function GET(
@@ -80,7 +81,14 @@ export async function PATCH(
 
     const existingTask = await prisma.task.findUnique({
       where: { id },
-      select: { id: true, companyId: true, assigneeId: true },
+      select: {
+        id: true,
+        companyId: true,
+        assigneeId: true,
+        creatorId: true,
+        dueDate: true,
+        title: true,
+      },
     });
 
     if (!existingTask) {
@@ -98,26 +106,61 @@ export async function PATCH(
       updateData.status = data.status;
     }
 
-    if (manager) {
-      if (data.title) updateData.title = data.title;
-      if (data.description !== undefined) updateData.description = data.description;
-      if (data.priority) updateData.priority = data.priority;
-      if (data.dueDate !== undefined) {
-        updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
-      }
-      if (data.assigneeId) {
-        const assignee = await prisma.user.findUnique({
-          where: { id: data.assigneeId },
-          select: { id: true, companyId: true },
+    if (data.title) {
+      updateData.title = data.title;
+    }
+
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
+
+    if (data.priority) {
+      updateData.priority = data.priority;
+    }
+
+    if (data.dueDate !== undefined) {
+      const newDueDate = data.dueDate ? new Date(data.dueDate) : null;
+      updateData.dueDate = newDueDate;
+
+      const oldDateStr = existingTask.dueDate
+        ? new Date(existingTask.dueDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "None";
+      const newDateStr = newDueDate
+        ? newDueDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "Cleared";
+
+      if (oldDateStr !== newDateStr) {
+        const reasonText = data.rescheduleReason?.trim() || "No reason specified";
+        await prisma.comment.create({
+          data: {
+            taskId: id,
+            authorId: user.id,
+            body: `📅 [Task Rescheduled] Due date changed from ${oldDateStr} to ${newDateStr}.\nReason: ${reasonText}`,
+          },
         });
-        if (!assignee) {
-          return jsonError("Assignee not found", 400);
-        }
-        if (user.role !== "SUPER_ADMIN" && assignee.companyId !== existingTask.companyId) {
-          return jsonError("Assignee must belong to the same company", 403);
-        }
-        updateData.assignee = { connect: { id: data.assigneeId } };
       }
+    }
+
+    if (manager && data.assigneeId) {
+      const assignee = await prisma.user.findUnique({
+        where: { id: data.assigneeId },
+        select: { id: true, companyId: true },
+      });
+      if (!assignee) {
+        return jsonError("Assignee not found", 400);
+      }
+      if (user.role !== "SUPER_ADMIN" && assignee.companyId !== existingTask.companyId) {
+        return jsonError("Assignee must belong to the same company", 403);
+      }
+      updateData.assignee = { connect: { id: data.assigneeId } };
     }
 
     const updatedTask = await prisma.task.update({

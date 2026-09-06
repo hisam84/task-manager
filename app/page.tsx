@@ -356,7 +356,7 @@ export default function DashboardPage() {
                               }}
                               className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition-colors"
                             >
-                              View
+                              View / Edit
                             </button>
                           </td>
                         </tr>

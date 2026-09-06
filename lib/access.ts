@@ -10,10 +10,10 @@ export function canCreateCompany(role?: string | null): boolean {
 
 export function canAccessTask(
   user: SessionUser,
-  task: { companyId: string; assigneeId: string }
+  task: { companyId: string; assigneeId: string; creatorId?: string | null }
 ): boolean {
   if (user.role === "SUPER_ADMIN") return true;
   if (!user.companyId || task.companyId !== user.companyId) return false;
   if (isManagerOrAdmin(user.role)) return true;
-  return task.assigneeId === user.id;
+  return task.assigneeId === user.id || (!!task.creatorId && task.creatorId === user.id);
 }
