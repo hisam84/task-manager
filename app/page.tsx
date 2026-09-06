@@ -8,13 +8,27 @@ import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
 import { ProgressCard, DonutChart, WorkloadBarChart } from "@/components/charts";
-import { Search, Plus, Building2, LayoutDashboard, Loader2, Filter, Layers, Users, CheckCircle2, Clock } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Building2,
+  LayoutDashboard,
+  Loader2,
+  Filter,
+  Layers,
+  Users,
+  CheckCircle2,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser } from "@/lib/types";
 
 interface TaskRow {
   id: string;
   title: string;
+  description?: string | null;
   status: string;
   priority: string;
   dueDate?: string | null;
@@ -37,6 +51,7 @@ export default function DashboardPage() {
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 250);
@@ -289,99 +304,278 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Tasks Table */}
-              <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              {/* Tasks Table (Desktop) & Accordion Cards (Mobile) */}
+              <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-hidden">
                 {tasks.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-500">
                     No tasks found matching your filters.
                   </div>
                 ) : (
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
-                        <th className="py-3 px-4">Task Title</th>
-                        <th className="py-3 px-4">Status Progression</th>
-                        <th className="py-3 px-4">Priority</th>
-                        <th className="py-3 px-4">Deadline</th>
-                        <th className="py-3 px-4">Assignee</th>
-                        <th className="py-3 px-4 text-right">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {tasks.map((t) => (
-                        <tr
-                          key={t.id}
-                          onClick={() => setSelectedTask(t)}
-                          className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
-                        >
-                          <td className="py-3 px-4 font-semibold text-white group-hover:text-indigo-400 transition-colors">
-                            {t.title}
-                          </td>
-                          <td className="py-3 px-4">
-                            <select
-                              value={t.status}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleQuickStatusChange(t.id, e.target.value);
-                              }}
-                              className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-200 outline-none cursor-pointer hover:border-indigo-500 transition-colors"
+                  <>
+                    {/* Desktop Table View (hidden on mobile, visible on md and up) */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                            <th className="py-3 px-4">Task Title</th>
+                            <th className="py-3 px-4">Status Progression</th>
+                            <th className="py-3 px-4">Priority</th>
+                            <th className="py-3 px-4">Deadline</th>
+                            <th className="py-3 px-4">Assignee</th>
+                            <th className="py-3 px-4 text-right">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                          {tasks.map((t) => (
+                            <tr
+                              key={t.id}
+                              onClick={() => setSelectedTask(t)}
+                              className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
                             >
-                              <option value="TODO">To Do</option>
-                              <option value="IN_PROGRESS">In Progress</option>
-                              <option value="IN_REVIEW">In Review</option>
-                              <option value="DONE">Completed</option>
-                            </select>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                                t.priority === "URGENT"
-                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                                  : t.priority === "HIGH"
-                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                  : t.priority === "MEDIUM"
-                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                  : "bg-slate-800 text-slate-400 border-slate-700"
-                              }`}
-                            >
-                              {t.priority}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            {t.dueDate ? (
-                              <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-300/90 font-mono bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-                                <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                                <span>
-                                  {new Date(t.dueDate).toLocaleString([], {
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })}
+                              <td className="py-3 px-4 font-semibold text-white group-hover:text-indigo-400 transition-colors">
+                                {t.title}
+                              </td>
+                              <td className="py-3 px-4">
+                                <select
+                                  value={t.status}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleQuickStatusChange(t.id, e.target.value);
+                                  }}
+                                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-200 outline-none cursor-pointer hover:border-indigo-500 transition-colors"
+                                >
+                                  <option value="TODO">To Do</option>
+                                  <option value="IN_PROGRESS">In Progress</option>
+                                  <option value="IN_REVIEW">In Review</option>
+                                  <option value="DONE">Completed</option>
+                                </select>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                    t.priority === "URGENT"
+                                      ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                      : t.priority === "HIGH"
+                                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                      : t.priority === "MEDIUM"
+                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                      : "bg-slate-800 text-slate-400 border-slate-700"
+                                  }`}
+                                >
+                                  {t.priority}
                                 </span>
-                              </span>
-                            ) : (
-                              <span className="text-slate-500 text-[11px] font-mono">—</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-slate-300 font-medium">{t.assignee?.name || "Unassigned"}</td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTask(t);
-                              }}
-                              className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition-colors"
+                              </td>
+                              <td className="py-3 px-4">
+                                {t.dueDate ? (
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-300/90 font-mono bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                                    <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                                    <span>
+                                      {new Date(t.dueDate).toLocaleString([], {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                      })}
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px] font-mono">—</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-slate-300 font-medium">{t.assignee?.name || "Unassigned"}</td>
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTask(t);
+                                  }}
+                                  className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition-colors"
+                                >
+                                  View / Edit
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Accordion Card View (visible on mobile, hidden on md and up) */}
+                    <div className="md:hidden divide-y divide-slate-800/80">
+                      {tasks.map((t) => {
+                        const isExpanded = expandedTaskId === t.id;
+                        const isOverdue =
+                          t.dueDate &&
+                          t.status !== "DONE" &&
+                          new Date(t.dueDate).getTime() < Date.now();
+
+                        return (
+                          <div key={t.id} className="p-3.5 transition-colors hover:bg-slate-800/20">
+                            {/* Tap header to toggle dropdown */}
+                            <div
+                              onClick={() => setExpandedTaskId(isExpanded ? null : t.id)}
+                              className="cursor-pointer select-none"
                             >
-                              View / Edit
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              <div className="flex items-start justify-between gap-2.5">
+                                <h4 className="text-sm font-semibold text-white leading-snug break-words flex-1">
+                                  {t.title}
+                                </h4>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                      t.priority === "URGENT"
+                                        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                        : t.priority === "HIGH"
+                                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                        : t.priority === "MEDIUM"
+                                        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                        : "bg-slate-800 text-slate-400 border-slate-700"
+                                    }`}
+                                  >
+                                    {t.priority}
+                                  </span>
+                                  <div className="p-1 text-slate-400">
+                                    {isExpanded ? (
+                                      <ChevronUp className="w-4 h-4 text-indigo-400" />
+                                    ) : (
+                                      <ChevronDown className="w-4 h-4" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Short Details Preview (নাম এবং শর্ট ডিটেইলস) */}
+                              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                                    t.status === "DONE"
+                                      ? "bg-emerald-500/15 text-emerald-400"
+                                      : t.status === "IN_PROGRESS"
+                                      ? "bg-blue-500/15 text-blue-400"
+                                      : t.status === "IN_REVIEW"
+                                      ? "bg-amber-500/15 text-amber-400"
+                                      : "bg-slate-800 text-slate-400"
+                                  }`}
+                                >
+                                  {t.status === "DONE"
+                                    ? "Completed"
+                                    : t.status === "IN_PROGRESS"
+                                    ? "In Progress"
+                                    : t.status === "IN_REVIEW"
+                                    ? "In Review"
+                                    : "To Do"}
+                                </span>
+
+                                {t.dueDate && (
+                                  <span
+                                    className={`inline-flex items-center gap-1 font-mono text-[10px] ${
+                                      isOverdue ? "text-rose-400 font-medium" : "text-amber-300/90"
+                                    }`}
+                                  >
+                                    <Clock className="w-3 h-3" />
+                                    {new Date(t.dueDate).toLocaleString([], {
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    })}
+                                  </span>
+                                )}
+
+                                {t.assignee?.name && (
+                                  <span className="text-slate-400 text-[10px] truncate max-w-[130px]">
+                                    👤 {t.assignee.name}
+                                  </span>
+                                )}
+                              </div>
+
+                              {!isExpanded && t.description && (
+                                <p className="mt-1.5 text-xs text-slate-400 line-clamp-1 leading-relaxed">
+                                  {t.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Dropdown Full Details (ক্লিক করলে ড্রপডাউনে পুরো ডিটেইলস দেখাবে) */}
+                            {isExpanded && (
+                              <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-3 animate-fadeIn">
+                                {t.description && (
+                                  <div>
+                                    <span className="text-[10px] uppercase font-semibold text-slate-500 block mb-1">
+                                      Description (বিবরণ)
+                                    </span>
+                                    <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+                                      {t.description}
+                                    </p>
+                                  </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
+                                  <div>
+                                    <span className="text-[10px] text-slate-500 block">Status (স্ট্যাটাস)</span>
+                                    <select
+                                      value={t.status}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => handleQuickStatusChange(t.id, e.target.value)}
+                                      className="mt-1 w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs outline-none cursor-pointer"
+                                    >
+                                      <option value="TODO">To Do</option>
+                                      <option value="IN_PROGRESS">In Progress</option>
+                                      <option value="IN_REVIEW">In Review</option>
+                                      <option value="DONE">Completed</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <span className="text-[10px] text-slate-500 block">Assignee (দায়িত্বপ্রাপ্ত)</span>
+                                    <span className="text-slate-200 font-medium block mt-2 truncate">
+                                      {t.assignee?.name || "Unassigned"}
+                                    </span>
+                                  </div>
+
+                                  <div className="col-span-2 pt-1 border-t border-slate-800/60 flex items-center justify-between">
+                                    <span className="text-[10px] text-slate-500">Deadline (তারিখ ও সময়):</span>
+                                    <span
+                                      className={`font-mono text-xs font-medium flex items-center gap-1 ${
+                                        isOverdue ? "text-rose-400" : "text-amber-300"
+                                      }`}
+                                    >
+                                      <Clock className="w-3.5 h-3.5" />
+                                      {t.dueDate
+                                        ? new Date(t.dueDate).toLocaleString([], {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                            hour: "numeric",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
+                                        : "Not set"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="pt-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTask(t);
+                                    }}
+                                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-600/20 flex items-center justify-center gap-1.5"
+                                  >
+                                    <span>View Full Details & Edit / Reschedule</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
 
