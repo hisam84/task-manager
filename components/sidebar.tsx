@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  ListTodo,
   KanbanSquare,
   Users,
   Building2,
@@ -41,6 +42,12 @@ export function Sidebar({ user, onOpenChangePassword, onLogout }: SidebarProps) 
       label: "Dashboard",
       href: "/",
       icon: LayoutDashboard,
+      show: true,
+    },
+    {
+      label: "Task List",
+      href: "/tasks",
+      icon: ListTodo,
       show: true,
     },
     {
