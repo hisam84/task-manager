@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Plus } from "lucide-react";
+import { MessageSquare, Plus, Clock } from "lucide-react";
 
 interface Task {
   id: string;
@@ -136,6 +136,22 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                           <p className="text-[11px] text-[#888888] line-clamp-2 leading-normal">
                             {task.description}
                           </p>
+                        )}
+
+                        {/* Due Date & Time Badge */}
+                        {task.dueDate && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-amber-300/90 font-mono bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded w-fit">
+                            <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>
+                              {new Date(task.dueDate).toLocaleString([], {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </span>
+                          </div>
                         )}
 
                         {/* Footer Info & Quick Status Move */}

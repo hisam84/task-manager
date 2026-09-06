@@ -302,6 +302,7 @@ export default function DashboardPage() {
                         <th className="py-3 px-4">Task Title</th>
                         <th className="py-3 px-4">Status Progression</th>
                         <th className="py-3 px-4">Priority</th>
+                        <th className="py-3 px-4">Deadline</th>
                         <th className="py-3 px-4">Assignee</th>
                         <th className="py-3 px-4 text-right">Details</th>
                       </tr>
@@ -346,6 +347,24 @@ export default function DashboardPage() {
                             >
                               {t.priority}
                             </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            {t.dueDate ? (
+                              <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-300/90 font-mono bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                                <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                                <span>
+                                  {new Date(t.dueDate).toLocaleString([], {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 text-[11px] font-mono">—</span>
+                            )}
                           </td>
                           <td className="py-3 px-4 text-slate-300 font-medium">{t.assignee?.name || "Unassigned"}</td>
                           <td className="py-3 px-4 text-right">

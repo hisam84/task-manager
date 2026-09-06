@@ -122,20 +122,20 @@ export async function PATCH(
       const newDueDate = data.dueDate ? new Date(data.dueDate) : null;
       updateData.dueDate = newDueDate;
 
-      const oldDateStr = existingTask.dueDate
-        ? new Date(existingTask.dueDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })
-        : "None";
-      const newDateStr = newDueDate
-        ? newDueDate.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })
-        : "Cleared";
+      const formatDT = (d: Date | null | undefined) =>
+        d
+          ? new Date(d).toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : "None";
+
+      const oldDateStr = existingTask.dueDate ? formatDT(existingTask.dueDate) : "None";
+      const newDateStr = newDueDate ? formatDT(newDueDate) : "Cleared";
 
       if (oldDateStr !== newDateStr) {
         const reasonText = data.rescheduleReason?.trim() || "No reason specified";
@@ -143,7 +143,7 @@ export async function PATCH(
           data: {
             taskId: id,
             authorId: user.id,
-            body: `📅 [Task Rescheduled] Due date changed from ${oldDateStr} to ${newDateStr}.\nReason: ${reasonText}`,
+            body: `📅 [Task Rescheduled] Deadline changed from ${oldDateStr} to ${newDateStr}.\nReason: ${reasonText}`,
           },
         });
       }

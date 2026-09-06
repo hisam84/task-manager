@@ -12,7 +12,6 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  RotateCcw,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -38,6 +37,33 @@ const COMMON_REASONS = [
   "Scope/requirement change",
   "Workload priority shift",
 ];
+
+function toDateTimeLocalString(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function formatDateTime(dateStr?: string | null): string {
+  if (!dateStr) return "Not set";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "Not set";
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
 export function TaskDetailModal({
   task,
@@ -71,6 +97,7 @@ export function TaskDetailModal({
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editPriority, setEditPriority] = useState("MEDIUM");
+  const [editDueDate, setEditDueDate] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Reschedule state
@@ -99,9 +126,8 @@ export function TaskDetailModal({
         setEditTitle(data.title);
         setEditDescription(data.description || "");
         setEditPriority(data.priority);
-        setNewDueDate(
-          data.dueDate ? new Date(data.dueDate).toISOString().split("T")[0] : ""
-        );
+        setEditDueDate(toDateTimeLocalString(data.dueDate));
+        setNewDueDate(toDateTimeLocalString(data.dueDate));
         setComments(data.comments || []);
         setError(null);
       } else {
@@ -164,6 +190,7 @@ export function TaskDetailModal({
           title: editTitle.trim(),
           description: editDescription.trim() || null,
           priority: editPriority,
+          dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
         }),
       });
       if (res.ok) {
@@ -186,7 +213,7 @@ export function TaskDetailModal({
     e.preventDefault();
     if (!taskDetail) return;
     if (!newDueDate) {
-      setRescheduleError("Please select a new due date.");
+      setRescheduleError("Please select a new date and time.");
       return;
     }
     if (!rescheduleReason.trim()) {
@@ -333,7 +360,7 @@ export function TaskDetailModal({
                 setIsRescheduling(!isRescheduling);
                 setIsEditing(false);
               }}
-              title="Reschedule Due Date"
+              title="Reschedule Due Date & Time"
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isRescheduling
                   ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
@@ -382,15 +409,14 @@ export function TaskDetailModal({
                     <Calendar className="w-4 h-4" />
                   </div>
                   <h3 className="text-xs font-semibold text-white">
-                    Reschedule Task (টাস্ক রিসিডিউল করুন)
+                    Reschedule Deadline (টাস্ক রিসিডিউল করুন)
                   </h3>
                 </div>
-                <span className="text-[11px] text-slate-400">
-                  Current Due:{" "}
+                <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  Current:{" "}
                   <strong className="text-slate-200">
-                    {taskDetail.dueDate
-                      ? new Date(taskDetail.dueDate).toLocaleDateString()
-                      : "Not set"}
+                    {formatDateTime(taskDetail.dueDate)}
                   </strong>
                 </span>
               </div>
@@ -406,14 +432,14 @@ export function TaskDetailModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                      New Due Date (নতুন তারিখ) *
+                      New Due Date & Time (নতুন তারিখ ও সময়) *
                     </label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       required
                       value={newDueDate}
                       onChange={(e) => setNewDueDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none transition-colors"
                     />
                   </div>
 
@@ -507,18 +533,32 @@ export function TaskDetailModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Priority</label>
-                <select
-                  value={editPriority}
-                  onChange={(e) => setEditPriority(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none"
-                >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1">Priority</label>
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                    Due Date & Time / ডেডলাইন (তারিখ ও সময়)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none transition-colors"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-1">
@@ -561,10 +601,11 @@ export function TaskDetailModal({
 
             <div>
               <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
-                Due Date
+                Deadline (তারিখ ও সময়)
               </span>
-              <span className="text-slate-100 font-medium block mt-1">
-                {taskDetail.dueDate ? new Date(taskDetail.dueDate).toLocaleDateString() : "—"}
+              <span className="text-slate-100 font-medium block mt-1 flex items-center gap-1.5 font-mono text-[11px]">
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">{formatDateTime(taskDetail.dueDate)}</span>
               </span>
             </div>
 
@@ -612,7 +653,7 @@ export function TaskDetailModal({
                             </span>
                           )}
                         </span>
-                        <span>
+                        <span className="font-mono text-[10px]">
                           {new Date(c.createdAt).toLocaleDateString()}{" "}
                           {new Date(c.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",

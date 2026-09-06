@@ -212,9 +212,11 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Due Date / Deadline</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Due Date & Time / ডেডলাইন (তারিখ ও সময়)
+              </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all font-mono"
