@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ForgotPasswordModal } from "./forgot-password-modal";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,12 +13,23 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={onClose}
+        onBackToLogin={() => setShowForgotPassword(false)}
+      />
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -107,7 +119,16 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             </div>
 
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Password *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[#888888] font-mono">Password *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors font-mono hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type="password"
