@@ -60,7 +60,105 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
   const shiftTimes = `${employee?.shift?.startTime || "09:00"} - ${employee?.shift?.endTime || "18:00"}`;
 
   const handlePrint = () => {
-    window.print();
+    const printContent = document.getElementById("attendance-printable-area");
+    if (!printContent) {
+      window.print();
+      return;
+    }
+
+    // Remove any previously created print iframe
+    const existing = document.getElementById("attendance-print-iframe");
+    if (existing) existing.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "attendance-print-iframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    iframe.style.zIndex = "-9999";
+    document.body.appendChild(iframe);
+
+    const pri = iframe.contentWindow;
+    if (!pri) {
+      window.print();
+      return;
+    }
+
+    // Collect all head stylesheets and inline styles (Tailwind, theme, etc.)
+    const headStyles = Array.from(document.querySelectorAll("link[rel='stylesheet'], style"))
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    pri.document.open();
+    pri.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${companyName} - Attendance Report (${monthName} ${year})</title>
+          ${headStyles}
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 4mm 6mm;
+            }
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            html, body {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+              font-size: 9px !important;
+              line-height: 1.25 !important;
+              overflow: visible !important;
+              height: auto !important;
+            }
+            #attendance-printable-area {
+              display: block !important;
+              visibility: visible !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #0f172a !important;
+            }
+            table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="attendance-printable-area">
+            ${printContent.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    pri.document.close();
+
+    setTimeout(() => {
+      try {
+        pri.focus();
+        pri.print();
+      } catch (err) {
+        console.error("Print error:", err);
+        window.print();
+      } finally {
+        setTimeout(() => {
+          iframe.remove();
+        }, 2000);
+      }
+    }, 250);
   };
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -72,7 +170,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
           __html: `
             @page {
               size: A4 portrait;
-              margin: 5mm 6mm;
+              margin: 4mm 6mm;
             }
             @media print {
               html, body {
@@ -80,29 +178,34 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                 color: #000000 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-height: auto !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+              }
+              header, aside, nav, .print-hidden {
+                display: none !important;
+              }
+              .fixed.inset-0 {
+                position: static !important;
+                background: transparent !important;
+                padding: 0 !important;
                 overflow: visible !important;
-              }
-              body * {
-                visibility: hidden !important;
-              }
-              #attendance-printable-area,
-              #attendance-printable-area * {
-                visibility: visible !important;
+                height: auto !important;
+                max-height: none !important;
               }
               #attendance-printable-area {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
+                display: block !important;
+                position: static !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                border: none !important;
-                box-shadow: none !important;
+                background: #ffffff !important;
+                color: #000000 !important;
                 overflow: visible !important;
-                page-break-after: avoid !important;
+                max-height: none !important;
                 page-break-inside: avoid !important;
               }
             }
