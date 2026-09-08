@@ -499,25 +499,41 @@ export default function AttendancePage() {
           </div>
 
           {/* Assigned Shift Information Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-indigo-950/40 via-slate-900 to-purple-950/40 border border-indigo-500/20 gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-white to-purple-50/90 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/40 border border-indigo-200/80 dark:border-indigo-500/20 shadow-sm dark:shadow-none gap-4">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-500/30 shrink-0">
                 <Clock className="w-5 h-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-white">{shiftName}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">
+                    {shiftName}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                     Assigned Shift
                   </span>
                 </div>
-                <div className="flex items-center gap-4 mt-0.5 text-xs text-slate-300">
-                  <span>
-                    Working Hours: <strong className="text-white">{shiftStartTime}</strong> to{" "}
-                    <strong className="text-white">{shiftEndTime}</strong>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  <span className="inline-flex items-center gap-1">
+                    Working Hours:{" "}
+                    <strong className="font-semibold text-slate-900 dark:text-white font-mono">
+                      {shiftStartTime}
+                    </strong>{" "}
+                    to{" "}
+                    <strong className="font-semibold text-slate-900 dark:text-white font-mono">
+                      {shiftEndTime}
+                    </strong>
                   </span>
-                  <span>
-                    Grace Period: <strong className="text-emerald-400">15 min</strong>{enableLatePenalty ? " (No penalty)" : ""}
+                  <span className="inline-flex items-center gap-1">
+                    Grace Period:{" "}
+                    <strong className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      15 min
+                    </strong>
+                    {enableLatePenalty ? (
+                      <span className="text-slate-500 dark:text-slate-400 text-[11px]">(No penalty)</span>
+                    ) : (
+                      ""
+                    )}
                   </span>
                 </div>
               </div>
@@ -525,9 +541,21 @@ export default function AttendancePage() {
 
             {/* Late Penalty Rule Explanation Pill */}
             {enableLatePenalty && (
-              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 max-w-md">
-                <span className="font-semibold text-slate-200">Penalty Formula: </span>
-                16-20m = <span className="text-rose-400 font-bold">৳20</span> • 21-30m = <span className="text-rose-400 font-bold">৳30</span> • 31m+ = <span className="text-rose-400 font-bold">30+(t×2)</span>
+              <div className="text-[11px] bg-white dark:bg-slate-950/70 py-2 px-3 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-wrap items-center gap-1.5 text-slate-600 dark:text-slate-300 shrink-0">
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  Penalty Formula:
+                </span>
+                <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                  16-20m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">৳20</strong>
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                  21-30m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">৳30</strong>
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                  31m+ = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">30+(t×2)</strong>
+                </span>
               </div>
             )}
           </div>
