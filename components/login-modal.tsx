@@ -119,16 +119,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[#888888] font-mono">Password *</label>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors font-mono hover:underline"
-                >
-                  Forgot Password?
-                </button>
-              </div>
+              <label className="block text-[#888888] font-mono mb-1">Password *</label>
               <div className="relative">
                 <input
                   type="password"
@@ -143,21 +134,30 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#1f1f1f]">
+          <div className="flex items-center justify-between pt-3 border-t border-[#1f1f1f]">
             <button
               type="button"
-              onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] font-medium text-[#888888] hover:text-white border border-[#222222] transition-all"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-[11px] text-[#888888] hover:text-[#0070f3] transition-colors font-mono hover:underline"
             >
-              Cancel
+              Forgot password?
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-1.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] font-medium text-white transition-all shadow-[0_0_15px_rgba(0,112,243,0.4)] disabled:opacity-50"
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] font-medium text-[#888888] hover:text-white border border-[#222222] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-1.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] font-medium text-white transition-all shadow-[0_0_15px_rgba(0,112,243,0.4)] disabled:opacity-50"
+              >
+                {loading ? "Logging in..." : "Log In"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

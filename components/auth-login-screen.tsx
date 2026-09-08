@@ -101,16 +101,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[#888888] font-mono">Password *</label>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors font-mono hover:underline"
-                >
-                  Forgot Password?
-                </button>
-              </div>
+              <label className="block text-[#888888] font-mono mb-1">Password *</label>
               <div className="relative">
                 <input
                   type="password"
@@ -125,7 +116,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-3 text-center">
             <button
               type="submit"
               disabled={loading}
@@ -134,6 +125,16 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
               <LogIn className="w-4 h-4" />
               <span>{loading ? "Authenticating..." : "Sign In to Task Manager"}</span>
             </button>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-[#888888] hover:text-[#0070f3] transition-colors font-mono hover:underline inline-block py-1"
+              >
+                Forgot your password?
+              </button>
+            </div>
           </div>
         </form>
       </div>
