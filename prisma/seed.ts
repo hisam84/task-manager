@@ -22,6 +22,7 @@ async function main() {
       passwordHash,
       role: "SUPER_ADMIN",
       department: "Platform Operations",
+      avatar: "/logo.png",
     },
   });
 

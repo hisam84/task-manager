@@ -5,6 +5,14 @@ import { ThemeProvider } from "@/components/theme-provider";
 export const metadata: Metadata = {
   title: "Task Manager — Multi-Tenant Enterprise",
   description: "Next.js 15 multi-tenant employee task manager.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport = {

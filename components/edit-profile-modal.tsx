@@ -34,7 +34,9 @@ export function EditProfileModal({
   const [name, setName] = useState(user.name || "");
   const [designation, setDesignation] = useState(user.designation || "");
   const [phone, setPhone] = useState(user.phone || "");
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar || null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user.avatar || (user.role === "SUPER_ADMIN" ? "/logo.png" : null)
+  );
   const [avatarDirty, setAvatarDirty] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function EditProfileModal({
       setName(user.name || "");
       setDesignation(user.designation || "");
       setPhone(user.phone || "");
-      setAvatarPreview(user.avatar || null);
+      setAvatarPreview(user.avatar || (user.role === "SUPER_ADMIN" ? "/logo.png" : null));
       setAvatarDirty(false);
       setError(null);
       setSuccess(null);

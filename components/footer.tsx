@@ -57,6 +57,7 @@ export function Footer({ className = "", variant = "dashboard" }: FooterProps) {
     >
       <div className="w-full px-4 sm:px-6 md:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="Task Manager" className="w-4 h-4 object-contain rounded shrink-0" />
           <span className="font-semibold text-slate-800 dark:text-slate-200 tracking-tight">Task Manager</span>
           <span className="text-slate-300 dark:text-slate-700">•</span>
           <span>&copy; {currentYear} All rights reserved.</span>

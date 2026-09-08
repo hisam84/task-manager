@@ -134,8 +134,8 @@ export function Sidebar({
       {/* Sidebar Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/80">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20 shrink-0">
-            <Building2 className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md p-1 shrink-0 overflow-hidden">
+            <img src="/logo.png" alt="Task Manager" className="w-full h-full object-contain" />
           </div>
           {showLabels && (
             <div className="flex flex-col truncate">
@@ -270,11 +270,11 @@ export function Sidebar({
           }`}
           title="Click to edit profile & photo"
         >
-          {user.avatar ? (
+          {user.avatar || (user.role === "SUPER_ADMIN" ? "/logo.png" : null) ? (
             <img
-              src={user.avatar}
+              src={user.avatar || "/logo.png"}
               alt={user.name}
-              className="w-9 h-9 rounded-full object-cover border border-indigo-500/50 shrink-0 group-hover:ring-2 group-hover:ring-indigo-500/50 transition-all"
+              className="w-9 h-9 rounded-full object-cover border border-indigo-500/50 shrink-0 group-hover:ring-2 group-hover:ring-indigo-500/50 transition-all bg-white dark:bg-slate-900"
             />
           ) : (
             <div className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-800 text-indigo-400 font-bold text-sm border border-slate-700 shrink-0 group-hover:border-indigo-500/60 transition-colors">
@@ -348,11 +348,11 @@ export function Sidebar({
             className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Edit Profile"
           >
-          {user.avatar ? (
+          {user.avatar || (user.role === "SUPER_ADMIN" ? "/logo.png" : null) ? (
             <img
-              src={user.avatar}
+              src={user.avatar || "/logo.png"}
               alt={user.name}
-              className="w-7 h-7 rounded-full object-cover border border-indigo-500/50"
+              className="w-7 h-7 rounded-full object-cover border border-indigo-500/50 bg-white dark:bg-slate-900"
             />
           ) : (
             <div className="w-7 h-7 rounded-full bg-slate-800 text-indigo-400 text-xs font-bold flex items-center justify-center border border-slate-700">

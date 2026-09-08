@@ -46,12 +46,10 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-7 h-7 rounded-md bg-[#111111] border border-[#222222] group-hover:border-[#0070f3] flex items-center justify-center transition-all shadow-sm">
-                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 76 65" fill="currentColor">
-                  <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-                </svg>
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
+                <img src="/logo.png" alt="Task Manager" className="w-full h-full object-contain" />
               </div>
-              <span className="font-semibold text-xs tracking-tight text-white">Task Manager</span>
+              <span className="font-semibold text-xs tracking-tight text-slate-900 dark:text-white">Task Manager</span>
             </Link>
 
             <span className="text-[#333333] hidden sm:inline">/</span>
@@ -125,12 +123,21 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
                   <span className="hidden sm:inline">{isLoggingOut ? "..." : "Log Out"}</span>
                 </button>
 
-                <div
-                  className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1 cursor-pointer"
-                  title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
-                >
-                  {user?.name?.[0] || "U"}
-                </div>
+                {user?.avatar || (user?.role === "SUPER_ADMIN" ? "/logo.png" : null) ? (
+                  <img
+                    src={user.avatar || "/logo.png"}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover border border-indigo-500/50 ml-1 cursor-pointer bg-white dark:bg-slate-900"
+                    title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
+                  />
+                ) : (
+                  <div
+                    className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-mono font-bold text-[10px] text-white ml-1 cursor-pointer"
+                    title={`Logged in as ${user?.name} (@${user?.username || user?.email})`}
+                  >
+                    {user?.name?.[0] || "U"}
+                  </div>
+                )}
               </>
             )}
           </div>

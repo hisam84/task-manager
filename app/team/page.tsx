@@ -337,11 +337,11 @@ export default function TeamPage() {
                       </td>
                       <td className="p-4 font-medium">
                         <div className="flex items-center gap-3">
-                          {emp.avatar ? (
+                          {emp.avatar || (emp.role === "SUPER_ADMIN" ? "/logo.png" : null) ? (
                             <img
-                              src={emp.avatar}
+                              src={emp.avatar || "/logo.png"}
                               alt={emp.name}
-                              className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0"
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0 bg-white dark:bg-slate-900"
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs shrink-0">

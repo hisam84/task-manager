@@ -75,6 +75,7 @@ export async function GET(req: Request) {
 
     const payload = users.map(({ assignedTasks, ...rest }) => ({
       ...rest,
+      avatar: rest.avatar || (rest.role === "SUPER_ADMIN" ? "/logo.png" : null),
       departmentName: rest.departmentRel?.name || rest.department || "General",
       taskStats: {
         total: assignedTasks.length,

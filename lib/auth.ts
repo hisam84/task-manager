@@ -58,7 +58,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: user.email,
     username: user.username,
     role: user.role as SessionUser["role"],
-    avatar: user.avatar,
+    avatar: user.avatar || (user.role === "SUPER_ADMIN" ? "/logo.png" : null),
     designation: user.designation,
     department: user.department,
     companyId: user.companyId,

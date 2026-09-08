@@ -56,14 +56,8 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
         {/* Header Banner */}
         <div className="px-6 py-6 border-b border-[#1f1f1f] bg-gradient-to-b from-[#111111] to-[#0a0a0a] text-center relative">
           <ThemeToggle className="absolute right-4 top-4" />
-          <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 shadow-inner mx-auto mb-3 flex items-center justify-center text-[#0070f3]">
-            <svg
-              className="w-6 h-6 text-blue-600 dark:text-white"
-              viewBox="0 0 76 65"
-              fill="currentColor"
-            >
-              <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-            </svg>
+          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md mx-auto mb-3 flex items-center justify-center p-2 overflow-hidden">
+            <img src="/logo.png" alt="Task Manager" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Task Manager Portal</h1>
           <p className="text-xs text-[#888888] font-mono mt-1">
