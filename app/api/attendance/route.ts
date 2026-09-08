@@ -118,6 +118,9 @@ export async function GET(req: Request) {
     const enableLatePenalty = targetUser.company?.enableLatePenalty ?? false;
     const canViewFinesAndOvertime = canViewPenaltyAndOvertime(sessionUser.role);
 
+    const shiftStartTime = targetUser.shift?.startTime || "09:00";
+    const shiftEndTime = targetUser.shift?.endTime || "18:00";
+
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(Date.UTC(year, month - 1, day));
       const dateKey = dateObj.toISOString().slice(0, 10);
@@ -143,12 +146,43 @@ export async function GET(req: Request) {
         attendanceId = record.id;
         inTime = record.inTime;
         outTime = record.outTime;
-        status = record.status;
-        lateMinutes = record.lateMinutes;
-        latePenalty = (enableLatePenalty && status !== "HOLIDAY" && status !== "LEAVE" && status !== "WEEKEND") ? record.latePenalty : 0;
-        overtimeMinutes = record.overtimeMinutes;
-        workingMinutes = record.workingMinutes;
         notes = record.notes;
+
+        if (inTime || outTime) {
+          const isLeaveRecord = record.status === "LEAVE";
+          const m = computeDailyAttendanceMetrics({
+            inTime,
+            outTime,
+            isHoliday,
+            isLeave: isLeaveRecord,
+            isWeekend,
+            shiftStartTime,
+            shiftEndTime,
+          });
+
+          status = isLeaveRecord && !inTime ? "LEAVE" : m.status;
+          lateMinutes = m.lateMinutes;
+          latePenalty =
+            enableLatePenalty && status !== "HOLIDAY" && status !== "LEAVE" && status !== "WEEKEND"
+              ? m.latePenalty
+              : 0;
+          overtimeMinutes = m.overtimeMinutes;
+          workingMinutes = m.workingMinutes;
+        } else {
+          if (record.status === "LEAVE") {
+            status = "LEAVE";
+          } else if (isHoliday) {
+            status = "HOLIDAY";
+          } else if (isWeekend) {
+            status = "WEEKEND";
+          } else {
+            status = record.status || "ABSENT";
+          }
+          lateMinutes = 0;
+          latePenalty = 0;
+          overtimeMinutes = 0;
+          workingMinutes = 0;
+        }
       } else {
         if (isHoliday) {
           status = "HOLIDAY";

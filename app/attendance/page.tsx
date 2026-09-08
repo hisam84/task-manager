@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { ChangePasswordModal } from "@/components/change-password-modal";
@@ -423,6 +423,100 @@ export default function AttendancePage() {
   const todayRow = monthlyData?.records?.find((r) => r.date === todayStr);
   const enableLatePenalty = monthlyData?.enableLatePenalty ?? false;
 
+  const liveSummary = useMemo(() => {
+    if (!monthlyData?.records) return monthlyData?.summary || null;
+
+    let presentCount = 0;
+    let lateCount = 0;
+    let absentCount = 0;
+    let holidayCount = 0;
+    let leaveCount = 0;
+    let weekendCount = 0;
+    let totalLateMinutes = 0;
+    let totalLatePenalty = 0;
+    let totalOvertimeMinutes = 0;
+    let totalWorkingMinutes = 0;
+
+    monthlyData.records.forEach((record) => {
+      const rowState = rowEdits[record.date] || {
+        inTime: record.inTime || "",
+        outTime: record.outTime || "",
+        status: record.status,
+      };
+
+      const isHoliday = record.isHoliday || rowState.status === "HOLIDAY";
+      const isLeave = record.isLeave || rowState.status === "LEAVE";
+      const isWeekend = record.isWeekend;
+
+      let effectiveStatus = rowState.status;
+      if (effectiveStatus !== "LEAVE") {
+        if (rowState.inTime) {
+          const lateMin = calculateLateMinutes(rowState.inTime, shiftStartTime);
+          effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
+        } else {
+          if (isHoliday) effectiveStatus = "HOLIDAY";
+          else if (isWeekend) effectiveStatus = "WEEKEND";
+          else effectiveStatus = rowState.status || "ABSENT";
+        }
+      }
+
+      const currentLateMin = rowState.inTime
+        ? calculateLateMinutes(rowState.inTime, shiftStartTime)
+        : record.lateMinutes;
+
+      const currentPenalty =
+        !enableLatePenalty || isHoliday || isLeave || isWeekend
+          ? 0
+          : rowState.inTime
+          ? calculateLatePenalty(currentLateMin)
+          : record.latePenalty;
+
+      const currentOvertime =
+        rowState.outTime
+          ? calculateOvertimeMinutes(
+              rowState.outTime,
+              shiftEndTime,
+              rowState.inTime,
+              shiftStartTime,
+              isHoliday || isWeekend
+            )
+          : record.overtimeMinutes;
+
+      const currentWorkMin =
+        rowState.inTime && rowState.outTime
+          ? calculateWorkingMinutes(rowState.inTime, rowState.outTime)
+          : record.workingMinutes;
+
+      if (effectiveStatus === "PRESENT") presentCount++;
+      else if (effectiveStatus === "LATE") {
+        lateCount++;
+        presentCount++;
+      } else if (effectiveStatus === "HOLIDAY") holidayCount++;
+      else if (effectiveStatus === "LEAVE") leaveCount++;
+      else if (effectiveStatus === "WEEKEND") weekendCount++;
+      else if (effectiveStatus === "ABSENT") absentCount++;
+
+      totalLateMinutes += currentLateMin;
+      totalLatePenalty += currentPenalty;
+      totalOvertimeMinutes += currentOvertime;
+      totalWorkingMinutes += currentWorkMin;
+    });
+
+    return {
+      totalDays: monthlyData.daysInMonth || monthlyData.records.length,
+      presentCount,
+      lateCount,
+      absentCount,
+      holidayCount,
+      leaveCount,
+      weekendCount,
+      totalLateMinutes,
+      totalLatePenalty: canViewFines && enableLatePenalty ? totalLatePenalty : 0,
+      totalOvertimeMinutes: canViewFines ? totalOvertimeMinutes : 0,
+      totalWorkingMinutes,
+    };
+  }, [monthlyData, rowEdits, shiftStartTime, shiftEndTime, enableLatePenalty, canViewFines]);
+
   return (
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
       <Sidebar
@@ -513,10 +607,10 @@ export default function AttendancePage() {
                       setHolidayModalOpen(true);
                     }}
                     className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all shadow-sm"
-                    title="কোম্পানির ছুটি ও সরকারি ছুটির দিন নির্ধারণ করুন"
+                    title="Configure company and official holidays"
                   >
                     <Calendar className="w-4 h-4 text-amber-400" />
-                    + ছুটি এড / Holidays
+                    + Holidays
                   </button>
                 </>
               )}
@@ -660,7 +754,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Summary Metric Cards */}
-          {monthlyData?.summary && (
+          {liveSummary && (
             <div
               className={`grid gap-3 ${
                 enableLatePenalty && canViewFines
@@ -673,30 +767,30 @@ export default function AttendancePage() {
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-slate-400 block font-medium">Days in Month</span>
                 <span className="text-xl font-bold text-slate-100 mt-1 block">
-                  {monthlyData.summary.totalDays}
+                  {liveSummary.totalDays}
                 </span>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">
-                  {monthlyData.summary.weekendCount} Weekends
+                  {liveSummary.weekendCount} Weekends
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-emerald-400 block font-medium">Present Days</span>
                 <span className="text-xl font-bold text-emerald-400 mt-1 block">
-                  {monthlyData.summary.presentCount}
+                  {liveSummary.presentCount}
                 </span>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">
-                  {monthlyData.summary.absentCount} Absent
+                  {liveSummary.absentCount} Absent
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-rose-400 block font-medium">Late Days</span>
                 <span className="text-xl font-bold text-rose-400 mt-1 block">
-                  {monthlyData.summary.lateCount}
+                  {liveSummary.lateCount}
                 </span>
                 <span className="text-[11px] text-rose-400/80 mt-0.5 block font-mono">
-                  {monthlyData.summary.totalLateMinutes} min total
+                  {liveSummary.totalLateMinutes} min total
                 </span>
               </div>
 
@@ -704,7 +798,7 @@ export default function AttendancePage() {
                 <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-950/20">
                   <span className="text-xs text-rose-300 block font-medium">Total Late Fine</span>
                   <span className="text-xl font-bold text-rose-400 mt-1 block">
-                    ৳ {monthlyData.summary.totalLatePenalty}
+                    ৳ {liveSummary.totalLatePenalty}
                   </span>
                   <span className="text-[10px] text-rose-300/70 mt-0.5 block">
                     Calculated penalty
@@ -716,7 +810,7 @@ export default function AttendancePage() {
                 <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
                   <span className="text-xs text-indigo-300 block font-medium">Overtime</span>
                   <span className="text-xl font-bold text-indigo-400 mt-1 block">
-                    {formatMinutes(monthlyData.summary.totalOvertimeMinutes)}
+                    {formatMinutes(liveSummary.totalOvertimeMinutes)}
                   </span>
                   <span className="text-[10px] text-indigo-300/70 mt-0.5 block">
                     Approved extra time
@@ -728,20 +822,20 @@ export default function AttendancePage() {
                 <span className="text-xs text-slate-400 block font-medium">Holidays & Leaves</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-xl font-bold text-amber-400">
-                    {monthlyData.summary.holidayCount}
+                    {liveSummary.holidayCount}
                   </span>
                   <span className="text-xs text-slate-400">Holidays</span>
-                  {(monthlyData.summary.leaveCount || 0) > 0 && (
+                  {(liveSummary.leaveCount || 0) > 0 && (
                     <>
                       <span className="text-slate-600">/</span>
                       <span className="text-xl font-bold text-blue-400">
-                        {monthlyData.summary.leaveCount}
+                        {liveSummary.leaveCount}
                       </span>
                       <span className="text-xs text-slate-400">Leaves</span>
                     </>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">কোম্পানি ছুটি ও লিভ</span>
+                <span className="text-[11px] text-slate-500 mt-0.5 block">Company Holidays & Leaves</span>
               </div>
             </div>
           )}
@@ -902,11 +996,11 @@ export default function AttendancePage() {
                                     : "bg-slate-900 text-slate-400 border-slate-800"
                                 }`}
                               >
-                                <option value="PRESENT" className="bg-slate-900 text-white">Present (উপস্থিত)</option>
-                                <option value="LATE" className="bg-slate-900 text-white">Late (দেরি)</option>
-                                <option value="ABSENT" className="bg-slate-900 text-white">Absent (অনুপস্থিত)</option>
-                                <option value="LEAVE" className="bg-slate-900 text-white">Leave (ছুটি)</option>
-                                <option value="HOLIDAY" className="bg-slate-900 text-white">Holiday (সরকারি ছুটি)</option>
+                                <option value="PRESENT" className="bg-slate-900 text-white">Present</option>
+                                <option value="LATE" className="bg-slate-900 text-white">Late</option>
+                                <option value="ABSENT" className="bg-slate-900 text-white">Absent</option>
+                                <option value="LEAVE" className="bg-slate-900 text-white">Leave</option>
+                                <option value="HOLIDAY" className="bg-slate-900 text-white">Holiday</option>
                               </select>
                             ) : (
                               <span
@@ -927,7 +1021,7 @@ export default function AttendancePage() {
                                 {effectiveStatus === "HOLIDAY" || record.isHoliday
                                   ? "Holiday"
                                   : effectiveStatus === "LEAVE"
-                                  ? "Leave (ছুটি)"
+                                  ? "Leave"
                                   : isWeekend
                                   ? "Weekend"
                                   : currentLateMin > 15
@@ -1037,10 +1131,10 @@ export default function AttendancePage() {
                                       ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
                                       : "bg-slate-800 text-slate-300 hover:text-amber-300 hover:bg-slate-700 border border-slate-700"
                                   }`}
-                                  title={isHoliday ? "কোম্পানি ছুটি পরিবর্তন বা মুছুন" : "এই তারিখে কোম্পানি ছুটি এড করুন"}
+                                  title={isHoliday ? "Manage holiday" : "Add holiday on this date"}
                                 >
                                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                                  {isHoliday ? "ছুটি ম্যানেজ" : "+ ছুটি এড"}
+                                  {isHoliday ? "Holiday" : "+ Holiday"}
                                 </button>
                               )}
                             </div>
@@ -1081,7 +1175,14 @@ export default function AttendancePage() {
       <AttendancePrintModal
         isOpen={printModalOpen}
         onClose={() => setPrintModalOpen(false)}
-        data={monthlyData}
+        data={
+          monthlyData && liveSummary
+            ? {
+                ...monthlyData,
+                summary: liveSummary,
+              }
+            : monthlyData
+        }
         enableLatePenalty={enableLatePenalty && canViewFines}
         isManagerOrAdmin={canViewFines}
       />
