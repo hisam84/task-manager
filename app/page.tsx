@@ -149,11 +149,7 @@ export default function DashboardPage() {
   };
 
   if (!loading && !currentUser) {
-    return (
-      <div className="min-h-dvh flex flex-col bg-slate-950 text-white font-sans">
-        <AuthLoginScreen onSuccess={fetchSessionAndTasks} />
-      </div>
-    );
+    return <AuthLoginScreen onSuccess={fetchSessionAndTasks} />;
   }
 
   if (loading || !currentUser) {
