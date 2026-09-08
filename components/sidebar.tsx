@@ -224,50 +224,88 @@ export function Sidebar({
         </button>
 
         {/* Quick Action Buttons */}
-        <div
-          className={`mt-3 pt-2 border-t border-slate-800/60 flex items-center ${
-            showLabels ? "gap-2" : "flex-col gap-2"
-          }`}
-        >
-          <button
-            type="button"
-            onClick={handleOpenEditProfile}
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 min-h-11 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
-            title="Edit Profile"
-          >
-            <User className="w-3.5 h-3.5 text-indigo-400" />
-            {showLabels && <span>Profile</span>}
-          </button>
-
-          {/* Theme Toggle */}
-          <ThemeToggle
-            showLabel={showLabels}
-            className="flex-1"
-          />
-
-          {onOpenChangePassword && (
+        {showLabels ? (
+          <div className="mt-3 pt-2.5 border-t border-slate-800/60 grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={onOpenChangePassword}
-              className="flex-1 flex items-center justify-center gap-1.5 px-2 min-h-11 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
-              title="Change Password"
+              onClick={handleOpenEditProfile}
+              className="flex items-center justify-center gap-2 px-2.5 h-10 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-colors shadow-sm"
+              title="Edit Profile"
             >
-              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
-              {showLabels && <span>Password</span>}
+              <User className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span className="truncate">Profile</span>
             </button>
-          )}
 
-          {onLogout && (
+            {onOpenChangePassword && (
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                className="flex items-center justify-center gap-2 px-2.5 h-10 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-colors shadow-sm"
+                title="Change Password"
+              >
+                <KeyRound className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span className="truncate">Password</span>
+              </button>
+            )}
+
+            <ThemeToggle
+              showLabel={true}
+              className="w-full"
+            />
+
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className={`flex items-center justify-center gap-2 px-2.5 h-10 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors shadow-sm ${
+                  !onOpenChangePassword ? "col-span-2" : ""
+                }`}
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                <span className="truncate">Log Out</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="mt-3 pt-2 border-t border-slate-800/60 flex flex-col items-center gap-2">
             <button
               type="button"
-              onClick={onLogout}
-              className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-lg text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
-              title="Log Out"
+              onClick={handleOpenEditProfile}
+              className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-colors shadow-sm"
+              title="Edit Profile"
             >
-              <LogOut className="w-4 h-4" />
+              <User className="w-4 h-4 text-indigo-400" />
             </button>
-          )}
-        </div>
+
+            {onOpenChangePassword && (
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-colors shadow-sm"
+                title="Change Password"
+              >
+                <KeyRound className="w-4 h-4 text-indigo-400" />
+              </button>
+            )}
+
+            <ThemeToggle
+              showLabel={false}
+              className="w-10 h-10 !min-h-0 !min-w-0 p-0 rounded-xl"
+            />
+
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors shadow-sm"
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

@@ -22,7 +22,7 @@ export function ThemeToggle({ showLabel = false, className = "" }: ThemeTogglePr
       <button
         type="button"
         disabled
-        className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 bg-slate-800/40 opacity-70 ${className}`}
+        className={`h-10 inline-flex items-center justify-center rounded-xl text-slate-400 bg-slate-800/40 opacity-70 ${className}`}
         aria-label="Toggle theme"
       >
         <Sun className="w-4 h-4 text-amber-400 animate-pulse" />
@@ -36,7 +36,7 @@ export function ThemeToggle({ showLabel = false, className = "" }: ThemeTogglePr
     <button
       type="button"
       onClick={toggleTheme}
-      className={`min-h-11 inline-flex items-center justify-center gap-2 px-2.5 rounded-lg text-xs font-medium transition-all select-none ${
+      className={`h-10 inline-flex items-center justify-center gap-2 px-2.5 rounded-xl text-xs font-medium transition-all select-none ${
         isDark
           ? "bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/60 shadow-sm"
           : "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-sm"
@@ -50,7 +50,7 @@ export function ThemeToggle({ showLabel = false, className = "" }: ThemeTogglePr
         <Moon className="w-4 h-4 text-indigo-600 shrink-0 transition-transform hover:-rotate-12" />
       )}
       {showLabel && (
-        <span className="font-mono text-[11px] truncate">
+        <span className="text-xs font-medium truncate">
           {isDark ? "Light Mode" : "Dark Mode"}
         </span>
       )}
