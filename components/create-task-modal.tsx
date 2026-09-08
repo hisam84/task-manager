@@ -138,7 +138,7 @@ export function CreateTaskModal({
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X className="w-5 h-5" />
           </button>
@@ -271,28 +271,28 @@ export function CreateTaskModal({
                 <button
                   type="button"
                   onClick={() => setQuickDate(0, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Today (5 PM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(1, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Tomorrow (5 PM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(3, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   In 3 Days
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(7, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Next Week
                 </button>
@@ -305,7 +305,7 @@ export function CreateTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-transparent transition-all"
             >
               Cancel
             </button>

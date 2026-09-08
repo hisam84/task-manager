@@ -120,15 +120,15 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                         onClick={() => onTaskClick(task)}
                         className={`group rounded-lg p-3.5 transition-all cursor-pointer flex flex-col gap-3 relative ${
                           isDone
-                            ? "bg-emerald-950/25 hover:bg-emerald-950/40 border border-emerald-800/40 hover:border-emerald-600/60 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100 shadow-sm shadow-emerald-950/20"
-                            : "bg-[#0f0f0f] hover:bg-[#141414] border border-[#222222] hover:border-[#3b3b3b] hover:shadow-vercel-glow"
+                            ? "bg-emerald-50 dark:bg-emerald-950/25 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 hover:border-emerald-300 dark:hover:border-emerald-600/60 border-l-4 border-l-emerald-500 opacity-90 hover:opacity-100 shadow-sm"
+                            : "bg-white dark:bg-[#0f0f0f] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-[#222222] hover:border-slate-300 dark:hover:border-[#3b3b3b] shadow-sm hover:shadow-md dark:hover:shadow-vercel-glow"
                         }`}
                       >
                         {/* Title & Priority */}
                         <div className="flex items-start justify-between gap-2">
                           <h4
                             className={`text-xs font-semibold line-clamp-2 leading-relaxed transition-colors ${
-                              isDone ? "text-emerald-300 group-hover:text-emerald-200" : "text-[#eaeaea] group-hover:text-white"
+                              isDone ? "text-emerald-700 dark:text-emerald-300 group-hover:text-emerald-800 dark:group-hover:text-emerald-200" : "text-slate-900 dark:text-[#eaeaea] group-hover:text-slate-950 dark:group-hover:text-white"
                             }`}
                           >
                             {task.title}
@@ -192,8 +192,8 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                               }}
                               className={`text-[10px] rounded px-1.5 py-0.5 font-mono cursor-pointer outline-none transition-colors ${
                                 isDone
-                                  ? "bg-emerald-950/60 border border-emerald-700/60 text-emerald-300 hover:border-emerald-500"
-                                  : "bg-[#111111] hover:bg-[#1a1a1a] text-[#aaaaaa] border border-[#2e2e2e]"
+                                  ? "bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500"
+                                  : "bg-slate-100 dark:bg-[#111111] hover:bg-slate-200 dark:hover:bg-[#1a1a1a] text-slate-700 dark:text-[#aaaaaa] border border-slate-300 dark:border-[#2e2e2e]"
                               }`}
                             >
                               <option value="TODO">To Do</option>

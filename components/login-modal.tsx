@@ -80,7 +80,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#777777] hover:text-white transition-colors rounded hover:bg-[#1a1a1a]"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-[#777777] hover:text-slate-900 dark:hover:text-white transition-colors rounded hover:bg-slate-100 dark:hover:bg-[#1a1a1a]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -146,7 +146,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] font-medium text-[#888888] hover:text-white border border-[#222222] transition-all"
+                className="px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#111111] hover:bg-slate-200 dark:hover:bg-[#1a1a1a] font-medium text-slate-700 dark:text-[#888888] hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-[#222222] transition-all"
               >
                 Cancel
               </button>

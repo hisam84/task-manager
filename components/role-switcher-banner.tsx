@@ -87,8 +87,8 @@ export function RoleSwitcherBanner() {
                 disabled={loading || isSelected}
                 className={`px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1 ${
                   isSelected
-                    ? "bg-[#222222] text-white border border-[#444444] cursor-default shadow-sm"
-                    : "bg-[#111111] text-[#888888] hover:text-white hover:bg-[#1a1a1a] border border-[#222222]"
+                    ? "bg-slate-200 dark:bg-[#222222] text-slate-900 dark:text-white border border-slate-300 dark:border-[#444444] cursor-default shadow-sm font-semibold"
+                    : "bg-slate-100 dark:bg-[#111111] text-slate-600 dark:text-[#888888] hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#1a1a1a] border border-slate-300 dark:border-[#222222]"
                 }`}
               >
                 <span>{p.name.split(" ")[0]}</span>

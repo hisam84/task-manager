@@ -152,7 +152,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="hidden lg:inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -182,11 +182,11 @@ export function Sidebar({
               className={`flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                 isActive
                   ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
               } ${showLabels ? "" : "justify-center px-0"}`}
               title={showLabels ? undefined : item.label}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+              <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} />
               {showLabels && <span>{item.label}</span>}
             </Link>
           );
@@ -207,12 +207,12 @@ export function Sidebar({
               handleOpenEditProfile();
               setMobileOpen(false);
             }}
-            className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
               showLabels ? "" : "justify-center px-0"
             }`}
             title={showLabels ? undefined : "Profile Settings"}
           >
-            <User className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+            <User className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
             {showLabels && <span>Profile</span>}
           </button>
 
@@ -224,12 +224,12 @@ export function Sidebar({
                 onOpenChangePassword();
                 setMobileOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
                 showLabels ? "" : "justify-center px-0"
               }`}
               title={showLabels ? undefined : "Change Password"}
             >
-              <KeyRound className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+              <KeyRound className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
               {showLabels && <span>Password</span>}
             </button>
           )}
@@ -238,7 +238,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={toggleTheme}
-            className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
               showLabels ? "" : "justify-center px-0"
             }`}
             title={showLabels ? undefined : isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
@@ -246,12 +246,12 @@ export function Sidebar({
             {isDark ? (
               <Sun className="w-5 h-5 shrink-0 text-amber-400 transition-transform group-hover:rotate-45" />
             ) : (
-              <Moon className="w-5 h-5 shrink-0 text-indigo-400 transition-transform group-hover:-rotate-12" />
+              <Moon className="w-5 h-5 shrink-0 text-indigo-500 transition-transform group-hover:-rotate-12" />
             )}
             {showLabels && (
               <div className="flex items-center justify-between flex-1 min-w-0">
                 <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700/60 font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60 font-mono">
                   {isDark ? "DARK" : "LIGHT"}
                 </span>
               </div>
@@ -265,7 +265,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={handleOpenEditProfile}
-          className={`w-full flex items-center text-left p-1.5 -m-1.5 rounded-xl hover:bg-slate-800/50 transition-colors group cursor-pointer ${
+          className={`w-full flex items-center text-left p-1.5 -m-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer ${
             showLabels ? "gap-3" : "flex-col gap-2"
           }`}
           title="Click to edit profile & photo"
@@ -334,7 +334,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-200 hover:bg-slate-800"
+          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
           aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
@@ -345,7 +345,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={handleOpenEditProfile}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Edit Profile"
           >
           {user.avatar ? (
@@ -376,7 +376,7 @@ export function Sidebar({
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-300 hover:bg-slate-800"
+                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />

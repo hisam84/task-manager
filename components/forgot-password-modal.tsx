@@ -173,7 +173,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
               </div>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-100 p-1 rounded-lg hover:bg-slate-800/40 transition-colors -mr-1"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors -mr-1"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -205,7 +205,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                 <button
                   type="button"
                   onClick={onBackToLogin}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-transparent rounded-lg transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Sign In

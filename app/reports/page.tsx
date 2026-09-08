@@ -168,7 +168,7 @@ export default function ReportsPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
                     {employeeMatrix.map((emp: any) => (
-                      <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={emp.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="p-4 font-semibold text-slate-900 dark:text-white">
                           <div>{emp.name}</div>
                           <div className="text-[11px] text-slate-400 font-normal">{emp.email}</div>

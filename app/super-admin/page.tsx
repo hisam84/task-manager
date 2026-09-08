@@ -279,7 +279,7 @@ export default function SuperAdminPage() {
                         setEditingCompany(comp);
                         setEditCompanyOpen(true);
                       }}
-                      className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl text-slate-300 bg-slate-800 hover:bg-slate-700 text-xs font-medium transition-colors"
+                      className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium transition-colors border border-slate-200 dark:border-transparent"
                       title="Edit Company"
                     >
                       <Edit2 className="w-4 h-4" />

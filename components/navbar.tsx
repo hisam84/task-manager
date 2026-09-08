@@ -72,8 +72,8 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
                   href={link.href}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
                     isActive
-                      ? "bg-[#1f1f1f] text-white shadow-sm border border-[#333333]"
-                      : "text-[#888888] hover:text-white hover:bg-[#111111]"
+                      ? "bg-slate-200 dark:bg-[#1f1f1f] text-slate-900 dark:text-white shadow-sm border border-slate-300 dark:border-[#333333]"
+                      : "text-slate-600 dark:text-[#888888] hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#111111]"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 opacity-70" />
@@ -118,7 +118,7 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="px-2.5 py-1 rounded-md bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-red-400 border border-[#2b2b2b] text-xs font-mono transition-all flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-[#161616] hover:bg-slate-200 dark:hover:bg-[#222222] text-slate-600 dark:text-[#888888] hover:text-rose-600 dark:hover:text-red-400 border border-slate-300 dark:border-[#2b2b2b] text-xs font-mono transition-all flex items-center gap-1"
                   title="Log out of session"
                 >
                   <LogOut className="w-3.5 h-3.5" />

@@ -370,7 +370,7 @@ export function TaskDetailModal({
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isEditing
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export function TaskDetailModal({
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isRescheduling
                   ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
-                  : "text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30"
+                  : "text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30"
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -408,7 +408,7 @@ export function TaskDetailModal({
 
             <button
               onClick={onClose}
-              className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+              className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-4 h-4" />
             </button>

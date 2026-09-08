@@ -349,14 +349,14 @@ export default function DashboardPage() {
                                 className={`transition-all cursor-pointer group ${
                                   isDone
                                     ? "bg-emerald-950/25 dark:bg-emerald-950/35 hover:bg-emerald-950/45 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
-                                    : "hover:bg-slate-800/40"
+                                    : "hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
                                 }`}
                               >
                                 <td
                                   className={`py-3 px-4 font-semibold transition-colors ${
                                     isDone
-                                      ? "text-emerald-300 group-hover:text-emerald-200"
-                                      : "text-white group-hover:text-indigo-400"
+                                      ? "text-emerald-600 dark:text-emerald-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-200"
+                                      : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                   }`}
                                 >
                                   {t.title}
@@ -432,7 +432,7 @@ export default function DashboardPage() {
                                     e.stopPropagation();
                                     setSelectedTask(t);
                                   }}
-                                  className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition-colors"
+                                  className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-transparent transition-colors"
                                 >
                                   View / Edit
                                 </button>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                             className={`p-3.5 transition-all ${
                               isDone
                                 ? "bg-emerald-950/25 dark:bg-emerald-950/35 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
-                                : "transition-colors hover:bg-slate-800/20"
+                                : "transition-colors hover:bg-slate-100/70 dark:hover:bg-slate-800/20"
                             }`}
                           >
                             {/* Tap header to toggle dropdown */}
@@ -638,7 +638,7 @@ export default function DashboardPage() {
                   <button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="px-5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
                   >
                     {loadingMore ? "Loading..." : "Load More Tasks"}
                   </button>

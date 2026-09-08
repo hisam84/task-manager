@@ -329,7 +329,7 @@ export default function TeamPage() {
                   </tr>
                 ) : (
                   filteredAndSortedEmployees.map((emp, index) => (
-                    <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={emp.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="p-4 text-center">
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-semibold">
                           {index + 1}
@@ -421,7 +421,7 @@ export default function TeamPage() {
                               setEditingEmployee(emp);
                               setEmployeeModalOpen(true);
                             }}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             title="Edit Employee"
                           >
                             <Edit2 className="w-4 h-4" />
