@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/sidebar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import {
   ListTodo,
   Search,
@@ -675,6 +676,8 @@ export default function TasksPage() {
               </button>
             </div>
           )}
+
+          <Footer />
         </div>
       </main>
 

@@ -6,6 +6,7 @@ import { CreateCompanyModal } from "@/components/create-company-modal";
 import { EditCompanyModal } from "@/components/edit-company-modal";
 import { ResetPasswordModal } from "@/components/reset-password-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import { ProgressCard, DonutChart } from "@/components/charts";
 import { ShieldCheck, Building2, Plus, Edit2, Trash2, KeyRound, Loader2, Users, FileCheck2, Power, Calendar, Infinity, Coins, AlertCircle } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
@@ -294,6 +295,8 @@ export default function SuperAdminPage() {
                 </div>
               ))}
             </div>
+
+            <Footer />
           </div>
         </div>
       </main>

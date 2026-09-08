@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck, Mail } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Footer } from "@/components/footer";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -246,9 +247,7 @@ export default function ResetPasswordPage() {
           <ResetPasswordForm />
         </Suspense>
 
-        <p className="text-center text-[11px] text-[#555555] font-mono">
-          &copy; {new Date().getFullYear()} Task Manager System. All rights reserved.
-        </p>
+        <Footer variant="auth" />
       </div>
     </main>
   );

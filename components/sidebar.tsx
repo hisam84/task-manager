@@ -308,6 +308,20 @@ export function Sidebar({
               <LogOut className="w-4 h-4 shrink-0" />
               {showLabels && <span className="truncate font-semibold">Log Out</span>}
             </button>
+
+            {showLabels && (
+              <div className="pt-2 text-center text-[11px] text-slate-500 dark:text-slate-400">
+                <span>Crafted by </span>
+                <a
+                  href="https://hisam-omega.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold hover:underline transition-colors"
+                >
+                  Hisam
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>

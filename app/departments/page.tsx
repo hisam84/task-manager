@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { DepartmentModal } from "@/components/department-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import { Layers, Plus, Edit2, Trash2, Loader2, Users, FileCheck2 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -177,6 +178,8 @@ export default function DepartmentsPage() {
               ))}
             </div>
           )}
+
+          <Footer />
         </div>
       </main>
 

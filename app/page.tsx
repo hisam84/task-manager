@@ -8,6 +8,7 @@ import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
+import { Footer } from "@/components/footer";
 import { ProgressCard, DonutChart, WorkloadBarChart } from "@/components/charts";
 import {
   Search,
@@ -644,6 +645,8 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          <Footer />
         </div>
       </main>
 

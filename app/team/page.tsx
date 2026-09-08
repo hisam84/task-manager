@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/sidebar";
 import { EmployeeModal } from "@/components/employee-modal";
 import { ResetPasswordModal } from "@/components/reset-password-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import {
   Users,
   Plus,
@@ -439,6 +440,8 @@ export default function TeamPage() {
               </tbody>
             </table>
           </div>
+
+          <Footer />
         </div>
       </main>
 

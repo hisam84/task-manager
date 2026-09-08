@@ -7,6 +7,7 @@ import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ShiftModal } from "@/components/shift-modal";
 import { HolidayModal } from "@/components/holiday-modal";
 import { AttendancePrintModal } from "@/components/attendance-print-modal";
+import { Footer } from "@/components/footer";
 import { canViewPenaltyAndOvertime } from "@/lib/access";
 import {
   CalendarCheck2,
@@ -1147,6 +1148,8 @@ export default function AttendancePage() {
               </div>
             )}
           </div>
+
+          <Footer />
         </div>
       </main>
 

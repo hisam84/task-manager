@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { DonutChart, WorkloadBarChart, ProgressCard } from "@/components/charts";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import { BarChart3, Loader2, CheckCircle2, Clock, AlertTriangle, Users } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -199,6 +200,8 @@ export default function ReportsPage() {
               </div>
             </div>
           )}
+
+          <Footer />
         </div>
       </main>
 

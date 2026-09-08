@@ -8,6 +8,7 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { Footer } from "@/components/footer";
 import { Plus, KanbanSquare, Loader2 } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser, TaskStatus } from "@/lib/types";
@@ -134,6 +135,8 @@ export default function KanbanPage() {
             onStatusChange={handleStatusChange}
             onNewTaskClick={() => setIsCreateTaskOpen(true)}
           />
+
+          <Footer />
         </div>
       </main>
 

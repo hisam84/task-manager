@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
 import { ForgotPasswordModal } from "./forgot-password-modal";
 import { ThemeToggle } from "./theme-toggle";
+import { Footer } from "./footer";
 
 interface AuthLoginScreenProps {
   onSuccess?: () => void;
@@ -140,6 +141,8 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
           </div>
         </form>
       </div>
+
+      <Footer variant="auth" />
 
       <ForgotPasswordModal
         isOpen={showForgotPassword}
