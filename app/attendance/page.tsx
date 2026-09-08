@@ -45,6 +45,7 @@ interface AttendanceRecord {
   dayOfWeek: number;
   isWeekend: boolean;
   isHoliday: boolean;
+  isLeave?: boolean;
   holidayName: string | null;
   status: string;
   inTime: string | null;
@@ -68,6 +69,7 @@ interface MonthlyData {
     lateCount: number;
     absentCount: number;
     holidayCount: number;
+    leaveCount?: number;
     weekendCount: number;
     totalLateMinutes: number;
     totalLatePenalty: number;
@@ -107,6 +109,7 @@ export default function AttendancePage() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [shiftModalOpen, setShiftModalOpen] = useState(false);
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
+  const [selectedHolidayDate, setSelectedHolidayDate] = useState<string | null>(null);
   const [printModalOpen, setPrintModalOpen] = useState(false);
 
   // Clock in/out button state
@@ -406,11 +409,15 @@ export default function AttendancePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setHolidayModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all"
+                    onClick={() => {
+                      setSelectedHolidayDate(null);
+                      setHolidayModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all shadow-sm"
+                    title="কোম্পানির ছুটি ও সরকারি ছুটির দিন নির্ধারণ করুন"
                   >
                     <Calendar className="w-4 h-4 text-amber-400" />
-                    Holidays
+                    + ছুটি এড / Holidays
                   </button>
                 </>
               )}
@@ -581,11 +588,23 @@ export default function AttendancePage() {
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Holidays</span>
-                <span className="text-xl font-bold text-amber-400 mt-1 block">
-                  {monthlyData.summary.holidayCount}
-                </span>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">Off days</span>
+                <span className="text-xs text-slate-400 block font-medium">Holidays & Leaves</span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-xl font-bold text-amber-400">
+                    {monthlyData.summary.holidayCount}
+                  </span>
+                  <span className="text-xs text-slate-400">Holidays</span>
+                  {(monthlyData.summary.leaveCount || 0) > 0 && (
+                    <>
+                      <span className="text-slate-600">/</span>
+                      <span className="text-xl font-bold text-blue-400">
+                        {monthlyData.summary.leaveCount}
+                      </span>
+                      <span className="text-xs text-slate-400">Leaves</span>
+                    </>
+                  )}
+                </div>
+                <span className="text-[11px] text-slate-500 mt-0.5 block">কোম্পানি ছুটি ও লিভ</span>
               </div>
             </div>
           )}
@@ -640,6 +659,7 @@ export default function AttendancePage() {
                       const isToday = date === todayStr;
                       const isWeekend = record.isWeekend;
                       const isHoliday = rowState.status === "HOLIDAY" || record.isHoliday;
+                      const isLeave = rowState.status === "LEAVE" || record.isLeave;
                       const isSaving = savingDate === date;
 
                       // Live calculation on row
@@ -648,7 +668,7 @@ export default function AttendancePage() {
                         : record.lateMinutes;
 
                       const currentPenalty =
-                        !enableLatePenalty || isHoliday || isWeekend
+                        !enableLatePenalty || isHoliday || isLeave || isWeekend
                           ? 0
                           : rowState.inTime
                           ? calculateLatePenalty(currentLateMin)
@@ -672,6 +692,8 @@ export default function AttendancePage() {
                               ? "bg-indigo-950/20 ring-1 ring-inset ring-indigo-500/30"
                               : isHoliday
                               ? "bg-amber-950/10"
+                              : isLeave
+                              ? "bg-blue-950/10"
                               : isWeekend
                               ? "bg-slate-950/40"
                               : ""
@@ -699,31 +721,70 @@ export default function AttendancePage() {
                             </div>
                           </td>
 
-                          {/* Status Badge */}
+                          {/* Status Badge / Selector */}
                           <td className="py-2.5 px-3 text-center">
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                                rowState.status === "PRESENT"
-                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                  : rowState.status === "LATE" || currentLateMin > 15
-                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                                  : rowState.status === "HOLIDAY"
-                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                  : rowState.status === "WEEKEND"
-                                  ? "bg-slate-800 text-slate-400 border-slate-700"
-                                  : "bg-slate-900 text-slate-500 border-slate-800"
-                              }`}
-                            >
-                              {isHoliday
-                                ? "Holiday"
-                                : isWeekend
-                                ? "Weekend"
-                                : currentLateMin > 15
-                                ? "Late"
-                                : rowState.inTime
-                                ? "Present"
-                                : "Absent"}
-                            </span>
+                            {isCompanyAdminOrManager ? (
+                              <select
+                                value={rowState.status}
+                                onChange={(e) => {
+                                  const newStatus = e.target.value;
+                                  setRowEdits((prev) => ({
+                                    ...prev,
+                                    [date]: {
+                                      ...(prev[date] || { inTime: record.inTime || "", outTime: record.outTime || "" }),
+                                      status: newStatus,
+                                    },
+                                  }));
+                                }}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold border focus:outline-none transition-colors ${
+                                  rowState.status === "PRESENT"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                    : rowState.status === "LATE" || currentLateMin > 15
+                                    ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                                    : rowState.status === "HOLIDAY"
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                    : rowState.status === "LEAVE"
+                                    ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                    : rowState.status === "WEEKEND"
+                                    ? "bg-slate-800 text-slate-400 border-slate-700"
+                                    : "bg-slate-900 text-slate-400 border-slate-800"
+                                }`}
+                              >
+                                <option value="PRESENT" className="bg-slate-900 text-white">Present (উপস্থিত)</option>
+                                <option value="LATE" className="bg-slate-900 text-white">Late (দেরি)</option>
+                                <option value="ABSENT" className="bg-slate-900 text-white">Absent (অনুপস্থিত)</option>
+                                <option value="LEAVE" className="bg-slate-900 text-white">Leave (ছুটি)</option>
+                                <option value="HOLIDAY" className="bg-slate-900 text-white">Holiday (সরকারি ছুটি)</option>
+                              </select>
+                            ) : (
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                  rowState.status === "PRESENT"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    : rowState.status === "LATE" || currentLateMin > 15
+                                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                    : rowState.status === "HOLIDAY"
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    : rowState.status === "LEAVE"
+                                    ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                    : rowState.status === "WEEKEND"
+                                    ? "bg-slate-800 text-slate-400 border-slate-700"
+                                    : "bg-slate-900 text-slate-500 border-slate-800"
+                                }`}
+                              >
+                                {rowState.status === "HOLIDAY" || record.isHoliday
+                                  ? "Holiday"
+                                  : rowState.status === "LEAVE"
+                                  ? "Leave (ছুটি)"
+                                  : isWeekend
+                                  ? "Weekend"
+                                  : currentLateMin > 15
+                                  ? "Late"
+                                  : rowState.inTime
+                                  ? "Present"
+                                  : "Absent"}
+                              </span>
+                            )}
                           </td>
 
                           {/* In Time Input */}
@@ -731,7 +792,7 @@ export default function AttendancePage() {
                             <input
                               type="time"
                               value={rowState.inTime}
-                              disabled={isHoliday}
+                              disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "inTime", e.target.value)}
                               className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
@@ -742,7 +803,7 @@ export default function AttendancePage() {
                             <input
                               type="time"
                               value={rowState.outTime}
-                              disabled={isHoliday}
+                              disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "outTime", e.target.value)}
                               className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
@@ -795,18 +856,24 @@ export default function AttendancePage() {
                           {/* Row Actions */}
                           <td className="py-2.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleToggleHoliday(record)}
-                                className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-                                  isHoliday
-                                    ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
-                                    : "bg-slate-800 text-slate-400 hover:text-amber-300 hover:bg-slate-700"
-                                }`}
-                                title="Toggle holiday for this day"
-                              >
-                                Holiday
-                              </button>
+                              {isCompanyAdminOrManager && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedHolidayDate(date);
+                                    setHolidayModalOpen(true);
+                                  }}
+                                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                                    isHoliday
+                                      ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
+                                      : "bg-slate-800 text-slate-300 hover:text-amber-300 hover:bg-slate-700 border border-slate-700"
+                                  }`}
+                                  title={isHoliday ? "কোম্পানি ছুটি পরিবর্তন বা মুছুন" : "এই তারিখে কোম্পানি ছুটি এড করুন"}
+                                >
+                                  <Calendar className="w-3 h-3 text-amber-400" />
+                                  {isHoliday ? "ছুটি ম্যানেজ" : "+ ছুটি এড"}
+                                </button>
+                              )}
 
                               <button
                                 type="button"
@@ -849,7 +916,11 @@ export default function AttendancePage() {
 
       <HolidayModal
         isOpen={holidayModalOpen}
-        onClose={() => setHolidayModalOpen(false)}
+        initialDate={selectedHolidayDate}
+        onClose={() => {
+          setHolidayModalOpen(false);
+          setSelectedHolidayDate(null);
+        }}
         onSuccess={() => fetchAttendance()}
       />
 

@@ -13,9 +13,10 @@ interface HolidayModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialDate?: string | null;
 }
 
-export function HolidayModal({ isOpen, onClose, onSuccess }: HolidayModalProps) {
+export function HolidayModal({ isOpen, onClose, onSuccess, initialDate }: HolidayModalProps) {
   const [holidays, setHolidays] = useState<HolidayItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -29,9 +30,14 @@ export function HolidayModal({ isOpen, onClose, onSuccess }: HolidayModalProps) 
     if (isOpen) {
       fetchHolidays();
       setName("");
+      if (initialDate) {
+        setDate(initialDate);
+      } else {
+        setDate(new Date().toISOString().slice(0, 10));
+      }
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialDate]);
 
   async function fetchHolidays() {
     try {
@@ -119,8 +125,8 @@ export function HolidayModal({ isOpen, onClose, onSuccess }: HolidayModalProps) 
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Company Holidays</h2>
-              <p className="text-xs text-slate-400">Configure official company non-working days</p>
+              <h2 className="text-lg font-semibold text-white">ছুটি ব্যবস্থাপনা / Company Holidays</h2>
+              <p className="text-xs text-slate-400">সরকারি ও কোম্পানির নির্ধারিত ছুটির তালিকা পরিচালনা করুন</p>
             </div>
           </div>
           <button
@@ -149,10 +155,10 @@ export function HolidayModal({ isOpen, onClose, onSuccess }: HolidayModalProps) 
 
         {/* Add Holiday Form */}
         <form onSubmit={handleAddHoliday} className="mt-5 p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-          <span className="text-xs font-semibold text-slate-200 block">Add Official Holiday</span>
+          <span className="text-xs font-semibold text-slate-200 block">+ নতুন ছুটি যোগ করুন (Add Holiday)</span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1">Date</label>
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">তারিখ (Date)</label>
               <input
                 type="date"
                 value={date}

@@ -108,6 +108,7 @@ export async function GET(req: Request) {
     let lateCount = 0;
     let absentCount = 0;
     let holidayCount = 0;
+    let leaveCount = 0;
     let weekendCount = 0;
     let totalLateMinutes = 0;
     let totalLatePenalty = 0;
@@ -143,7 +144,7 @@ export async function GET(req: Request) {
         outTime = record.outTime;
         status = record.status;
         lateMinutes = record.lateMinutes;
-        latePenalty = enableLatePenalty ? record.latePenalty : 0;
+        latePenalty = (enableLatePenalty && status !== "HOLIDAY" && status !== "LEAVE" && status !== "WEEKEND") ? record.latePenalty : 0;
         overtimeMinutes = record.overtimeMinutes;
         workingMinutes = record.workingMinutes;
         notes = record.notes;
@@ -162,6 +163,7 @@ export async function GET(req: Request) {
         lateCount++;
         presentCount++; // late employees are present
       } else if (status === "HOLIDAY") holidayCount++;
+      else if (status === "LEAVE") leaveCount++;
       else if (status === "WEEKEND") weekendCount++;
       else if (status === "ABSENT") absentCount++;
 
@@ -176,7 +178,8 @@ export async function GET(req: Request) {
         day,
         dayOfWeek,
         isWeekend,
-        isHoliday,
+        isHoliday: isHoliday || status === "HOLIDAY",
+        isLeave: status === "LEAVE",
         holidayName,
         status,
         inTime,
@@ -201,6 +204,7 @@ export async function GET(req: Request) {
         lateCount,
         absentCount,
         holidayCount,
+        leaveCount,
         weekendCount,
         totalLateMinutes,
         totalLatePenalty: enableLatePenalty ? totalLatePenalty : 0,
@@ -265,8 +269,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Company ID is missing." }, { status: 400 });
     }
 
-    // Check if it's marked as Holiday
+    // Check if it's marked as Holiday or Leave
     const isHoliday = explicitStatus === "HOLIDAY";
+    const isLeave = explicitStatus === "LEAVE";
     const isWeekend = explicitStatus === "WEEKEND";
 
     const shiftStartTime = targetUser.shift?.startTime || "09:00";
@@ -276,6 +281,7 @@ export async function POST(req: Request) {
       inTime,
       outTime,
       isHoliday,
+      isLeave,
       isWeekend,
       shiftStartTime,
       shiftEndTime,

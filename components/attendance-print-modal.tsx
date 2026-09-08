@@ -19,6 +19,7 @@ interface AttendancePrintModalProps {
       lateCount: number;
       absentCount: number;
       holidayCount: number;
+      leaveCount?: number;
       weekendCount: number;
       totalLateMinutes: number;
       totalLatePenalty: number;
@@ -31,6 +32,7 @@ interface AttendancePrintModalProps {
       dayOfWeek: number;
       isWeekend: boolean;
       isHoliday: boolean;
+      isLeave?: boolean;
       holidayName: string | null;
       status: string;
       inTime: string | null;
@@ -380,6 +382,8 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                                 ? "bg-rose-100 text-rose-800"
                                 : r.status === "HOLIDAY"
                                 ? "bg-amber-100 text-amber-800"
+                                : r.status === "LEAVE"
+                                ? "bg-blue-100 text-blue-800"
                                 : r.status === "WEEKEND"
                                 ? "bg-slate-200 text-slate-700"
                                 : "bg-slate-100 text-slate-500"

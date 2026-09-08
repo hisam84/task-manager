@@ -72,3 +72,16 @@ test("computeDailyAttendanceMetrics - holiday has 0 penalty and status HOLIDAY",
   assert.equal(result.latePenalty, 0);
   assert.equal(result.lateMinutes, 0);
 });
+
+test("computeDailyAttendanceMetrics - leave has 0 penalty and status LEAVE", () => {
+  const result = computeDailyAttendanceMetrics({
+    inTime: null,
+    outTime: null,
+    isLeave: true,
+    shiftStartTime: "09:00",
+    shiftEndTime: "18:00",
+  });
+  assert.equal(result.status, "LEAVE");
+  assert.equal(result.latePenalty, 0);
+  assert.equal(result.lateMinutes, 0);
+});
