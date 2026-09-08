@@ -434,13 +434,34 @@ export function TaskDetailModal({
                     <label className="block text-[11px] font-medium text-slate-300 mb-1">
                       New Due Date & Time *
                     </label>
-                    <input
-                      type="datetime-local"
-                      required
-                      value={newDueDate}
-                      onChange={(e) => setNewDueDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none transition-colors"
-                    />
+                    <div
+                      onClick={(e) => {
+                        const input = e.currentTarget.querySelector("input") as HTMLInputElement;
+                        input?.showPicker?.();
+                      }}
+                      className="relative flex items-center cursor-pointer group"
+                    >
+                      <input
+                        type="datetime-local"
+                        required
+                        value={newDueDate}
+                        onChange={(e) => setNewDueDate(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-amber-500 rounded-lg pl-3 pr-22 py-2 text-xs text-white font-mono outline-none transition-colors cursor-pointer"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                          input?.showPicker?.();
+                        }}
+                        className="absolute right-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                        title="Open Calendar"
+                      >
+                        <Calendar className="w-3 h-3" />
+                        <span>Calendar</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -552,12 +573,33 @@ export function TaskDetailModal({
                   <label className="block text-[11px] font-medium text-slate-300 mb-1">
                     Due Date & Time
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={editDueDate}
-                    onChange={(e) => setEditDueDate(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none transition-colors"
-                  />
+                  <div
+                    onClick={(e) => {
+                      const input = e.currentTarget.querySelector("input") as HTMLInputElement;
+                      input?.showPicker?.();
+                    }}
+                    className="relative flex items-center cursor-pointer group"
+                  >
+                    <input
+                      type="datetime-local"
+                      value={editDueDate}
+                      onChange={(e) => setEditDueDate(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-lg pl-3 pr-22 py-2 text-xs text-white font-mono outline-none transition-colors cursor-pointer"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                        input?.showPicker?.();
+                      }}
+                      className="absolute right-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                      title="Open Calendar"
+                    >
+                      <Calendar className="w-3 h-3" />
+                      <span>Calendar</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

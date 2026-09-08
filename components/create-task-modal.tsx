@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Plus, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Plus, AlertCircle, Calendar } from "lucide-react";
 
 interface UserOption {
   id: string;
@@ -39,6 +39,19 @@ export function CreateTaskModal({
   const [error, setError] = useState<string | null>(null);
 
   const isEmployee = currentUserRole === "EMPLOYEE";
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const setQuickDate = (daysAhead: number, targetHour: number = 17) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    d.setHours(targetHour, 0, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    setDueDate(`${year}-${month}-${day}T${hours}:${minutes}`);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -212,15 +225,78 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Due Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all font-mono"
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-300">
+                  Due Date & Time
+                </label>
+                {dueDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDueDate("")}
+                    className="text-[11px] text-rose-400 hover:text-rose-300 hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div
+                onClick={() => dateInputRef.current?.showPicker?.()}
+                className="relative flex items-center cursor-pointer group"
+              >
+                <input
+                  ref={dateInputRef}
+                  type="datetime-local"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-24 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dateInputRef.current?.showPicker?.();
+                  }}
+                  className="absolute right-2 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+                  title="Open Calendar"
+                  aria-label="Open Calendar"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Calendar</span>
+                </button>
+              </div>
+
+              {/* Quick Date Presets */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(0, 17)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  Today (5 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(1, 17)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  Tomorrow (5 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(3, 17)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  In 3 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(7, 17)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  Next Week
+                </button>
+              </div>
             </div>
           </div>
 

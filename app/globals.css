@@ -67,6 +67,34 @@ textarea {
   background: #444444;
 }
 
+/* Date & Time picker indicator styling */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  opacity: 0.85;
+  filter: invert(0.85);
+  transition: all 0.15s ease;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: invert(1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+html.light input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+html.light input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.2);
+}
+
+html.light input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+html.light input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
 /* Vercel Glowing Border Utilities */
 .vercel-card {
   background-color: #0a0a0a;
