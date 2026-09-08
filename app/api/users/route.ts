@@ -7,6 +7,7 @@ import { apiError, jsonError } from "@/lib/http";
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(120),
   email: z.string().email("Valid email is required").max(255),
+  phone: z.string().max(30).optional().nullable(),
   role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
   designation: z.string().max(120).optional().nullable(),
   department: z.string().max(120).optional().nullable(),
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
         designation: true,
         department: true,
         departmentId: true,
+        phone: true,
         departmentRel: {
           select: { id: true, name: true },
         },
@@ -139,12 +141,14 @@ export async function POST(req: Request) {
         department: deptName,
         departmentId: data.departmentId || null,
         shiftId: data.shiftId || null,
+        phone: data.phone?.trim() || null,
         companyId: targetCompanyId,
       },
       select: {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         designation: true,
         department: true,

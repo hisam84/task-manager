@@ -15,6 +15,7 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
+        phone: true,
         username: true,
         role: true,
         avatar: true,
@@ -49,7 +50,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { name, avatar, designation } = body || {};
+    const { name, avatar, designation, phone } = body || {};
 
     const updateData: any = {};
 
@@ -72,6 +73,10 @@ export async function PATCH(req: Request) {
 
     if (designation !== undefined) {
       updateData.designation = typeof designation === "string" ? designation.trim() || null : null;
+    }
+
+    if (phone !== undefined) {
+      updateData.phone = typeof phone === "string" ? phone.trim() || null : null;
     }
 
     if (avatar !== undefined) {
@@ -101,6 +106,7 @@ export async function PATCH(req: Request) {
         id: true,
         name: true,
         email: true,
+        phone: true,
         username: true,
         role: true,
         avatar: true,

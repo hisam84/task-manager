@@ -11,6 +11,7 @@ export interface SessionUser {
   avatar?: string | null;
   designation?: string | null;
   department?: string | null;
+  phone?: string | null;
   companyId?: string | null;
   companyName?: string | null;
   companySlug?: string | null;

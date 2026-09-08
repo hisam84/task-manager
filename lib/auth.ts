@@ -17,6 +17,7 @@ const USER_SESSION_SELECT = {
   avatar: true,
   designation: true,
   department: true,
+  phone: true,
   companyId: true,
   company: {
     select: { id: true, name: true, slug: true, isActive: true },

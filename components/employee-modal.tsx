@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserPlus, X, Loader2, AlertCircle } from "lucide-react";
+import { UserPlus, X, Loader2, AlertCircle, Phone } from "lucide-react";
 
 interface Employee {
   id?: string;
   name: string;
   email: string;
+  phone?: string | null;
   role: string;
   designation?: string | null;
   departmentId?: string | null;
@@ -45,6 +46,7 @@ export function EmployeeModal({
 }: EmployeeModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [designation, setDesignation] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("EMPLOYEE");
@@ -71,6 +73,7 @@ export function EmployeeModal({
     if (employeeToEdit) {
       setName(employeeToEdit.name);
       setEmail(employeeToEdit.email);
+      setPhone(employeeToEdit.phone || "");
       setDesignation(employeeToEdit.designation || "");
       setRole(employeeToEdit.role);
       setDepartmentId(employeeToEdit.departmentId || "");
@@ -79,6 +82,7 @@ export function EmployeeModal({
     } else {
       setName("");
       setEmail("");
+      setPhone("");
       setDesignation("");
       setPassword("EmpPass2026!");
       setRole("EMPLOYEE");
@@ -113,6 +117,7 @@ export function EmployeeModal({
       const payload: any = {
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim() || null,
         role,
         designation: designation.trim() || null,
         departmentId: departmentId || null,
@@ -197,6 +202,22 @@ export function EmployeeModal({
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">
+              Mobile / Phone Number
+            </label>
+            <div className="relative">
+              <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g. +880 1712-345678"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600"
+              />
+            </div>
           </div>
 
           <div>

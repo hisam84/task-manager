@@ -20,6 +20,7 @@ import {
   ArrowUp,
   ArrowDown,
   SlidersHorizontal,
+  Phone,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -101,6 +102,7 @@ export default function TeamPage() {
       (e) =>
         e.name.toLowerCase().includes(query) ||
         e.email.toLowerCase().includes(query) ||
+        (e.phone && e.phone.toLowerCase().includes(query)) ||
         (e.designation && e.designation.toLowerCase().includes(query)) ||
         (e.departmentName && e.departmentName.toLowerCase().includes(query)) ||
         (e.department && e.department.toLowerCase().includes(query)) ||
@@ -206,7 +208,7 @@ export default function TeamPage() {
               <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search by name, email, designation, or department..."
+                placeholder="Search by name, email, phone, designation, or department..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full min-h-11 bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
@@ -352,6 +354,18 @@ export default function TeamPage() {
                               </div>
                             )}
                             <div className="text-[11px] text-slate-400">{emp.email}</div>
+                            {emp.phone && (
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                                <Phone className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <a
+                                  href={`tel:${emp.phone}`}
+                                  className="hover:text-emerald-400 transition-colors hover:underline"
+                                  title="Call employee"
+                                >
+                                  {emp.phone}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>

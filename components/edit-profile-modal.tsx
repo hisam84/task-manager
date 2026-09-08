@@ -14,6 +14,7 @@ import {
   Shield,
   Mail,
   Upload,
+  Phone,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -32,6 +33,7 @@ export function EditProfileModal({
 }: EditProfileModalProps) {
   const [name, setName] = useState(user.name || "");
   const [designation, setDesignation] = useState(user.designation || "");
+  const [phone, setPhone] = useState(user.phone || "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar || null);
   const [avatarDirty, setAvatarDirty] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,7 @@ export function EditProfileModal({
     if (isOpen) {
       setName(user.name || "");
       setDesignation(user.designation || "");
+      setPhone(user.phone || "");
       setAvatarPreview(user.avatar || null);
       setAvatarDirty(false);
       setError(null);
@@ -145,6 +148,7 @@ export function EditProfileModal({
       const payload: any = {
         name: trimmedName,
         designation: designation.trim() || null,
+        phone: phone.trim() || null,
       };
 
       if (avatarDirty) {
@@ -168,6 +172,7 @@ export function EditProfileModal({
         ...user,
         name: trimmedName,
         designation: designation.trim() || null,
+        phone: phone.trim() || null,
         avatar: avatarPreview,
       };
 
@@ -329,6 +334,23 @@ export function EditProfileModal({
               placeholder="e.g. Senior Software Engineer, UI/UX Designer"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
             />
+          </div>
+
+          {/* Mobile / Phone Number Field */}
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Mobile / Phone Number
+            </label>
+            <div className="relative">
+              <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g. +880 1712-345678"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-600"
+              />
+            </div>
           </div>
 
           {/* Read-Only Account Details */}
