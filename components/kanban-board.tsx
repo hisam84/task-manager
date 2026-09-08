@@ -112,16 +112,25 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                 ) : (
                   colTasks.map((task) => {
                     const badgeInfo = priorityBadges[task.priority];
+                    const isDone = task.status === "DONE";
 
                     return (
                       <div
                         key={task.id}
                         onClick={() => onTaskClick(task)}
-                        className="group bg-[#0f0f0f] hover:bg-[#141414] border border-[#222222] hover:border-[#3b3b3b] hover:shadow-vercel-glow rounded-lg p-3.5 transition-all cursor-pointer flex flex-col gap-3 relative"
+                        className={`group rounded-lg p-3.5 transition-all cursor-pointer flex flex-col gap-3 relative ${
+                          isDone
+                            ? "bg-emerald-950/25 hover:bg-emerald-950/40 border border-emerald-800/40 hover:border-emerald-600/60 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100 shadow-sm shadow-emerald-950/20"
+                            : "bg-[#0f0f0f] hover:bg-[#141414] border border-[#222222] hover:border-[#3b3b3b] hover:shadow-vercel-glow"
+                        }`}
                       >
                         {/* Title & Priority */}
                         <div className="flex items-start justify-between gap-2">
-                          <h4 className="text-xs font-semibold text-[#eaeaea] group-hover:text-white line-clamp-2 leading-relaxed">
+                          <h4
+                            className={`text-xs font-semibold line-clamp-2 leading-relaxed transition-colors ${
+                              isDone ? "text-emerald-300 group-hover:text-emerald-200" : "text-[#eaeaea] group-hover:text-white"
+                            }`}
+                          >
                             {task.title}
                           </h4>
                           <span
@@ -181,7 +190,11 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                                 e.stopPropagation();
                                 onStatusChange(task.id, e.target.value as Task["status"]);
                               }}
-                              className="bg-[#111111] hover:bg-[#1a1a1a] text-[10px] text-[#aaaaaa] border border-[#2e2e2e] rounded px-1.5 py-0.5 font-mono cursor-pointer outline-none"
+                              className={`text-[10px] rounded px-1.5 py-0.5 font-mono cursor-pointer outline-none transition-colors ${
+                                isDone
+                                  ? "bg-emerald-950/60 border border-emerald-700/60 text-emerald-300 hover:border-emerald-500"
+                                  : "bg-[#111111] hover:bg-[#1a1a1a] text-[#aaaaaa] border border-[#2e2e2e]"
+                              }`}
                             >
                               <option value="TODO">To Do</option>
                               <option value="IN_PROGRESS">In Progress</option>

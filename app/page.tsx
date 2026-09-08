@@ -338,25 +338,41 @@ export default function DashboardPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                          {tasks.map((t) => (
-                            <tr
-                              key={t.id}
-                              onClick={() => setSelectedTask(t)}
-                              className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
-                            >
-                              <td className="py-3 px-4 font-semibold text-white group-hover:text-indigo-400 transition-colors">
-                                {t.title}
-                              </td>
-                              <td className="py-3 px-4">
-                                <select
-                                  value={t.status}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    handleQuickStatusChange(t.id, e.target.value);
-                                  }}
-                                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-200 outline-none cursor-pointer hover:border-indigo-500 transition-colors"
+                          {tasks.map((t) => {
+                            const isDone = t.status === "DONE";
+                            return (
+                              <tr
+                                key={t.id}
+                                onClick={() => setSelectedTask(t)}
+                                className={`transition-all cursor-pointer group ${
+                                  isDone
+                                    ? "bg-emerald-950/25 dark:bg-emerald-950/35 hover:bg-emerald-950/45 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
+                                    : "hover:bg-slate-800/40"
+                                }`}
+                              >
+                                <td
+                                  className={`py-3 px-4 font-semibold transition-colors ${
+                                    isDone
+                                      ? "text-emerald-300 group-hover:text-emerald-200"
+                                      : "text-white group-hover:text-indigo-400"
+                                  }`}
                                 >
+                                  {t.title}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <select
+                                    value={t.status}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickStatusChange(t.id, e.target.value);
+                                    }}
+                                    className={`border rounded-lg px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer transition-colors ${
+                                      isDone
+                                        ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
+                                        : "bg-slate-950 border-slate-800 text-slate-200 hover:border-indigo-500"
+                                    }`}
+                                  >
                                   <option value="TODO">To Do</option>
                                   <option value="IN_PROGRESS">In Progress</option>
                                   <option value="IN_REVIEW">In Review</option>
@@ -420,7 +436,8 @@ export default function DashboardPage() {
                                 </button>
                               </td>
                             </tr>
-                          ))}
+                          );
+                        })}
                         </tbody>
                       </table>
                     </div>
@@ -429,20 +446,32 @@ export default function DashboardPage() {
                     <div className="md:hidden divide-y divide-slate-800/80">
                       {tasks.map((t) => {
                         const isExpanded = expandedTaskId === t.id;
+                        const isDone = t.status === "DONE";
                         const isOverdue =
                           t.dueDate &&
-                          t.status !== "DONE" &&
+                          !isDone &&
                           new Date(t.dueDate).getTime() < Date.now();
 
                         return (
-                          <div key={t.id} className="p-3.5 transition-colors hover:bg-slate-800/20">
+                          <div
+                            key={t.id}
+                            className={`p-3.5 transition-all ${
+                              isDone
+                                ? "bg-emerald-950/25 dark:bg-emerald-950/35 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
+                                : "transition-colors hover:bg-slate-800/20"
+                            }`}
+                          >
                             {/* Tap header to toggle dropdown */}
                             <div
                               onClick={() => setExpandedTaskId(isExpanded ? null : t.id)}
                               className="cursor-pointer select-none"
                             >
                               <div className="flex items-start justify-between gap-2.5">
-                                <h4 className="text-sm font-semibold text-white leading-snug break-words flex-1">
+                                <h4
+                                  className={`text-sm font-semibold leading-snug break-words flex-1 transition-colors ${
+                                    isDone ? "text-emerald-300" : "text-white"
+                                  }`}
+                                >
                                   {t.title}
                                 </h4>
                                 <div className="flex items-center gap-1.5 shrink-0">
