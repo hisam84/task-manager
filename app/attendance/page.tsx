@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ShiftModal } from "@/components/shift-modal";
@@ -83,6 +84,7 @@ const MONTH_NAMES = [
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function AttendancePage() {
+  const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -303,7 +305,16 @@ export default function AttendancePage() {
     );
   }
 
-  const isCompanyAdminOrManager = user.role === "ADMIN" || user.role === "MANAGER" || user.role === "SUPER_ADMIN";
+  if (user.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  const isCompanyAdminOrManager = user.role === "ADMIN" || user.role === "MANAGER";
   const currentEmployee = monthlyData?.employee;
   const shift = currentEmployee?.shift;
   const shiftStartTime = shift?.startTime || "09:00";

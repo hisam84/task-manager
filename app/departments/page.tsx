@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { DepartmentModal } from "@/components/department-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
@@ -8,6 +9,7 @@ import { Layers, Plus, Edit2, Trash2, Loader2, Users, FileCheck2 } from "lucide-
 import type { SessionUser } from "@/lib/types";
 
 export default function DepartmentsPage() {
+  const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,15 @@ export default function DepartmentsPage() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (user.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
 import { EmployeeModal } from "@/components/employee-modal";
@@ -10,6 +11,7 @@ import { Users, Plus, Edit2, Trash2, KeyRound, Loader2, Search, CalendarCheck2 }
 import type { SessionUser } from "@/lib/types";
 
 export default function TeamPage() {
+  const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -81,6 +83,15 @@ export default function TeamPage() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (user.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }

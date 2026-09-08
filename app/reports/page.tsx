@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { DonutChart, WorkloadBarChart, ProgressCard } from "@/components/charts";
 import { ChangePasswordModal } from "@/components/change-password-modal";
@@ -8,6 +9,7 @@ import { BarChart3, Loader2, CheckCircle2, Clock, AlertTriangle, Users } from "l
 import type { SessionUser } from "@/lib/types";
 
 export default function ReportsPage() {
+  const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [reportData, setReportData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,15 @@ export default function ReportsPage() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (user.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }

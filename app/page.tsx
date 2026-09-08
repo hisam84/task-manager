@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
@@ -36,6 +37,7 @@ interface TaskRow {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [reportData, setReportData] = useState<any | null>(null);
@@ -161,7 +163,16 @@ export default function DashboardPage() {
     );
   }
 
-  const isSuperAdmin = currentUser.role === "SUPER_ADMIN";
+  if (currentUser.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  const isSuperAdmin = false;
   const isCompanyAdmin = currentUser.role === "ADMIN" || currentUser.role === "MANAGER";
   const isEmployee = currentUser.role === "EMPLOYEE";
 

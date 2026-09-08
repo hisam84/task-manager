@@ -58,56 +58,59 @@ export function Sidebar({
   const isCompanyAdmin = user.role === "ADMIN" || user.role === "MANAGER";
   const isEmployee = user.role === "EMPLOYEE";
 
-  const navItems = [
-    {
-      label: "Dashboard",
-      href: "/",
-      icon: LayoutDashboard,
-      show: true,
-    },
-    {
-      label: "Attendance Sheet",
-      href: "/attendance",
-      icon: CalendarCheck2,
-      show: true,
-    },
-    {
-      label: "Task List",
-      href: "/tasks",
-      icon: ListTodo,
-      show: true,
-    },
-    {
-      label: "Kanban Board",
-      href: "/kanban",
-      icon: KanbanSquare,
-      show: true,
-    },
-    {
-      label: "Task Reports",
-      href: "/reports",
-      icon: BarChart3,
-      show: true,
-    },
-    {
-      label: "Departments",
-      href: "/departments",
-      icon: Layers,
-      show: isCompanyAdmin || isSuperAdmin,
-    },
-    {
-      label: "Employee Team",
-      href: "/team",
-      icon: Users,
-      show: isCompanyAdmin || isSuperAdmin,
-    },
-    {
-      label: "Super Admin Panel",
-      href: "/super-admin",
-      icon: ShieldCheck,
-      show: isSuperAdmin,
-    },
-  ].filter((item) => item.show);
+  const navItems = isSuperAdmin
+    ? [
+        {
+          label: "Company Management",
+          href: "/super-admin",
+          icon: Building2,
+          show: true,
+        },
+      ]
+    : [
+        {
+          label: "Dashboard",
+          href: "/",
+          icon: LayoutDashboard,
+          show: true,
+        },
+        {
+          label: "Attendance Sheet",
+          href: "/attendance",
+          icon: CalendarCheck2,
+          show: true,
+        },
+        {
+          label: "Task List",
+          href: "/tasks",
+          icon: ListTodo,
+          show: true,
+        },
+        {
+          label: "Kanban Board",
+          href: "/kanban",
+          icon: KanbanSquare,
+          show: true,
+        },
+        {
+          label: "Task Reports",
+          href: "/reports",
+          icon: BarChart3,
+          show: true,
+        },
+        {
+          label: "Departments",
+          href: "/departments",
+          icon: Layers,
+          show: isCompanyAdmin,
+        },
+        {
+          label: "Employee Team",
+          href: "/team",
+          icon: Users,
+          show: isCompanyAdmin,
+        },
+      ].filter((item) => item.show);
 
   const getRoleBadge = () => {
     if (isSuperAdmin)
@@ -131,9 +134,11 @@ export function Sidebar({
           {showLabels && (
             <div className="flex flex-col truncate">
               <span className="font-bold text-sm text-white tracking-wide truncate">
-                {user.companyName || "Task Manager"}
+                {isSuperAdmin ? "Platform Portal" : user.companyName || "Task Manager"}
               </span>
-              <span className="text-[11px] text-slate-400 truncate">Workspace</span>
+              <span className="text-[11px] text-slate-400 truncate">
+                {isSuperAdmin ? "Super Admin" : "Workspace"}
+              </span>
             </div>
           )}
         </div>

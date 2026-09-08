@@ -94,11 +94,14 @@ export async function POST(req: Request) {
       return jsonError("Forbidden: Admin or Manager required", 403);
     }
 
+    if (user.role === "SUPER_ADMIN") {
+      return jsonError("Forbidden: Super Admin only manages companies. Employees are managed by Company Admins and Managers.", 403);
+    }
+
     const body = await req.json();
     const data = createUserSchema.parse(body);
 
-    const targetCompanyId =
-      user.role === "SUPER_ADMIN" ? data.companyId || user.companyId : user.companyId;
+    const targetCompanyId = user.companyId;
 
     if (!targetCompanyId) {
       return jsonError("Target company is required", 400);

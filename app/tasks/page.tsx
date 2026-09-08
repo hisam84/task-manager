@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
@@ -45,6 +46,7 @@ interface TeamMember {
 }
 
 export default function TasksPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -165,7 +167,16 @@ export default function TasksPage() {
     );
   }
 
-  const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser.role);
+  if (currentUser.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  const isManagerOrAdmin = ["ADMIN", "MANAGER"].includes(currentUser.role);
   const isEmployee = currentUser.role === "EMPLOYEE";
 
   // Compute status counts

@@ -19,7 +19,7 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const canCreateTask = ["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(user?.role ?? "");
+  const canCreateTask = ["ADMIN", "MANAGER"].includes(user?.role ?? "");
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -33,11 +33,12 @@ export function Navbar({ user, onOpenCreateTask, onOpenCreateCompany }: NavbarPr
     }
   }
 
-  const navLinks = [
-    { label: "Dashboard", href: "/", icon: LayoutDashboard },
-    { label: "Team", href: "/team", icon: Users },
-    ...(isSuperAdmin ? [{ label: "Super Admin", href: "/super-admin", icon: Shield }] : []),
-  ];
+  const navLinks = isSuperAdmin
+    ? [{ label: "Companies", href: "/super-admin", icon: Building2 }]
+    : [
+        { label: "Dashboard", href: "/", icon: LayoutDashboard },
+        { label: "Team", href: "/team", icon: Users },
+      ];
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#000000]/90 backdrop-blur-md border-b border-[#1f1f1f]">

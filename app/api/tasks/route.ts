@@ -96,11 +96,14 @@ export async function POST(req: Request) {
       return jsonError("Unauthorized", 401);
     }
 
+    if (user.role === "SUPER_ADMIN") {
+      return jsonError("Forbidden: Super Admin only manages companies. Tasks are managed by Company Admins and Managers.", 403);
+    }
+
     const body = await req.json();
     const data = createTaskSchema.parse(body);
 
-    const targetCompanyId =
-      user.role === "SUPER_ADMIN" ? data.companyId || user.companyId : user.companyId;
+    const targetCompanyId = user.companyId;
 
     if (!targetCompanyId) {
       return jsonError("Target company required", 400);
@@ -119,7 +122,7 @@ export async function POST(req: Request) {
       return jsonError("Assignee not found", 400);
     }
 
-    if (user.role !== "SUPER_ADMIN" && assignee.companyId !== targetCompanyId) {
+    if (assignee.companyId !== targetCompanyId) {
       return jsonError("Assignee must belong to your company", 403);
     }
 
