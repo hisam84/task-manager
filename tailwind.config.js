@@ -1,3 +1,10 @@
+function withAlpha(variable) {
+  return ({ opacityValue }) =>
+    opacityValue === undefined
+      ? `var(${variable})`
+      : `color-mix(in srgb, var(${variable}) ${Number(opacityValue) * 100}%, transparent)`;
+}
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: "class",
@@ -9,19 +16,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--color-background)",
-        foreground: "var(--color-foreground)",
-        surface: "var(--color-surface)",
-        muted: "var(--color-muted)",
-        border: "var(--color-border)",
-        primary: "var(--color-primary)",
-        "on-primary": "var(--color-on-primary)",
-        accent: "var(--color-accent)",
-        destructive: "var(--color-destructive)",
-        ring: "var(--color-ring)",
-        hover: "var(--color-hover)",
-        input: "var(--color-input)",
-        overlay: "var(--color-overlay)",
+        background: withAlpha("--color-background"),
+        foreground: withAlpha("--color-foreground"),
+        surface: withAlpha("--color-surface"),
+        muted: withAlpha("--color-muted"),
+        border: withAlpha("--color-border"),
+        primary: withAlpha("--color-primary"),
+        "on-primary": withAlpha("--color-on-primary"),
+        accent: withAlpha("--color-accent"),
+        destructive: withAlpha("--color-destructive"),
+        ring: withAlpha("--color-ring"),
+        hover: withAlpha("--color-hover"),
+        input: withAlpha("--color-input"),
+        overlay: withAlpha("--color-overlay"),
       },
       fontFamily: {
         sans: [
