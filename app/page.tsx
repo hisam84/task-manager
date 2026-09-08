@@ -201,8 +201,9 @@ export default function DashboardPage() {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between">
+        <div className="p-4 sm:p-6 md:p-8 flex-1">
+          <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
             <div>
@@ -645,10 +646,11 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-
-          <Footer />
         </div>
-      </main>
+      </div>
+
+      <Footer />
+    </main>
 
       <CreateTaskModal
         isOpen={isCreateTaskOpen}
