@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
 import { ForgotPasswordModal } from "./forgot-password-modal";
+import { ThemeToggle } from "./theme-toggle";
 
 interface AuthLoginScreenProps {
   onSuccess?: () => void;
@@ -50,9 +51,10 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
 
   return (
     <div className="min-h-dvh flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] bg-black text-white">
-      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_40px_rgba(0,112,243,0.15)] overflow-hidden animate-fadeIn">
+      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_40px_rgba(0,112,243,0.15)] overflow-hidden animate-fadeIn relative">
         {/* Header Banner */}
         <div className="px-6 py-6 border-b border-[#1f1f1f] bg-gradient-to-b from-[#111111] to-[#0a0a0a] text-center relative">
+          <ThemeToggle className="absolute right-4 top-4" />
           <div className="w-12 h-12 rounded-2xl bg-[#111111] border border-[#222222] shadow-inner mx-auto mb-3 flex items-center justify-center text-[#0070f3]">
             <svg
               className="w-6 h-6 text-white"

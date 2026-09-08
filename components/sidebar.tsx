@@ -24,6 +24,7 @@ import {
   Edit3,
 } from "lucide-react";
 import { EditProfileModal } from "@/components/edit-profile-modal";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { SessionUser } from "@/lib/types";
 
 interface SidebarProps {
@@ -238,6 +239,12 @@ export function Sidebar({
             {showLabels && <span>Profile</span>}
           </button>
 
+          {/* Theme Toggle */}
+          <ThemeToggle
+            showLabel={showLabels}
+            className="flex-1"
+          />
+
           {onOpenChangePassword && (
             <button
               type="button"
@@ -277,12 +284,14 @@ export function Sidebar({
           <Menu className="w-5 h-5" />
         </button>
         <span className="text-sm font-semibold truncate">{user.companyName || "Task Manager"}</span>
-        <button
-          type="button"
-          onClick={handleOpenEditProfile}
-          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
-          title="Edit Profile"
-        >
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle className="min-w-9 min-h-9 h-9 w-9 p-0" />
+          <button
+            type="button"
+            onClick={handleOpenEditProfile}
+            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
+            title="Edit Profile"
+          >
           {user.avatar ? (
             <img
               src={user.avatar}
@@ -294,7 +303,8 @@ export function Sidebar({
               {user.name?.slice(0, 2).toUpperCase() || "U"}
             </div>
           )}
-        </button>
+          </button>
+        </div>
       </header>
 
       {mobileOpen ? (
