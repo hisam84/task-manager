@@ -194,29 +194,29 @@ export default function TeamPage() {
                       </td>
                       <td className="p-4">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                             emp.role === "ADMIN"
-                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                              ? "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
                               : emp.role === "MANAGER"
-                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                              : "bg-slate-800 text-slate-300 border-slate-700"
+                              ? "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
                           }`}
                         >
                           {emp.role}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-[11px]">
+                        <span className="inline-block px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
                           {emp.departmentName || "General"}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-indigo-300 text-[11px] font-mono">
+                        <span className="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-indigo-700 dark:text-indigo-300 text-[11px] font-mono font-medium">
                           {emp.shift ? `${emp.shift.name} (${emp.shift.startTime}-${emp.shift.endTime})` : "Default (09:00-18:00)"}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="font-medium text-white">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
+                        <span className="font-semibold text-slate-900 dark:text-white">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">

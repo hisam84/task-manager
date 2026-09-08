@@ -167,16 +167,16 @@ export default function ReportsPage() {
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
                     {employeeMatrix.map((emp: any) => (
                       <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-4 font-semibold text-white">
+                        <td className="p-4 font-semibold text-slate-900 dark:text-white">
                           <div>{emp.name}</div>
                           <div className="text-[11px] text-slate-400 font-normal">{emp.email}</div>
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
-                            {emp.department}
+                          <span className="inline-block px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                            {emp.department || "General"}
                           </span>
                         </td>
-                        <td className="p-4 text-center font-bold text-white">{emp.totalTasks}</td>
+                        <td className="p-4 text-center font-bold text-slate-900 dark:text-white">{emp.totalTasks}</td>
                         <td className="p-4 text-center text-emerald-400 font-semibold">{emp.completed}</td>
                         <td className="p-4 text-center text-blue-400 font-semibold">{emp.inProgress}</td>
                         <td className="p-4 text-center text-amber-400 font-semibold">{emp.pending}</td>

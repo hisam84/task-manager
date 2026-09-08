@@ -231,6 +231,14 @@ html.light main.bg-slate-950,
 html.light div.bg-slate-950,
 html.light div.bg-slate-950\/95,
 html.light div.bg-slate-950\/60,
+html.light span.bg-slate-950,
+html.light span.bg-slate-900,
+html.light span.bg-black,
+html.light p.bg-slate-950,
+html.light td.bg-slate-950,
+html.light tr.bg-slate-950,
+html.light section.bg-slate-950,
+html.light header.bg-slate-950,
 html.light .bg-\[\#070707\],
 html.light .bg-\[\#050505\],
 html.light .bg-\[\#0a0a0a\],
@@ -239,6 +247,43 @@ html.light .bg-\[\#0f0f0f\],
 html.light .bg-\[\#0e0f12\],
 html.light .bg-\[\#16171c\] {
   background-color: #f8fafc !important;
+}
+
+/* Badge pills in light mode */
+html.light span.bg-slate-950,
+html.light span.bg-slate-900,
+html.light span.bg-black {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.light span[class*="text-indigo-300"].bg-slate-950,
+html.light span[class*="text-indigo-400"].bg-slate-950 {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4338ca !important;
+}
+
+html.light span[class*="text-blue-300"].bg-slate-950,
+html.light span[class*="text-blue-400"].bg-slate-950 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+html.light span[class*="text-amber-300"].bg-slate-950,
+html.light span[class*="text-amber-400"].bg-slate-950 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+
+html.light span[class*="text-emerald-300"].bg-slate-950,
+html.light span[class*="text-emerald-400"].bg-slate-950 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
 }
 
 /* Cards & Surfaces */
