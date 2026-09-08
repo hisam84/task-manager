@@ -402,27 +402,27 @@ export function TaskDetailModal({
 
           {/* Reschedule Task Panel */}
           {isRescheduling && (
-            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-3.5 animate-fadeIn">
-              <div className="flex items-center justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-                    <Calendar className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-amber-200 dark:border-amber-500/30 space-y-3 animate-fadeIn">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <Calendar className="w-3.5 h-3.5" />
                   </div>
-                  <h3 className="text-xs font-semibold text-white">
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-white">
                     Reschedule Deadline
                   </h3>
                 </div>
-                <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1 font-mono">
+                  <Clock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                   Current:{" "}
-                  <strong className="text-slate-200">
+                  <strong className="text-slate-900 dark:text-slate-200">
                     {formatDateTime(taskDetail.dueDate)}
                   </strong>
                 </span>
               </div>
 
               {rescheduleError && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{rescheduleError}</span>
                 </div>
@@ -431,7 +431,7 @@ export function TaskDetailModal({
               <form onSubmit={handleRescheduleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       New Due Date & Time *
                     </label>
                     <div
@@ -439,14 +439,14 @@ export function TaskDetailModal({
                         const input = e.currentTarget.querySelector("input") as HTMLInputElement;
                         input?.showPicker?.();
                       }}
-                      className="relative flex items-center cursor-pointer group"
+                      className="relative flex items-center cursor-pointer group custom-picker-container"
                     >
                       <input
                         type="datetime-local"
                         required
                         value={newDueDate}
                         onChange={(e) => setNewDueDate(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-amber-500 rounded-lg pl-3 pr-22 py-2 text-xs text-white font-mono outline-none transition-colors cursor-pointer"
+                        className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 group-hover:border-slate-400 dark:group-hover:border-slate-700 focus:border-amber-500 rounded-lg pl-3 pr-24 py-2 text-xs text-slate-900 dark:text-white font-mono outline-none transition-colors cursor-pointer hide-native-picker"
                       />
                       <button
                         type="button"
@@ -455,10 +455,10 @@ export function TaskDetailModal({
                           const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                           input?.showPicker?.();
                         }}
-                        className="absolute right-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 transition-all flex items-center gap-1.5 text-[11px] font-semibold cursor-pointer select-none"
                         title="Open Calendar"
                       >
-                        <Calendar className="w-3 h-3" />
+                        <Calendar className="w-3.5 h-3.5 shrink-0" />
                         <span>Calendar</span>
                       </button>
                     </div>
@@ -523,26 +523,26 @@ export function TaskDetailModal({
           {isEditing ? (
             <form
               onSubmit={handleSaveEdit}
-              className="p-4 rounded-xl bg-slate-950/60 border border-indigo-500/30 space-y-3.5 animate-fadeIn"
+              className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-indigo-500/30 space-y-3.5 animate-fadeIn"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <span className="text-xs font-semibold text-white">Edit Task Information</span>
-                <span className="text-[11px] text-indigo-400">All team members can edit</span>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-900 dark:text-white">Edit Task Information</span>
+                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">All team members can edit</span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Task Title *</label>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Task Title *</label>
                 <input
                   type="text"
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Description
                 </label>
                 <textarea
@@ -550,17 +550,17 @@ export function TaskDetailModal({
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Task details and instructions..."
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none transition-colors resize-none"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">Priority</label>
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
                   <select
                     value={editPriority}
                     onChange={(e) => setEditPriority(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-200 outline-none"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -569,22 +569,33 @@ export function TaskDetailModal({
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                    Due Date & Time
-                  </label>
+                <div className="sm:col-span-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      Due Date & Time
+                    </label>
+                    {editDueDate && (
+                      <button
+                        type="button"
+                        onClick={() => setEditDueDate("")}
+                        className="text-[10px] text-rose-500 dark:text-rose-400 hover:underline cursor-pointer font-medium"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                   <div
                     onClick={(e) => {
                       const input = e.currentTarget.querySelector("input") as HTMLInputElement;
                       input?.showPicker?.();
                     }}
-                    className="relative flex items-center cursor-pointer group"
+                    className="relative flex items-center cursor-pointer group custom-picker-container"
                   >
                     <input
                       type="datetime-local"
                       value={editDueDate}
                       onChange={(e) => setEditDueDate(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-lg pl-3 pr-22 py-2 text-xs text-white font-mono outline-none transition-colors cursor-pointer"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 group-hover:border-slate-400 dark:group-hover:border-slate-700 focus:border-indigo-500 rounded-lg pl-3 pr-24 py-2 text-xs text-slate-900 dark:text-white font-mono outline-none transition-colors cursor-pointer hide-native-picker"
                     />
                     <button
                       type="button"
@@ -593,10 +604,10 @@ export function TaskDetailModal({
                         const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                         input?.showPicker?.();
                       }}
-                      className="absolute right-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 transition-all flex items-center gap-1.5 text-[11px] font-semibold cursor-pointer select-none"
                       title="Open Calendar"
                     >
-                      <Calendar className="w-3 h-3" />
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
                       <span>Calendar</span>
                     </button>
                   </div>

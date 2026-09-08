@@ -95,6 +95,19 @@ html.light input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: rgba(0, 0, 0, 0.08);
 }
 
+/* Suppress duplicate browser-native calendar icon when custom picker button is used */
+.custom-picker-container input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.custom-picker-container input[type="date"]::-webkit-calendar-picker-indicator,
+input.hide-native-picker::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+}
+
 /* Vercel Glowing Border Utilities */
 .vercel-card {
   background-color: #0a0a0a;

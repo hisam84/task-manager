@@ -242,14 +242,14 @@ export function CreateTaskModal({
 
               <div
                 onClick={() => dateInputRef.current?.showPicker?.()}
-                className="relative flex items-center cursor-pointer group"
+                className="relative flex items-center cursor-pointer group custom-picker-container"
               >
                 <input
                   ref={dateInputRef}
                   type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-24 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer"
+                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-26 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer hide-native-picker"
                 />
                 <button
                   type="button"
@@ -257,11 +257,11 @@ export function CreateTaskModal({
                     e.stopPropagation();
                     dateInputRef.current?.showPicker?.();
                   }}
-                  className="absolute right-2 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer select-none"
                   title="Open Calendar"
                   aria-label="Open Calendar"
                 >
-                  <Calendar className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5 shrink-0" />
                   <span>Calendar</span>
                 </button>
               </div>
