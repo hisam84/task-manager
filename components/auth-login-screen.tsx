@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ForgotPasswordModal } from "./forgot-password-modal";
 
 interface AuthLoginScreenProps {
   onSuccess?: () => void;
@@ -10,6 +11,7 @@ interface AuthLoginScreenProps {
 export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +101,16 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
             </div>
 
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Password *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[#888888] font-mono">Password *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors font-mono hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type="password"
@@ -126,6 +137,12 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
           </div>
         </form>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 }
