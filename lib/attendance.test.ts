@@ -55,6 +55,23 @@ test("calculateOvertimeMinutes - compares out-time to shift end time", () => {
   assert.equal(calculateOvertimeMinutes("20:00", "18:00"), 120);
 });
 
+test("calculateOvertimeMinutes - calculates early arrival and late departure based on shift", () => {
+  // Shift 14:00 to 18:00 (4 hours = 240 mins). In: 09:00, Out: 18:00 -> 5 hours early (300 mins overtime)
+  assert.equal(calculateOvertimeMinutes("18:00", "18:00", "09:00", "14:00"), 300);
+
+  // Shift 14:00 to 18:00. In: 10:20, Out: 19:00 -> 3h 40m early + 1h late = 4h 40m (280 mins overtime)
+  assert.equal(calculateOvertimeMinutes("19:00", "18:00", "10:20", "14:00"), 280);
+
+  // Shift 09:00 to 18:00. In: 08:30, Out: 19:30 -> 30m early + 1h 30m late = 2h (120 mins overtime)
+  assert.equal(calculateOvertimeMinutes("19:30", "18:00", "08:30", "09:00"), 120);
+
+  // Weekend or Holiday work: 09:00 to 14:00 -> 300 mins overtime
+  assert.equal(calculateOvertimeMinutes("14:00", "18:00", "09:00", "09:00", true), 300);
+
+  // Overnight shift 20:00 to 04:00. In: 19:00, Out: 05:00 -> 1h early + 1h late = 2h (120 mins overtime)
+  assert.equal(calculateOvertimeMinutes("05:00", "04:00", "19:00", "20:00"), 120);
+});
+
 test("calculateWorkingMinutes - computes total duration", () => {
   assert.equal(calculateWorkingMinutes("09:00", "18:00"), 540); // 9 hours
   assert.equal(calculateWorkingMinutes("09:30", "18:15"), 525); // 8h 45m

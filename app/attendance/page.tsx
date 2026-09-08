@@ -704,7 +704,13 @@ export default function AttendancePage() {
 
                       const currentOvertime =
                         rowState.outTime
-                          ? calculateOvertimeMinutes(rowState.outTime, shiftEndTime)
+                          ? calculateOvertimeMinutes(
+                              rowState.outTime,
+                              shiftEndTime,
+                              rowState.inTime,
+                              shiftStartTime,
+                              isHoliday || isWeekend
+                            )
                           : record.overtimeMinutes;
 
                       const currentWorkMin =

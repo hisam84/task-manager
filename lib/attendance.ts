@@ -79,19 +79,77 @@ export function calculateLatePenalty(lateMinutes: number): number {
 }
 
 /**
- * Calculates overtime minutes when out-time exceeds shift end time.
+ * Calculates overtime minutes according to shift schedule and actual timings:
+ * 1. If it is a Holiday or Weekend, all working time is overtime.
+ * 2. On a regular working day:
+ *    - Calculates extra time outside shift window:
+ *      - Early arrival before shift start (inTime < shiftStartTime)
+ *      - Late stay after shift end (outTime > shiftEndTime)
+ *    - Also checks total working duration exceeding scheduled shift duration.
+ *    - Supports both regular daytime shifts and overnight/cross-midnight shifts.
  */
-export function calculateOvertimeMinutes(outTime: string, shiftEndTime: string): number {
-  if (!outTime || !shiftEndTime) return 0;
-  const outMin = timeStringToMinutes(outTime);
-  const endMin = timeStringToMinutes(shiftEndTime);
+export function calculateOvertimeMinutes(
+  outTime: string,
+  shiftEndTime: string,
+  inTime?: string | null,
+  shiftStartTime?: string | null,
+  isHolidayOrWeekend?: boolean
+): number {
+  if (!outTime) return 0;
 
-  // Normal daytime shift
-  if (endMin >= 0) {
+  // On Holiday or Weekend, all work duration is counted as overtime
+  if (isHolidayOrWeekend && inTime) {
+    return calculateWorkingMinutes(inTime, outTime);
+  }
+
+  // If inTime and shiftStartTime are not provided, maintain backward compatibility
+  // by calculating late stay after shift end
+  if (!inTime || !shiftStartTime || !shiftEndTime) {
+    if (!shiftEndTime) return 0;
+    const outMin = timeStringToMinutes(outTime);
+    const endMin = timeStringToMinutes(shiftEndTime);
     const diff = outMin - endMin;
     return diff > 0 ? diff : 0;
   }
-  return 0;
+
+  const shiftDuration = calculateWorkingMinutes(shiftStartTime, shiftEndTime);
+  const actualWorkMinutes = calculateWorkingMinutes(inTime, outTime);
+
+  // If the employee didn't work at all, 0 overtime
+  if (actualWorkMinutes <= 0) return 0;
+
+  const inMin = timeStringToMinutes(inTime);
+  const outMin = timeStringToMinutes(outTime);
+  const startMin = timeStringToMinutes(shiftStartTime);
+  const endMin = timeStringToMinutes(shiftEndTime);
+
+  const isOvernightShift = endMin < startMin;
+
+  let earlyMinutes = 0;
+  let lateMinutes = 0;
+
+  if (!isOvernightShift) {
+    // Normal daytime shift (e.g. 09:00 to 18:00, or 14:00 to 18:00)
+    if (inMin < startMin) {
+      earlyMinutes = startMin - inMin;
+    }
+    if (outMin > endMin) {
+      lateMinutes = outMin - endMin;
+    }
+  } else {
+    // Overnight shift (e.g. 20:00 to 04:00)
+    if (inMin >= 720 && inMin < startMin) {
+      earlyMinutes = startMin - inMin;
+    }
+    if (outMin < 720 && outMin > endMin) {
+      lateMinutes = outMin - endMin;
+    }
+  }
+
+  const outsideShiftMinutes = earlyMinutes + lateMinutes;
+  const excessWorkMinutes = actualWorkMinutes > shiftDuration ? actualWorkMinutes - shiftDuration : 0;
+
+  return Math.max(outsideShiftMinutes, excessWorkMinutes);
 }
 
 /**
@@ -123,12 +181,13 @@ export function computeDailyAttendanceMetrics(params: {
   const { inTime, outTime, isHoliday, isWeekend, isLeave, shiftStartTime, shiftEndTime } = params;
 
   if (isHoliday) {
+    const workMin = inTime && outTime ? calculateWorkingMinutes(inTime, outTime) : 0;
     return {
       status: "HOLIDAY",
       lateMinutes: 0,
       latePenalty: 0,
-      overtimeMinutes: 0,
-      workingMinutes: inTime && outTime ? calculateWorkingMinutes(inTime, outTime) : 0,
+      overtimeMinutes: workMin,
+      workingMinutes: workMin,
     };
   }
 
@@ -143,12 +202,13 @@ export function computeDailyAttendanceMetrics(params: {
   }
 
   if (isWeekend) {
+    const workMin = inTime && outTime ? calculateWorkingMinutes(inTime, outTime) : 0;
     return {
       status: "WEEKEND",
       lateMinutes: 0,
       latePenalty: 0,
-      overtimeMinutes: 0,
-      workingMinutes: inTime && outTime ? calculateWorkingMinutes(inTime, outTime) : 0,
+      overtimeMinutes: workMin,
+      workingMinutes: workMin,
     };
   }
 
@@ -174,7 +234,13 @@ export function computeDailyAttendanceMetrics(params: {
 
   let overtimeMin = 0;
   if (outTime) {
-    overtimeMin = calculateOvertimeMinutes(outTime, defaultEnd);
+    overtimeMin = calculateOvertimeMinutes(
+      outTime,
+      defaultEnd,
+      inTime,
+      defaultStart,
+      isHoliday || isWeekend
+    );
   }
 
   let workingMin = 0;
