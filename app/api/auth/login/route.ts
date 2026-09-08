@@ -29,24 +29,46 @@ export async function POST(req: Request) {
     const data = loginSchema.parse(body);
     const input = data.usernameOrEmail.trim();
 
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username: { equals: input, mode: "insensitive" } },
-          { email: input.toLowerCase() },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        role: true,
-        department: true,
-        passwordHash: true,
-        company: { select: { name: true, isActive: true, subscriptionEndsAt: true } },
-      },
-    });
+    let user: any = null;
+    try {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: { equals: input, mode: "insensitive" } },
+            { email: input.toLowerCase() },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          role: true,
+          department: true,
+          passwordHash: true,
+          company: { select: { name: true, isActive: true, subscriptionEndsAt: true } },
+        },
+      });
+    } catch {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: { equals: input, mode: "insensitive" } },
+            { email: input.toLowerCase() },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          role: true,
+          department: true,
+          passwordHash: true,
+          company: { select: { name: true, isActive: true } },
+        },
+      });
+    }
 
     if (!user) {
       return jsonError("Invalid username/email or password", 401);

@@ -43,10 +43,14 @@ export default function SuperAdminPage() {
       if (meData?.user) setUser(meData.user);
 
       const compData = await compRes.json();
-      if (Array.isArray(compData)) setCompanies(compData);
-
       const repData = await repRes.json();
       if (repData?.metrics) setMetrics(repData.metrics);
+
+      if (Array.isArray(compData)) {
+        setCompanies(compData);
+      } else if (Array.isArray(repData?.companiesList)) {
+        setCompanies(repData.companiesList);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -198,6 +202,13 @@ export default function SuperAdminPage() {
                           );
                         }
                         const expires = new Date(comp.subscriptionEndsAt);
+                        if (isNaN(expires.getTime())) {
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              <Infinity className="w-3 h-3" /> Lifetime
+                            </span>
+                          );
+                        }
                         const isExpired = expires.getTime() <= Date.now();
                         const daysLeft = Math.ceil((expires.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
                         if (isExpired) {
@@ -235,11 +246,11 @@ export default function SuperAdminPage() {
                     <div className="grid grid-cols-2 gap-2 py-3 border-t border-b border-slate-800/60 text-xs">
                       <div className="flex items-center gap-2 text-slate-300">
                         <Users className="w-4 h-4 text-blue-400" />
-                        <span>{comp._count?.users || 0} Users</span>
+                        <span>{comp._count?.users ?? comp.userCount ?? 0} Users</span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-300">
                         <FileCheck2 className="w-4 h-4 text-emerald-400" />
-                        <span>{comp._count?.tasks || 0} Tasks</span>
+                        <span>{comp._count?.tasks ?? comp.taskCount ?? 0} Tasks</span>
                       </div>
                     </div>
                   </div>

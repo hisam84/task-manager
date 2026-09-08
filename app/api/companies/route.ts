@@ -31,34 +31,82 @@ export async function GET() {
       return jsonError("Forbidden: Super Admin required", 403);
     }
 
-    const companies = await prisma.company.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isActive: true,
-        enableLatePenalty: true,
-        subscriptionEndsAt: true,
-        createdAt: true,
-        users: {
-          where: { role: "ADMIN" },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            username: true,
-          },
-          take: 1,
-        },
-        _count: {
-          select: { users: true, tasks: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
+    // Attempt automatic schema self-healing on Postgres if columns do not exist yet
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "enableLatePenalty" BOOLEAN NOT NULL DEFAULT false;
+        ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "subscriptionEndsAt" TIMESTAMP(3);
+      `);
+    } catch {
+      // Ignore if database lacks DDL permissions or already migrated
+    }
 
-    return NextResponse.json(companies);
+    try {
+      const companies = await prisma.company.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isActive: true,
+          enableLatePenalty: true,
+          subscriptionEndsAt: true,
+          createdAt: true,
+          users: {
+            where: { role: "ADMIN" },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              username: true,
+            },
+            take: 1,
+          },
+          _count: {
+            select: { users: true, tasks: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      });
+
+      return NextResponse.json(companies);
+    } catch (dbQueryErr) {
+      console.warn("Retrying company fetch with fallback columns:", dbQueryErr);
+
+      // Graceful fallback for legacy database instances
+      const fallbackCompanies = await prisma.company.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isActive: true,
+          createdAt: true,
+          users: {
+            where: { role: "ADMIN" },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              username: true,
+            },
+            take: 1,
+          },
+          _count: {
+            select: { users: true, tasks: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      });
+
+      return NextResponse.json(
+        fallbackCompanies.map((c) => ({
+          ...c,
+          enableLatePenalty: false,
+          subscriptionEndsAt: null,
+        }))
+      );
+    }
   } catch (error) {
     return apiError(error, "Failed to fetch companies");
   }
