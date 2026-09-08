@@ -613,7 +613,7 @@ export default function AttendancePage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                       <th className="py-3 px-4">Date & Day</th>
                       <th className="py-3 px-3 text-center">Status</th>
                       <th className="py-3 px-3">In Time</th>

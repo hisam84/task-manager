@@ -240,12 +240,12 @@ export default function TeamPage() {
           <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium select-none">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/50 text-slate-700 dark:text-slate-400 font-semibold select-none">
                   <th className="p-4 w-14 text-center">
                     <button
                       type="button"
                       onClick={() => setSortBy(sortBy === "newest" ? "oldest" : "newest")}
-                      className="inline-flex items-center justify-center gap-1 hover:text-white transition-colors"
+                      className="inline-flex items-center justify-center gap-1 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
                       title="Sort by Registration Order"
                     >
                       <span>#</span>
@@ -256,13 +256,13 @@ export default function TeamPage() {
                     <button
                       type="button"
                       onClick={() => setSortBy(sortBy === "name-asc" ? "name-desc" : "name-asc")}
-                      className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
                     >
                       <span>Employee</span>
                       {sortBy === "name-asc" ? (
-                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <ArrowUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : sortBy === "name-desc" ? (
-                        <ArrowDown className="w-3 h-3 text-emerald-400" />
+                        <ArrowDown className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
                         <ArrowUpDown className="w-3 h-3 text-slate-500" />
                       )}
@@ -272,11 +272,11 @@ export default function TeamPage() {
                     <button
                       type="button"
                       onClick={() => setSortBy(sortBy === "role" ? "newest" : "role")}
-                      className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
                     >
                       <span>Role</span>
                       {sortBy === "role" ? (
-                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <ArrowUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
                         <ArrowUpDown className="w-3 h-3 text-slate-500" />
                       )}
@@ -286,11 +286,11 @@ export default function TeamPage() {
                     <button
                       type="button"
                       onClick={() => setSortBy(sortBy === "dept-asc" ? "newest" : "dept-asc")}
-                      className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
                     >
                       <span>Department</span>
                       {sortBy === "dept-asc" ? (
-                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <ArrowUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
                         <ArrowUpDown className="w-3 h-3 text-slate-500" />
                       )}
@@ -301,13 +301,13 @@ export default function TeamPage() {
                     <button
                       type="button"
                       onClick={() => setSortBy(sortBy === "tasks-desc" ? "tasks-asc" : "tasks-desc")}
-                      className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
                     >
                       <span>Assigned Tasks</span>
                       {sortBy === "tasks-desc" ? (
-                        <ArrowDown className="w-3 h-3 text-emerald-400" />
+                        <ArrowDown className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : sortBy === "tasks-asc" ? (
-                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <ArrowUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
                         <ArrowUpDown className="w-3 h-3 text-slate-500" />
                       )}

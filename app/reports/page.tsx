@@ -153,7 +153,7 @@ export default function ReportsPage() {
               <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/50 text-slate-700 dark:text-slate-400 font-semibold">
                       <th className="p-4">Employee</th>
                       <th className="p-4">Department</th>
                       <th className="p-4 text-center">Total Tasks</th>

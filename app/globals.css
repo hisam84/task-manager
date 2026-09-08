@@ -484,3 +484,39 @@ html.light .vercel-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
+/* Universal Table Headers, Borders & Dividers in Light Mode */
+html.light thead {
+  background-color: #f1f5f9 !important;
+}
+
+html.light thead tr {
+  background-color: #f1f5f9 !important;
+  border-bottom-color: #cbd5e1 !important;
+}
+
+html.light thead th {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light thead th button {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+html.light thead th button:hover {
+  color: #0f172a !important;
+}
+
+html.light thead th svg {
+  color: #475569 !important;
+}
+
+html.light .divide-slate-800\/60,
+html.light .divide-slate-800\/80,
+html.light .divide-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+
