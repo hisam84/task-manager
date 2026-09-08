@@ -7,6 +7,7 @@ import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ShiftModal } from "@/components/shift-modal";
 import { HolidayModal } from "@/components/holiday-modal";
 import { AttendancePrintModal } from "@/components/attendance-print-modal";
+import { canViewPenaltyAndOvertime } from "@/lib/access";
 import {
   CalendarCheck2,
   Calendar,
@@ -411,6 +412,7 @@ export default function AttendancePage() {
   }
 
   const isCompanyAdminOrManager = user.role === "ADMIN" || user.role === "MANAGER";
+  const canViewFines = canViewPenaltyAndOvertime(user.role);
   const currentEmployee = monthlyData?.employee;
   const shift = currentEmployee?.shift;
   const shiftStartTime = shift?.startTime || "09:00";
@@ -444,7 +446,12 @@ export default function AttendancePage() {
                     Employee Attendance Sheet
                   </h1>
                   <p className="text-xs text-slate-400">
-                    Track daily shifts, in/out timings{enableLatePenalty ? ", late penalties," : ""} and overtime hours
+                    Track daily shifts and in/out timings
+                    {canViewFines
+                      ? enableLatePenalty
+                        ? ", late penalties, and overtime hours"
+                        : " and overtime hours"
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -482,7 +489,7 @@ export default function AttendancePage() {
                 onClick={() => setPrintModalOpen(true)}
                 disabled={loading || !monthlyData}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors disabled:opacity-50"
-                title="Open and print penalty report"
+                title={canViewFines ? "Open and print penalty report" : "Open and print attendance report"}
               >
                 <Printer className="w-4 h-4 text-indigo-400" />
                 Print Report
@@ -621,7 +628,7 @@ export default function AttendancePage() {
                     <strong className="font-semibold text-emerald-600 dark:text-emerald-400">
                       15 min
                     </strong>
-                    {enableLatePenalty ? (
+                    {enableLatePenalty && canViewFines ? (
                       <span className="text-slate-500 dark:text-slate-400 text-[11px]">(No penalty)</span>
                     ) : (
                       ""
@@ -632,7 +639,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Late Penalty Rule Explanation Pill */}
-            {enableLatePenalty && (
+            {enableLatePenalty && canViewFines && (
               <div className="text-[11px] bg-white dark:bg-slate-950/70 py-2 px-3 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-wrap items-center gap-1.5 text-slate-600 dark:text-slate-300 shrink-0">
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
                   Penalty Formula:
@@ -654,7 +661,15 @@ export default function AttendancePage() {
 
           {/* Summary Metric Cards */}
           {monthlyData?.summary && (
-            <div className={`grid gap-3 ${enableLatePenalty ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
+            <div
+              className={`grid gap-3 ${
+                enableLatePenalty && canViewFines
+                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+                  : canViewFines
+                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+                  : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4"
+              }`}
+            >
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-slate-400 block font-medium">Days in Month</span>
                 <span className="text-xl font-bold text-slate-100 mt-1 block">
@@ -685,7 +700,7 @@ export default function AttendancePage() {
                 </span>
               </div>
 
-              {enableLatePenalty && (
+              {enableLatePenalty && canViewFines && (
                 <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-950/20">
                   <span className="text-xs text-rose-300 block font-medium">Total Late Fine</span>
                   <span className="text-xl font-bold text-rose-400 mt-1 block">
@@ -697,15 +712,17 @@ export default function AttendancePage() {
                 </div>
               )}
 
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-                <span className="text-xs text-indigo-300 block font-medium">Overtime</span>
-                <span className="text-xl font-bold text-indigo-400 mt-1 block">
-                  {formatMinutes(monthlyData.summary.totalOvertimeMinutes)}
-                </span>
-                <span className="text-[10px] text-indigo-300/70 mt-0.5 block">
-                  Approved extra time
-                </span>
-              </div>
+              {canViewFines && (
+                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                  <span className="text-xs text-indigo-300 block font-medium">Overtime</span>
+                  <span className="text-xl font-bold text-indigo-400 mt-1 block">
+                    {formatMinutes(monthlyData.summary.totalOvertimeMinutes)}
+                  </span>
+                  <span className="text-[10px] text-indigo-300/70 mt-0.5 block">
+                    Approved extra time
+                  </span>
+                </div>
+              )}
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-slate-400 block font-medium">Holidays & Leaves</span>
@@ -735,7 +752,9 @@ export default function AttendancePage() {
               <div>
                 <h3 className="font-semibold text-sm text-white">Daily Attendance & Timings</h3>
                 <p className="text-xs text-slate-400">
-                  Input in-time and out-time. Fines and overtime will calculate automatically.
+                  {canViewFines
+                    ? "Input in-time and out-time. Fines and overtime will calculate automatically."
+                    : "Input in-time and out-time. Working hours will calculate automatically."}
                 </p>
               </div>
               <div className="text-xs text-slate-400">
@@ -759,10 +778,12 @@ export default function AttendancePage() {
                       <th className="py-3 px-3">Out Time</th>
                       <th className="py-3 px-3 text-center">Work Time</th>
                       <th className="py-3 px-3 text-center">Late</th>
-                      {enableLatePenalty && (
+                      {enableLatePenalty && canViewFines && (
                         <th className="py-3 px-3 text-center">Penalty</th>
                       )}
-                      <th className="py-3 px-3 text-center">Overtime</th>
+                      {canViewFines && (
+                        <th className="py-3 px-3 text-center">Overtime</th>
+                      )}
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -963,7 +984,7 @@ export default function AttendancePage() {
                           </td>
 
                           {/* Penalty Amount */}
-                          {enableLatePenalty && (
+                          {enableLatePenalty && canViewFines && (
                             <td className="py-2.5 px-3 text-center font-bold">
                               {currentPenalty > 0 ? (
                                 <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
@@ -976,15 +997,17 @@ export default function AttendancePage() {
                           )}
 
                           {/* Overtime */}
-                          <td className="py-2.5 px-3 text-center font-mono">
-                            {currentOvertime > 0 ? (
-                              <span className="text-indigo-400 font-semibold">
-                                +{formatMinutes(currentOvertime)}
-                              </span>
-                            ) : (
-                              <span className="text-slate-600">-</span>
-                            )}
-                          </td>
+                          {canViewFines && (
+                            <td className="py-2.5 px-3 text-center font-mono">
+                              {currentOvertime > 0 ? (
+                                <span className="text-indigo-400 font-semibold">
+                                  +{formatMinutes(currentOvertime)}
+                                </span>
+                              ) : (
+                                <span className="text-slate-600">-</span>
+                              )}
+                            </td>
+                          )}
 
                           {/* Row Actions & Auto-Save Indicator */}
                           <td className="py-2.5 px-4 text-right">
@@ -1059,7 +1082,8 @@ export default function AttendancePage() {
         isOpen={printModalOpen}
         onClose={() => setPrintModalOpen(false)}
         data={monthlyData}
-        enableLatePenalty={enableLatePenalty}
+        enableLatePenalty={enableLatePenalty && canViewFines}
+        isManagerOrAdmin={canViewFines}
       />
     </div>
   );

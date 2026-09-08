@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isManagerOrAdmin } from "@/lib/access";
+import { isManagerOrAdmin, canViewPenaltyAndOvertime } from "@/lib/access";
 import { computeDailyAttendanceMetrics } from "@/lib/attendance";
 
 export async function GET(req: Request) {
@@ -116,6 +116,7 @@ export async function GET(req: Request) {
     let totalWorkingMinutes = 0;
 
     const enableLatePenalty = targetUser.company?.enableLatePenalty ?? false;
+    const canViewFinesAndOvertime = canViewPenaltyAndOvertime(sessionUser.role);
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(Date.UTC(year, month - 1, day));
@@ -185,8 +186,8 @@ export async function GET(req: Request) {
         inTime,
         outTime,
         lateMinutes,
-        latePenalty,
-        overtimeMinutes,
+        latePenalty: canViewFinesAndOvertime ? latePenalty : 0,
+        overtimeMinutes: canViewFinesAndOvertime ? overtimeMinutes : 0,
         workingMinutes,
         notes,
       });
@@ -194,7 +195,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       employee: targetUser,
-      enableLatePenalty,
+      enableLatePenalty: canViewFinesAndOvertime ? enableLatePenalty : false,
       year,
       month,
       daysInMonth,
@@ -207,8 +208,8 @@ export async function GET(req: Request) {
         leaveCount,
         weekendCount,
         totalLateMinutes,
-        totalLatePenalty: enableLatePenalty ? totalLatePenalty : 0,
-        totalOvertimeMinutes,
+        totalLatePenalty: canViewFinesAndOvertime && enableLatePenalty ? totalLatePenalty : 0,
+        totalOvertimeMinutes: canViewFinesAndOvertime ? totalOvertimeMinutes : 0,
         totalWorkingMinutes,
       },
       records: dailyRecords,
@@ -324,7 +325,12 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(attendance);
+    const canViewFinesAndOvertime = canViewPenaltyAndOvertime(sessionUser.role);
+    return NextResponse.json({
+      ...attendance,
+      latePenalty: canViewFinesAndOvertime ? attendance.latePenalty : 0,
+      overtimeMinutes: canViewFinesAndOvertime ? attendance.overtimeMinutes : 0,
+    });
   } catch (err: any) {
     console.error("POST attendance error:", err);
     return NextResponse.json(

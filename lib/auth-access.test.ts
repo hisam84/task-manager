@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { canAccessTask, canDeleteTask } from "./access";
+import { canAccessTask, canDeleteTask, canViewPenaltyAndOvertime } from "./access";
 import type { SessionUser } from "./types";
 
 function user(partial: Partial<SessionUser>): SessionUser {
@@ -69,5 +69,23 @@ describe("canDeleteTask", () => {
     assert.equal(canDeleteTask(null), false);
     assert.equal(canDeleteTask(undefined), false);
     assert.equal(canDeleteTask(""), false);
+  });
+});
+
+describe("canViewPenaltyAndOvertime", () => {
+  it("allows super admins, admins, and managers", () => {
+    assert.equal(canViewPenaltyAndOvertime("SUPER_ADMIN"), true);
+    assert.equal(canViewPenaltyAndOvertime("ADMIN"), true);
+    assert.equal(canViewPenaltyAndOvertime("MANAGER"), true);
+  });
+
+  it("strictly blocks regular employees from viewing penalty and overtime", () => {
+    assert.equal(canViewPenaltyAndOvertime("EMPLOYEE"), false);
+  });
+
+  it("blocks null, undefined, or empty roles", () => {
+    assert.equal(canViewPenaltyAndOvertime(null), false);
+    assert.equal(canViewPenaltyAndOvertime(undefined), false);
+    assert.equal(canViewPenaltyAndOvertime(""), false);
   });
 });

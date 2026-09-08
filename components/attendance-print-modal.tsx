@@ -8,6 +8,7 @@ interface AttendancePrintModalProps {
   isOpen: boolean;
   onClose: () => void;
   enableLatePenalty?: boolean;
+  isManagerOrAdmin?: boolean;
   data: {
     employee: any;
     year: number;
@@ -51,10 +52,11 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty }: AttendancePrintModalProps) {
+export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty, isManagerOrAdmin = true }: AttendancePrintModalProps) {
   if (!isOpen || !data) return null;
 
-  const showPenalty = enableLatePenalty ?? data?.enableLatePenalty ?? false;
+  const showPenalty = isManagerOrAdmin && (enableLatePenalty ?? data?.enableLatePenalty ?? false);
+  const showOvertime = isManagerOrAdmin;
   const { employee, year, month, summary, records } = data;
   const monthName = MONTH_NAMES[month - 1] || `Month ${month}`;
   const companyName = employee?.company?.name || "Company Workplace";
@@ -306,7 +308,15 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
             </div>
 
             {/* KPI Summary Strip */}
-            <div className={`grid gap-1.5 mb-2 print:mb-1.5 text-center ${showPenalty ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"}`}>
+            <div
+              className={`grid gap-1.5 mb-2 print:mb-1.5 text-center ${
+                showPenalty && showOvertime
+                  ? "grid-cols-3 sm:grid-cols-6"
+                  : showPenalty || showOvertime
+                  ? "grid-cols-2 sm:grid-cols-5"
+                  : "grid-cols-2 sm:grid-cols-4"
+              }`}
+            >
               <div className="p-1.5 print:p-1 rounded border border-slate-200 bg-slate-50">
                 <span className="block text-[9px] print:text-[8px] uppercase font-bold text-slate-500">Total Days</span>
                 <span className="text-sm print:text-xs font-bold text-slate-900">{summary.totalDays}</span>
@@ -329,10 +339,12 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                   <span className="text-sm print:text-xs font-bold text-rose-700">৳ {summary.totalLatePenalty}</span>
                 </div>
               )}
-              <div className="p-1.5 print:p-1 rounded border border-indigo-200 bg-indigo-50/50">
-                <span className="block text-[9px] print:text-[8px] uppercase font-bold text-indigo-700">Overtime</span>
-                <span className="text-sm print:text-xs font-bold text-indigo-800">{formatMinutes(summary.totalOvertimeMinutes)}</span>
-              </div>
+              {showOvertime && (
+                <div className="p-1.5 print:p-1 rounded border border-indigo-200 bg-indigo-50/50">
+                  <span className="block text-[9px] print:text-[8px] uppercase font-bold text-indigo-700">Overtime</span>
+                  <span className="text-sm print:text-xs font-bold text-indigo-800">{formatMinutes(summary.totalOvertimeMinutes)}</span>
+                </div>
+              )}
             </div>
 
             {/* Attendance & Penalty Table */}
@@ -349,7 +361,9 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                     {showPenalty && (
                       <th className="py-1 px-2 print:py-0.5 print:px-1.5 border-r border-slate-300 text-center">Penalty (৳)</th>
                     )}
-                    <th className="py-1 px-2 print:py-0.5 print:px-1.5 text-center">Overtime</th>
+                    {showOvertime && (
+                      <th className="py-1 px-2 print:py-0.5 print:px-1.5 text-center">Overtime</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -419,15 +433,17 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                             )}
                           </td>
                         )}
-                        <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 text-center font-mono">
-                          {r.overtimeMinutes > 0 ? (
-                            <span className="text-indigo-700 font-semibold">
-                              +{formatMinutes(r.overtimeMinutes)}
-                            </span>
-                          ) : (
-                            "-"
-                          )}
-                        </td>
+                        {showOvertime && (
+                          <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 text-center font-mono">
+                            {r.overtimeMinutes > 0 ? (
+                              <span className="text-indigo-700 font-semibold">
+                                +{formatMinutes(r.overtimeMinutes)}
+                              </span>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -445,9 +461,11 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty 
                         ৳ {summary.totalLatePenalty}
                       </td>
                     )}
-                    <td className="py-1 px-2 print:py-0.5 print:px-1.5 text-center text-indigo-800">
-                      +{formatMinutes(summary.totalOvertimeMinutes)}
-                    </td>
+                    {showOvertime && (
+                      <td className="py-1 px-2 print:py-0.5 print:px-1.5 text-center text-indigo-800">
+                        +{formatMinutes(summary.totalOvertimeMinutes)}
+                      </td>
+                    )}
                   </tr>
                 </tfoot>
               </table>

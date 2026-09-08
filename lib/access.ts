@@ -4,6 +4,11 @@ export function isManagerOrAdmin(role: string): boolean {
   return role === "SUPER_ADMIN" || role === "ADMIN" || role === "MANAGER";
 }
 
+export function canViewPenaltyAndOvertime(role?: string | null): boolean {
+  if (!role || role === "EMPLOYEE") return false;
+  return role === "SUPER_ADMIN" || role === "ADMIN" || role === "MANAGER";
+}
+
 export function canCreateCompany(role?: string | null): boolean {
   return role === "SUPER_ADMIN";
 }
