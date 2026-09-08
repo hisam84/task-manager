@@ -3,6 +3,7 @@ import { canAccessTask, getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
+import { sendTaskCreatedEmail } from "@/lib/mail";
 import type { Prisma } from "@prisma/client";
 
 const patchTaskSchema = z.object({
@@ -149,10 +150,11 @@ export async function PATCH(
       }
     }
 
-    if (manager && data.assigneeId) {
+    let newlyAssignedUser: { name: string; email: string } | null = null;
+    if (manager && data.assigneeId && data.assigneeId !== existingTask.assigneeId) {
       const assignee = await prisma.user.findUnique({
         where: { id: data.assigneeId },
-        select: { id: true, companyId: true },
+        select: { id: true, name: true, email: true, companyId: true },
       });
       if (!assignee) {
         return jsonError("Assignee not found", 400);
@@ -161,6 +163,9 @@ export async function PATCH(
         return jsonError("Assignee must belong to the same company", 403);
       }
       updateData.assignee = { connect: { id: data.assigneeId } };
+      newlyAssignedUser = { name: assignee.name, email: assignee.email };
+    } else if (manager && data.assigneeId) {
+      updateData.assignee = { connect: { id: data.assigneeId } };
     }
 
     const updatedTask = await prisma.task.update({
@@ -168,6 +173,33 @@ export async function PATCH(
       data: updateData,
       select: TASK_LIST_SELECT,
     });
+
+    if (newlyAssignedUser?.email) {
+      const origin = req.headers.get("origin") || "";
+      const host = req.headers.get("host") || "";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        origin ||
+        (host ? `${protocol}://${host}` : "http://localhost:3000");
+      const taskUrl = `${appUrl}/tasks`;
+
+      sendTaskCreatedEmail({
+        to: newlyAssignedUser.email,
+        assigneeName: newlyAssignedUser.name || "Team Member",
+        taskTitle: updatedTask.title,
+        taskDescription: updatedTask.description,
+        priority: updatedTask.priority,
+        status: updatedTask.status,
+        dueDate: updatedTask.dueDate,
+        creatorName: user.name || "Manager",
+        companyName: user.companyName,
+        taskUrl,
+      }).catch((err) => {
+        console.error("Failed to send task reassignment notification email:", err);
+      });
+    }
 
     return NextResponse.json(updatedTask);
   } catch (error) {

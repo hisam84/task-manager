@@ -3,6 +3,7 @@ import { getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
+import { sendTaskCreatedEmail } from "@/lib/mail";
 
 export const maxDuration = 15;
 export const dynamic = "force-dynamic";
@@ -115,7 +116,7 @@ export async function POST(req: Request) {
 
     const assignee = await prisma.user.findUnique({
       where: { id: finalAssigneeId },
-      select: { id: true, companyId: true },
+      select: { id: true, name: true, email: true, companyId: true },
     });
 
     if (!assignee) {
@@ -140,6 +141,34 @@ export async function POST(req: Request) {
       },
       select: TASK_LIST_SELECT,
     });
+
+    // Send email notification to assignee in Gmail asynchronously
+    if (assignee?.email) {
+      const origin = req.headers.get("origin") || "";
+      const host = req.headers.get("host") || "";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        origin ||
+        (host ? `${protocol}://${host}` : "http://localhost:3000");
+      const taskUrl = `${appUrl}/tasks`;
+
+      sendTaskCreatedEmail({
+        to: assignee.email,
+        assigneeName: assignee.name || "Team Member",
+        taskTitle: task.title,
+        taskDescription: task.description,
+        priority: task.priority,
+        status: task.status,
+        dueDate: task.dueDate,
+        creatorName: user.name || "Manager",
+        companyName: user.companyName,
+        taskUrl,
+      }).catch((err) => {
+        console.error("Failed to send task notification email to Gmail:", err);
+      });
+    }
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {

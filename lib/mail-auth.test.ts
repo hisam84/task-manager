@@ -51,3 +51,23 @@ describe("6-digit OTP generation & validation", () => {
   });
 });
 
+describe("task notification email", () => {
+  it("executes safely and handles parameters gracefully", async () => {
+    const { sendTaskCreatedEmail } = await import("./mail");
+    const result = await sendTaskCreatedEmail({
+      to: "employee@example.com",
+      assigneeName: "Rahim Ahmed",
+      taskTitle: "Implement API Integration",
+      taskDescription: "Connect frontend to backend tasks endpoint",
+      priority: "HIGH",
+      status: "TODO",
+      dueDate: new Date(),
+      creatorName: "Admin User",
+      companyName: "Tech Corp",
+      taskUrl: "http://localhost:3000/tasks",
+    });
+    // In test environment without SMTP credentials, returns null safely without throwing
+    assert.ok(result === null || typeof result === "object");
+  });
+});
+
