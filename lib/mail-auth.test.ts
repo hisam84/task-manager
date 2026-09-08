@@ -29,3 +29,25 @@ describe("password reset token generation", () => {
     assert.equal(expiredExpiry < new Date(), true);
   });
 });
+
+describe("6-digit OTP generation & validation", () => {
+  it("generates a random 6-digit numeric OTP", () => {
+    for (let i = 0; i < 20; i++) {
+      const otp = crypto.randomInt(100000, 1000000).toString();
+      assert.equal(otp.length, 6);
+      assert.match(otp, /^\d{6}$/);
+      const num = parseInt(otp, 10);
+      assert.ok(num >= 100000 && num <= 999999);
+    }
+  });
+
+  it("evaluates 10-minute OTP expiration", () => {
+    const now = Date.now();
+    const activeOtp = new Date(now + 10 * 60 * 1000);
+    const expiredOtp = new Date(now - 1000);
+
+    assert.equal(activeOtp > new Date(), true);
+    assert.equal(expiredOtp < new Date(), true);
+  });
+});
+

@@ -5,49 +5,106 @@ import { z } from "zod";
 import { apiError, jsonError } from "@/lib/http";
 
 const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Reset token is required"),
+  usernameOrEmail: z.string().optional(),
+  otp: z.string().optional(),
+  token: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters").max(256),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { token, password } = resetPasswordSchema.parse(body);
+    const { usernameOrEmail, otp, token, password } = resetPasswordSchema.parse(body);
 
-    const tokenRecord = await prisma.passwordResetToken.findUnique({
-      where: { token },
-    });
-
-    if (!tokenRecord) {
-      return jsonError("Invalid or expired password reset link.", 400);
+    const otpClean = (otp || token || "").trim();
+    if (!otpClean) {
+      return jsonError("Verification OTP code is required.", 400);
     }
 
-    if (tokenRecord.expiresAt < new Date()) {
-      await prisma.passwordResetToken.delete({
-        where: { id: tokenRecord.id },
+    let userEmail: string | null = null;
+    let userId: string | null = null;
+    let tokenRecordId: string | null = null;
+
+    if (usernameOrEmail && usernameOrEmail.trim()) {
+      const input = usernameOrEmail.trim();
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: { equals: input, mode: "insensitive" } },
+            { email: input.toLowerCase() },
+          ],
+        },
+        select: { id: true, email: true },
       });
-      return jsonError("This password reset link has expired. Please request a new one.", 400);
-    }
 
-    const user = await prisma.user.findUnique({
-      where: { email: tokenRecord.email },
-      select: { id: true, email: true },
-    });
+      if (!user) {
+        return jsonError("Account not found for that username or email.", 404);
+      }
 
-    if (!user) {
-      return jsonError("User account not found.", 404);
+      const tokenRecord = await prisma.passwordResetToken.findFirst({
+        where: {
+          email: user.email,
+          token: otpClean,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!tokenRecord) {
+        return jsonError("Invalid verification code (OTP). Please check and try again.", 400);
+      }
+
+      if (tokenRecord.expiresAt < new Date()) {
+        await prisma.passwordResetToken.deleteMany({
+          where: { email: user.email },
+        });
+        return jsonError("This verification code (OTP) has expired. Please request a new code.", 400);
+      }
+
+      userEmail = user.email;
+      userId = user.id;
+      tokenRecordId = tokenRecord.id;
+    } else {
+      // Fallback lookup by token string alone
+      const tokenRecord = await prisma.passwordResetToken.findFirst({
+        where: { token: otpClean },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!tokenRecord) {
+        return jsonError("Invalid or expired verification code.", 400);
+      }
+
+      if (tokenRecord.expiresAt < new Date()) {
+        await prisma.passwordResetToken.deleteMany({
+          where: { email: tokenRecord.email },
+        });
+        return jsonError("This verification code has expired. Please request a new code.", 400);
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: tokenRecord.email },
+        select: { id: true, email: true },
+      });
+
+      if (!user) {
+        return jsonError("User account not found.", 404);
+      }
+
+      userEmail = user.email;
+      userId = user.id;
+      tokenRecordId = tokenRecord.id;
     }
 
     const passwordHash = await hashPassword(password);
 
-    // Update password and delete used token
+    // Update password and clean up reset tokens
     await prisma.$transaction([
       prisma.user.update({
-        where: { id: user.id },
+        where: { id: userId },
         data: { passwordHash },
       }),
-      prisma.passwordResetToken.delete({
-        where: { id: tokenRecord.id },
+      prisma.passwordResetToken.deleteMany({
+        where: { email: userEmail },
       }),
     ]);
 

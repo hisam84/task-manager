@@ -3,12 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import crypto from "crypto";
 import { checkLoginRateLimit, getClientIp } from "@/lib/session";
-import { sendPasswordResetEmail } from "@/lib/mail";
+import { sendPasswordResetOtpEmail } from "@/lib/mail";
 import { apiError, jsonError } from "@/lib/http";
 
 const forgotPasswordSchema = z.object({
   usernameOrEmail: z.string().min(1, "Username or email is required").max(255),
 });
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return email;
+  if (local.length <= 2) return `${local[0]}***@${domain}`;
+  return `${local[0]}***${local[local.length - 1]}@${domain}`;
+}
 
 export async function POST(req: Request) {
   try {
@@ -36,49 +43,47 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      // Return ambiguous success for security (prevents user enumeration)
+      // Return success simulation for security
       return NextResponse.json({
         success: true,
-        message: "If an account matches that username or email, a password reset link has been sent.",
+        emailMasked: "your registered email",
+        message: "If an account matches that username or email, an OTP verification code has been sent.",
       });
     }
 
-    // Generate random 64-character hex token
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Generate random 6-digit OTP code (100000 - 999999)
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Clean up older tokens for this email
     await prisma.passwordResetToken.deleteMany({
       where: { email: user.email },
     });
 
-    // Save token
+    // Save 6-digit OTP token
     await prisma.passwordResetToken.create({
       data: {
         email: user.email,
-        token,
+        token: otp,
         expiresAt,
       },
     });
 
-    // Determine application URL origin
-    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
-    const proto = req.headers.get("x-forwarded-proto") || "http";
-    const origin = req.headers.get("origin") || (host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
-    const resetUrl = `${origin}/reset-password?token=${token}`;
-
-    // Send email
-    await sendPasswordResetEmail({
+    // Send email with 6-digit OTP
+    await sendPasswordResetOtpEmail({
       to: user.email,
       name: user.name,
-      resetUrl,
+      otp,
     });
 
+    const masked = maskEmail(user.email);
     return NextResponse.json({
       success: true,
-      message: `A password reset link has been sent to ${user.email}. Please check your inbox.`,
+      emailMasked: masked,
+      usernameOrEmail: input,
+      message: `A 6-digit verification code (OTP) has been sent to ${masked}. Valid for 10 minutes.`,
     });
   } catch (error) {
-    return apiError(error, "Failed to send password reset email");
+    return apiError(error, "Failed to send password reset OTP");
   }
 }

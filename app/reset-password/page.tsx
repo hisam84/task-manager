@@ -2,14 +2,15 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
+import { KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck, Mail } from "lucide-react";
 import Link from "next/link";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get("token");
 
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,33 +18,20 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  if (!token) {
-    return (
-      <div className="p-6 rounded-xl bg-[#111111] border border-[#222222] text-center space-y-4 shadow-2xl">
-        <div className="w-12 h-12 mx-auto rounded-full bg-red-950/50 border border-red-800/60 flex items-center justify-center text-red-400">
-          <AlertCircle className="w-6 h-6" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-base font-semibold text-white">Invalid Reset Link</h2>
-          <p className="text-xs text-[#888888]">
-            The password reset link is missing a valid security token. Please request a new link.
-          </p>
-        </div>
-        <div className="pt-2">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-white bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg transition-all"
-          >
-            Return to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const otpClean = (token || otp).trim().replace(/\D/g, "");
+    if (!token && otpClean.length !== 6) {
+      setError("Please enter a valid 6-digit OTP code.");
+      return;
+    }
+
+    if (!token && !usernameOrEmail.trim()) {
+      setError("Username or email is required.");
+      return;
+    }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
@@ -62,7 +50,9 @@ function ResetPasswordForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
+          token: token || undefined,
+          otp: !token ? otpClean : undefined,
+          usernameOrEmail: !token ? usernameOrEmail.trim() : undefined,
           password,
         }),
       });
@@ -110,11 +100,11 @@ function ResetPasswordForm() {
       <div className="space-y-1.5 text-center sm:text-left">
         <div className="flex items-center gap-2 justify-center sm:justify-start text-blue-400 text-xs font-mono mb-2">
           <ShieldCheck className="w-4 h-4" />
-          <span>SECURE RECOVERY</span>
+          <span>PASSWORD RECOVERY</span>
         </div>
         <h1 className="text-xl font-bold text-white tracking-tight">Set New Password</h1>
         <p className="text-xs text-[#888888]">
-          Choose a secure password with at least 6 characters.
+          {token ? "Enter and confirm your new password below." : "Enter your account info, 6-digit OTP code, and new password."}
         </p>
       </div>
 
@@ -126,6 +116,38 @@ function ResetPasswordForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {!token && (
+          <>
+            <div>
+              <label className="block text-[#888888] font-mono mb-1.5">Username or Email *</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
+                  placeholder="e.g. username or user@company.com"
+                  className="w-full bg-[#0a0a0a] border border-[#222222] focus:border-blue-500 rounded-lg pl-8 pr-3 py-2.5 text-white placeholder-[#555555] outline-none font-mono"
+                />
+                <Mail className="w-4 h-4 text-[#555555] absolute left-2.5 top-3" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[#888888] font-mono mb-1.5">6-Digit OTP Code *</label>
+              <input
+                type="text"
+                maxLength={6}
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+                className="w-full bg-[#0a0a0a] border border-[#222222] focus:border-blue-500 rounded-lg px-3 py-2.5 text-center text-lg font-bold tracking-[0.25em] text-white font-mono placeholder-[#444444] outline-none"
+              />
+            </div>
+          </>
+        )}
+
         <div>
           <label className="block text-[#888888] font-mono mb-1.5">New Password *</label>
           <div className="relative">
@@ -179,6 +201,12 @@ function ResetPasswordForm() {
             <span>Update Password</span>
           )}
         </button>
+
+        <div className="pt-2 text-center">
+          <Link href="/" className="text-[11px] text-[#777777] hover:text-white transition-colors">
+            Return to Login
+          </Link>
+        </div>
       </form>
     </div>
   );
