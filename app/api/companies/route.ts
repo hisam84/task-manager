@@ -20,6 +20,8 @@ const createCompanySchema = z.object({
   adminEmail: z.string().email("Valid admin email is required").max(255),
   adminPassword: z.string().min(6, "Password must be at least 6 characters").max(128),
   department: z.string().max(120).optional(),
+  enableLatePenalty: z.boolean().default(false),
+  subscriptionEndsAt: z.string().optional().nullable(),
 });
 
 export async function GET() {
@@ -35,7 +37,19 @@ export async function GET() {
         name: true,
         slug: true,
         isActive: true,
+        enableLatePenalty: true,
+        subscriptionEndsAt: true,
         createdAt: true,
+        users: {
+          where: { role: "ADMIN" },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+          },
+          take: 1,
+        },
         _count: {
           select: { users: true, tasks: true },
         },
@@ -84,6 +98,8 @@ export async function POST(req: Request) {
           name: data.name,
           slug: data.slug,
           isActive: true,
+          enableLatePenalty: data.enableLatePenalty ?? false,
+          subscriptionEndsAt: data.subscriptionEndsAt ? new Date(data.subscriptionEndsAt) : null,
           users: {
             create: {
               name: data.adminName,
@@ -100,6 +116,8 @@ export async function POST(req: Request) {
           name: true,
           slug: true,
           isActive: true,
+          enableLatePenalty: true,
+          subscriptionEndsAt: true,
           createdAt: true,
           _count: { select: { users: true, tasks: true } },
         },

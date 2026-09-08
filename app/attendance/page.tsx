@@ -61,6 +61,7 @@ interface MonthlyData {
   year: number;
   month: number;
   daysInMonth: number;
+  enableLatePenalty?: boolean;
   summary: {
     totalDays: number;
     presentCount: number;
@@ -323,6 +324,7 @@ export default function AttendancePage() {
 
   const todayStr = now.toISOString().slice(0, 10);
   const todayRow = monthlyData?.records?.find((r) => r.date === todayStr);
+  const enableLatePenalty = monthlyData?.enableLatePenalty ?? false;
 
   return (
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
@@ -347,7 +349,7 @@ export default function AttendancePage() {
                     Employee Attendance Sheet
                   </h1>
                   <p className="text-xs text-slate-400">
-                    Track daily shifts, in/out timings, late penalties, and overtime hours
+                    Track daily shifts, in/out timings{enableLatePenalty ? ", late penalties," : ""} and overtime hours
                   </p>
                 </div>
               </div>
@@ -508,22 +510,24 @@ export default function AttendancePage() {
                     <strong className="text-white">{shiftEndTime}</strong>
                   </span>
                   <span>
-                    Grace Period: <strong className="text-emerald-400">15 min</strong> (No penalty)
+                    Grace Period: <strong className="text-emerald-400">15 min</strong>{enableLatePenalty ? " (No penalty)" : ""}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Late Penalty Rule Explanation Pill */}
-            <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 max-w-md">
-              <span className="font-semibold text-slate-200">Penalty Formula: </span>
-              16-20m = <span className="text-rose-400 font-bold">৳20</span> • 21-30m = <span className="text-rose-400 font-bold">৳30</span> • 31m+ = <span className="text-rose-400 font-bold">30+(t×2)</span>
-            </div>
+            {enableLatePenalty && (
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 max-w-md">
+                <span className="font-semibold text-slate-200">Penalty Formula: </span>
+                16-20m = <span className="text-rose-400 font-bold">৳20</span> • 21-30m = <span className="text-rose-400 font-bold">৳30</span> • 31m+ = <span className="text-rose-400 font-bold">30+(t×2)</span>
+              </div>
+            )}
           </div>
 
           {/* Summary Metric Cards */}
           {monthlyData?.summary && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className={`grid gap-3 ${enableLatePenalty ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
                 <span className="text-xs text-slate-400 block font-medium">Days in Month</span>
                 <span className="text-xl font-bold text-slate-100 mt-1 block">
@@ -554,15 +558,17 @@ export default function AttendancePage() {
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-950/20">
-                <span className="text-xs text-rose-300 block font-medium">Total Late Fine</span>
-                <span className="text-xl font-bold text-rose-400 mt-1 block">
-                  ৳ {monthlyData.summary.totalLatePenalty}
-                </span>
-                <span className="text-[10px] text-rose-300/70 mt-0.5 block">
-                  Calculated penalty
-                </span>
-              </div>
+              {enableLatePenalty && (
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-950/20">
+                  <span className="text-xs text-rose-300 block font-medium">Total Late Fine</span>
+                  <span className="text-xl font-bold text-rose-400 mt-1 block">
+                    ৳ {monthlyData.summary.totalLatePenalty}
+                  </span>
+                  <span className="text-[10px] text-rose-300/70 mt-0.5 block">
+                    Calculated penalty
+                  </span>
+                </div>
+              )}
 
               <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
                 <span className="text-xs text-indigo-300 block font-medium">Overtime</span>
@@ -614,7 +620,9 @@ export default function AttendancePage() {
                       <th className="py-3 px-3">Out Time</th>
                       <th className="py-3 px-3 text-center">Work Time</th>
                       <th className="py-3 px-3 text-center">Late</th>
-                      <th className="py-3 px-3 text-center">Penalty</th>
+                      {enableLatePenalty && (
+                        <th className="py-3 px-3 text-center">Penalty</th>
+                      )}
                       <th className="py-3 px-3 text-center">Overtime</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -640,7 +648,7 @@ export default function AttendancePage() {
                         : record.lateMinutes;
 
                       const currentPenalty =
-                        isHoliday || isWeekend
+                        !enableLatePenalty || isHoliday || isWeekend
                           ? 0
                           : rowState.inTime
                           ? calculateLatePenalty(currentLateMin)
@@ -761,15 +769,17 @@ export default function AttendancePage() {
                           </td>
 
                           {/* Penalty Amount */}
-                          <td className="py-2.5 px-3 text-center font-bold">
-                            {currentPenalty > 0 ? (
-                              <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
-                                ৳ {currentPenalty}
-                              </span>
-                            ) : (
-                              <span className="text-slate-600 font-normal">-</span>
-                            )}
-                          </td>
+                          {enableLatePenalty && (
+                            <td className="py-2.5 px-3 text-center font-bold">
+                              {currentPenalty > 0 ? (
+                                <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
+                                  ৳ {currentPenalty}
+                                </span>
+                              ) : (
+                                <span className="text-slate-600 font-normal">-</span>
+                              )}
+                            </td>
+                          )}
 
                           {/* Overtime */}
                           <td className="py-2.5 px-3 text-center font-mono">
@@ -847,6 +857,7 @@ export default function AttendancePage() {
         isOpen={printModalOpen}
         onClose={() => setPrintModalOpen(false)}
         data={monthlyData}
+        enableLatePenalty={enableLatePenalty}
       />
     </div>
   );

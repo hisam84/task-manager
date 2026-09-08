@@ -34,7 +34,7 @@ export async function GET(req: Request) {
         department: true,
         departmentRel: { select: { id: true, name: true } },
         companyId: true,
-        company: { select: { id: true, name: true } },
+        company: { select: { id: true, name: true, enableLatePenalty: true } },
         shiftId: true,
         shift: {
           select: {
@@ -114,6 +114,8 @@ export async function GET(req: Request) {
     let totalOvertimeMinutes = 0;
     let totalWorkingMinutes = 0;
 
+    const enableLatePenalty = targetUser.company?.enableLatePenalty ?? false;
+
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(Date.UTC(year, month - 1, day));
       const dateKey = dateObj.toISOString().slice(0, 10);
@@ -141,7 +143,7 @@ export async function GET(req: Request) {
         outTime = record.outTime;
         status = record.status;
         lateMinutes = record.lateMinutes;
-        latePenalty = record.latePenalty;
+        latePenalty = enableLatePenalty ? record.latePenalty : 0;
         overtimeMinutes = record.overtimeMinutes;
         workingMinutes = record.workingMinutes;
         notes = record.notes;
@@ -189,6 +191,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       employee: targetUser,
+      enableLatePenalty,
       year,
       month,
       daysInMonth,
@@ -200,7 +203,7 @@ export async function GET(req: Request) {
         holidayCount,
         weekendCount,
         totalLateMinutes,
-        totalLatePenalty,
+        totalLatePenalty: enableLatePenalty ? totalLatePenalty : 0,
         totalOvertimeMinutes,
         totalWorkingMinutes,
       },

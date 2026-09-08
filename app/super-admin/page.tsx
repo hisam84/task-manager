@@ -7,7 +7,7 @@ import { EditCompanyModal } from "@/components/edit-company-modal";
 import { ResetPasswordModal } from "@/components/reset-password-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ProgressCard, DonutChart } from "@/components/charts";
-import { ShieldCheck, Building2, Plus, Edit2, Trash2, KeyRound, Loader2, Users, FileCheck2, Power } from "lucide-react";
+import { ShieldCheck, Building2, Plus, Edit2, Trash2, KeyRound, Loader2, Users, FileCheck2, Power, Calendar, Infinity, Coins, AlertCircle } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
 export default function SuperAdminPage() {
@@ -185,6 +185,51 @@ export default function SuperAdminPage() {
                         <Power className="w-3 h-3" />
                         {comp.isActive ? "ACTIVE" : "SUSPENDED"}
                       </button>
+                    </div>
+
+                    {/* Subscription & Feature Badges */}
+                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                      {(() => {
+                        if (!comp.subscriptionEndsAt) {
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              <Infinity className="w-3 h-3" /> Lifetime
+                            </span>
+                          );
+                        }
+                        const expires = new Date(comp.subscriptionEndsAt);
+                        const isExpired = expires.getTime() <= Date.now();
+                        const daysLeft = Math.ceil((expires.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                        if (isExpired) {
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                              <AlertCircle className="w-3 h-3" /> Expired ({expires.toLocaleDateString()})
+                            </span>
+                          );
+                        }
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                              daysLeft <= 7
+                                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            }`}
+                          >
+                            <Calendar className="w-3 h-3" /> {daysLeft}d left ({expires.toLocaleDateString()})
+                          </span>
+                        );
+                      })()}
+
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                          comp.enableLatePenalty
+                            ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                            : "bg-slate-800 text-slate-400 border-slate-700/50"
+                        }`}
+                      >
+                        <Coins className="w-3 h-3" />
+                        Late Penalty: {comp.enableLatePenalty ? "ON" : "OFF"}
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 py-3 border-t border-b border-slate-800/60 text-xs">

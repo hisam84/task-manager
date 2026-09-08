@@ -7,10 +7,12 @@ import { formatTime12Hour, formatMinutes } from "@/lib/attendance";
 interface AttendancePrintModalProps {
   isOpen: boolean;
   onClose: () => void;
+  enableLatePenalty?: boolean;
   data: {
     employee: any;
     year: number;
     month: number;
+    enableLatePenalty?: boolean;
     summary: {
       totalDays: number;
       presentCount: number;
@@ -47,9 +49,10 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintModalProps) {
+export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty }: AttendancePrintModalProps) {
   if (!isOpen || !data) return null;
 
+  const showPenalty = enableLatePenalty ?? data?.enableLatePenalty ?? false;
   const { employee, year, month, summary, records } = data;
   const monthName = MONTH_NAMES[month - 1] || `Month ${month}`;
   const companyName = employee?.company?.name || "Company Workplace";
@@ -70,7 +73,7 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
           <div className="flex items-center gap-2">
             <Printer className="w-5 h-5 text-indigo-400" />
             <span className="font-semibold text-sm text-white">
-              Printable Attendance & Late Penalty Report
+              {showPenalty ? "Printable Attendance & Late Penalty Report" : "Printable Attendance Report"}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -100,7 +103,7 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">{companyName}</h1>
                 <h2 className="text-base font-semibold text-indigo-900 mt-0.5">
-                  EMPLOYEE ATTENDANCE & LATE PENALTY REPORT
+                  {showPenalty ? "EMPLOYEE ATTENDANCE & LATE PENALTY REPORT" : "EMPLOYEE ATTENDANCE REPORT"}
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   Report Period: <span className="font-bold text-slate-800">{monthName} {year}</span>
@@ -146,7 +149,7 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
           </div>
 
           {/* KPI Summary Strip */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6 text-center">
+          <div className={`grid gap-2 mb-6 text-center ${showPenalty ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"}`}>
             <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
               <span className="block text-[10px] uppercase font-bold text-slate-500">Total Days</span>
               <span className="text-lg font-bold text-slate-900">{summary.totalDays}</span>
@@ -163,10 +166,12 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
               <span className="block text-[10px] uppercase font-bold text-rose-600">Late Time</span>
               <span className="text-lg font-bold text-rose-700">{summary.totalLateMinutes}m</span>
             </div>
-            <div className="p-2.5 rounded-lg border-2 border-rose-400 bg-rose-50">
-              <span className="block text-[10px] uppercase font-bold text-rose-800">Penalty Total</span>
-              <span className="text-lg font-bold text-rose-700">৳ {summary.totalLatePenalty}</span>
-            </div>
+            {showPenalty && (
+              <div className="p-2.5 rounded-lg border-2 border-rose-400 bg-rose-50">
+                <span className="block text-[10px] uppercase font-bold text-rose-800">Penalty Total</span>
+                <span className="text-lg font-bold text-rose-700">৳ {summary.totalLatePenalty}</span>
+              </div>
+            )}
             <div className="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/50">
               <span className="block text-[10px] uppercase font-bold text-indigo-700">Overtime</span>
               <span className="text-lg font-bold text-indigo-800">{formatMinutes(summary.totalOvertimeMinutes)}</span>
@@ -184,7 +189,9 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
                   <th className="py-2 px-2.5 border-r border-slate-300 text-center">Out Time</th>
                   <th className="py-2 px-2.5 border-r border-slate-300 text-center">Work Hrs</th>
                   <th className="py-2 px-2.5 border-r border-slate-300 text-center">Late (min)</th>
-                  <th className="py-2 px-2.5 border-r border-slate-300 text-center">Penalty (৳)</th>
+                  {showPenalty && (
+                    <th className="py-2 px-2.5 border-r border-slate-300 text-center">Penalty (৳)</th>
+                  )}
                   <th className="py-2 px-2.5 text-center">Overtime</th>
                 </tr>
               </thead>
@@ -192,7 +199,7 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
                 {records.map((r) => {
                   const dayName = dayNames[r.dayOfWeek];
                   const isLate = r.status === "LATE" || r.lateMinutes > 15;
-                  const hasFine = r.latePenalty > 0;
+                  const hasFine = showPenalty && r.latePenalty > 0;
 
                   return (
                     <tr
@@ -244,13 +251,15 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
                           "-"
                         )}
                       </td>
-                      <td className="py-1.5 px-2.5 border-r border-slate-200 text-center font-bold">
-                        {r.latePenalty > 0 ? (
-                          <span className="text-rose-700">৳ {r.latePenalty}</span>
-                        ) : (
-                          <span className="text-slate-400 font-normal">-</span>
-                        )}
-                      </td>
+                      {showPenalty && (
+                        <td className="py-1.5 px-2.5 border-r border-slate-200 text-center font-bold">
+                          {r.latePenalty > 0 ? (
+                            <span className="text-rose-700">৳ {r.latePenalty}</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">-</span>
+                          )}
+                        </td>
+                      )}
                       <td className="py-1.5 px-2.5 text-center font-mono">
                         {r.overtimeMinutes > 0 ? (
                           <span className="text-indigo-700 font-semibold">
@@ -272,9 +281,11 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
                   <td className="py-2 px-2.5 text-center border-r border-slate-300 text-rose-800">
                     {summary.totalLateMinutes}m
                   </td>
-                  <td className="py-2 px-2.5 text-center border-r border-slate-300 text-rose-800 text-sm">
-                    ৳ {summary.totalLatePenalty}
-                  </td>
+                  {showPenalty && (
+                    <td className="py-2 px-2.5 text-center border-r border-slate-300 text-rose-800 text-sm">
+                      ৳ {summary.totalLatePenalty}
+                    </td>
+                  )}
                   <td className="py-2 px-2.5 text-center text-indigo-800">
                     +{formatMinutes(summary.totalOvertimeMinutes)}
                   </td>
@@ -284,14 +295,16 @@ export function AttendancePrintModal({ isOpen, onClose, data }: AttendancePrintM
           </div>
 
           {/* Late Penalty Rule Explanation Note */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 mb-8">
-            <span className="font-semibold text-slate-800 block mb-0.5">
-              Penalty Policy Reference:
-            </span>
-            <span>
-              1 to 15 min late: Grace period (৳ 0) • 16 to 20 min late: Flat ৳ 20 • 21 to 30 min late: Flat ৳ 30 • 31+ min late: ৳ 30 + (t × 2) where t is minutes beyond 30 min.
-            </span>
-          </div>
+          {showPenalty && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 mb-8">
+              <span className="font-semibold text-slate-800 block mb-0.5">
+                Penalty Policy Reference:
+              </span>
+              <span>
+                1 to 15 min late: Grace period (৳ 0) • 16 to 20 min late: Flat ৳ 20 • 21 to 30 min late: Flat ৳ 30 • 31+ min late: ৳ 30 + (t × 2) where t is minutes beyond 30 min.
+              </span>
+            </div>
+          )}
 
           {/* Signatures Block */}
           <div className="grid grid-cols-3 gap-8 pt-8 border-t border-slate-300 text-center text-xs text-slate-700">

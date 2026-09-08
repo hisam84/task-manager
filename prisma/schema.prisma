@@ -12,8 +12,10 @@ model Company {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  isActive           Boolean   @default(true)
+  enableLatePenalty  Boolean   @default(false)
+  subscriptionEndsAt DateTime?
+  createdAt          DateTime  @default(now())
 
   users       User[]
   tasks       Task[]

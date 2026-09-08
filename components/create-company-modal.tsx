@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Building2, Plus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, Building2, Plus, AlertCircle, CheckCircle2, Calendar, Clock, ShieldAlert } from "lucide-react";
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
@@ -17,6 +17,9 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("password123");
   const [department, setDepartment] = useState("Executive Leadership");
+  const [enableLatePenalty, setEnableLatePenalty] = useState(false);
+  const [subscriptionPreset, setSubscriptionPreset] = useState<string>("1_YEAR");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,11 +40,24 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
     }
   }
 
+  function getComputedSubscriptionDate(preset: string, customDate: string): string | null {
+    if (preset === "LIFETIME") return null;
+    if (preset === "CUSTOM") return customDate ? new Date(customDate).toISOString() : null;
+    const d = new Date();
+    if (preset === "1_MONTH") d.setMonth(d.getMonth() + 1);
+    else if (preset === "3_MONTHS") d.setMonth(d.getMonth() + 3);
+    else if (preset === "6_MONTHS") d.setMonth(d.getMonth() + 6);
+    else if (preset === "1_YEAR") d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString();
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccessMsg(null);
+
+    const subscriptionEndsAt = getComputedSubscriptionDate(subscriptionPreset, customEndDate);
 
     try {
       const res = await fetch("/api/companies", {
@@ -55,6 +71,8 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
           adminEmail: adminEmail.trim(),
           adminPassword: adminPassword.trim(),
           department: department.trim(),
+          enableLatePenalty,
+          subscriptionEndsAt,
         }),
       });
 
@@ -211,6 +229,75 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
                 placeholder="Executive Leadership"
                 className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white outline-none"
               />
+            </div>
+          </div>
+
+          {/* Subscription Period Section */}
+          <div className="pt-2 border-t border-[#1f1f1f] space-y-2.5">
+            <div className="flex items-center gap-2 text-purple-400 font-mono text-[11px] font-semibold">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>SUBSCRIPTION PERIOD</span>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              {[
+                { id: "1_MONTH", label: "1 Month" },
+                { id: "3_MONTHS", label: "3 Months" },
+                { id: "6_MONTHS", label: "6 Months" },
+                { id: "1_YEAR", label: "1 Year" },
+                { id: "LIFETIME", label: "Lifetime" },
+                { id: "CUSTOM", label: "Custom" },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSubscriptionPreset(p.id)}
+                  className={`px-2 py-1.5 rounded-lg text-center text-xs font-mono transition-all border ${
+                    subscriptionPreset === p.id
+                      ? "bg-purple-600/30 border-purple-500 text-purple-200 font-bold"
+                      : "bg-[#111111] border-[#222222] text-[#888888] hover:text-white"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {subscriptionPreset === "CUSTOM" && (
+              <div className="pt-1">
+                <label className="block text-[#888888] font-mono mb-1 text-[11px]">Custom Expiry Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white outline-none font-mono text-xs"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Policy / Features Section */}
+          <div className="pt-2 border-t border-[#1f1f1f] space-y-2">
+            <div className="flex items-center gap-2 text-purple-400 font-mono text-[11px] font-semibold">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>POLICIES & FEATURE TOGGLES</span>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-[#111111] border border-[#222222]">
+              <input
+                type="checkbox"
+                id="createLatePenalty"
+                checked={enableLatePenalty}
+                onChange={(e) => setEnableLatePenalty(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded bg-[#0a0a0a] border-[#333333] text-purple-600 focus:ring-purple-500 cursor-pointer"
+              />
+              <label htmlFor="createLatePenalty" className="text-xs text-slate-200 cursor-pointer select-none">
+                <span className="font-semibold block text-white">Enable Late Penalty (লেট পেনাল্টি চালু করুন)</span>
+                <span className="text-[11px] text-[#888888] block mt-0.5 leading-relaxed">
+                  Turn ON to allow this company's Admin to calculate and view late penalties in attendance sheets.
+                </span>
+              </label>
             </div>
           </div>
 

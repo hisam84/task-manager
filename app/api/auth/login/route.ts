@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         role: true,
         department: true,
         passwordHash: true,
-        company: { select: { name: true, isActive: true } },
+        company: { select: { name: true, isActive: true, subscriptionEndsAt: true } },
       },
     });
 
@@ -59,8 +59,13 @@ export async function POST(req: Request) {
 
     resetLoginRateLimit(`login:${ip}`);
 
-    if (user.role !== "SUPER_ADMIN" && user.company && user.company.isActive === false) {
-      return jsonError("Company account is inactive", 403);
+    if (user.role !== "SUPER_ADMIN" && user.company) {
+      if (user.company.isActive === false) {
+        return jsonError("Company account is inactive. Please contact support.", 403);
+      }
+      if (user.company.subscriptionEndsAt && new Date() > new Date(user.company.subscriptionEndsAt)) {
+        return jsonError("Company subscription has expired. Please contact system administrator to renew.", 403);
+      }
     }
 
     const cookieStore = await cookies();
