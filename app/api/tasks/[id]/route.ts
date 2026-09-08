@@ -6,6 +6,9 @@ import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
 import { sendTaskCreatedEmail } from "@/lib/mail";
 import type { Prisma } from "@prisma/client";
 
+export const maxDuration = 15;
+export const dynamic = "force-dynamic";
+
 const patchTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).optional().nullable(),
@@ -185,20 +188,22 @@ export async function PATCH(
         (host ? `${protocol}://${host}` : "http://localhost:3000");
       const taskUrl = `${appUrl}/tasks`;
 
-      sendTaskCreatedEmail({
-        to: newlyAssignedUser.email,
-        assigneeName: newlyAssignedUser.name || "Team Member",
-        taskTitle: updatedTask.title,
-        taskDescription: updatedTask.description,
-        priority: updatedTask.priority,
-        status: updatedTask.status,
-        dueDate: updatedTask.dueDate,
-        creatorName: user.name || "Manager",
-        companyName: user.companyName,
-        taskUrl,
-      }).catch((err) => {
+      try {
+        await sendTaskCreatedEmail({
+          to: newlyAssignedUser.email,
+          assigneeName: newlyAssignedUser.name || "Team Member",
+          taskTitle: updatedTask.title,
+          taskDescription: updatedTask.description,
+          priority: updatedTask.priority,
+          status: updatedTask.status,
+          dueDate: updatedTask.dueDate,
+          creatorName: user.name || "Manager",
+          companyName: user.companyName,
+          taskUrl,
+        });
+      } catch (err) {
         console.error("Failed to send task reassignment notification email:", err);
-      });
+      }
     }
 
     return NextResponse.json(updatedTask);

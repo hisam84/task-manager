@@ -142,7 +142,7 @@ export async function POST(req: Request) {
       select: TASK_LIST_SELECT,
     });
 
-    // Send email notification to assignee in Gmail asynchronously
+    // Send email notification to assignee in Gmail
     if (assignee?.email) {
       const origin = req.headers.get("origin") || "";
       const host = req.headers.get("host") || "";
@@ -154,20 +154,22 @@ export async function POST(req: Request) {
         (host ? `${protocol}://${host}` : "http://localhost:3000");
       const taskUrl = `${appUrl}/tasks`;
 
-      sendTaskCreatedEmail({
-        to: assignee.email,
-        assigneeName: assignee.name || "Team Member",
-        taskTitle: task.title,
-        taskDescription: task.description,
-        priority: task.priority,
-        status: task.status,
-        dueDate: task.dueDate,
-        creatorName: user.name || "Manager",
-        companyName: user.companyName,
-        taskUrl,
-      }).catch((err) => {
+      try {
+        await sendTaskCreatedEmail({
+          to: assignee.email,
+          assigneeName: assignee.name || "Team Member",
+          taskTitle: task.title,
+          taskDescription: task.description,
+          priority: task.priority,
+          status: task.status,
+          dueDate: task.dueDate,
+          creatorName: user.name || "Manager",
+          companyName: user.companyName,
+          taskUrl,
+        });
+      } catch (err) {
         console.error("Failed to send task notification email to Gmail:", err);
-      });
+      }
     }
 
     return NextResponse.json(task, { status: 201 });

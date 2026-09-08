@@ -4,7 +4,12 @@ const smtpHost = process.env.SMTP_HOST || "smtp-relay.brevo.com";
 const smtpPort = Number(process.env.SMTP_PORT || 587);
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
-const smtpFrom = process.env.SMTP_FROM || '"Task Manager" <taskmanager360.noreplay@gmail.com>';
+const defaultSenderEmail =
+  smtpUser && smtpUser.includes("@") && !smtpUser.includes("smtp-brevo")
+    ? smtpUser
+    : "taskmanager360.noreplay@gmail.com";
+const defaultSender = `"Task Manager" <${defaultSenderEmail}>`;
+const smtpFrom = process.env.SMTP_FROM || defaultSender;
 
 export function getMailTransporter() {
   if (!smtpUser || !smtpPass) {
@@ -20,6 +25,9 @@ export function getMailTransporter() {
       user: smtpUser,
       pass: smtpPass,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 }
 
@@ -270,14 +278,18 @@ export async function sendTaskCreatedEmail({
 
   const priorityStyle = priorityColors[priority] || priorityColors.MEDIUM;
 
-  const formattedDueDate = dueDate
-    ? new Date(dueDate).toLocaleDateString("en-US", {
+  let formattedDueDate = "No deadline specified";
+  if (dueDate) {
+    const d = new Date(dueDate);
+    if (!isNaN(d.getTime())) {
+      formattedDueDate = d.toLocaleDateString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
         day: "numeric",
-      })
-    : "No deadline specified";
+      });
+    }
+  }
 
   const targetUrl =
     taskUrl ||
@@ -416,12 +428,18 @@ export async function sendTaskCreatedEmail({
     </html>
   `;
 
-  return await transporter.sendMail({
+  const cleanTo = to.trim();
+  console.log(`[Task Email] Sending notification to ${cleanTo} for task: "${taskTitle}"`);
+
+  const info = await transporter.sendMail({
     from: smtpFrom,
-    to,
+    to: cleanTo,
     subject: `[Task] ${taskTitle} (${priority})`,
     text: `Hello ${assigneeName},\n\n${creatorName} assigned a new task to you:\n\nTask: ${taskTitle}\nPriority: ${priority}\nStatus: ${status}\nDue Date: ${formattedDueDate}\n\nView task: ${targetUrl}`,
     html,
   });
+
+  console.log(`[Task Email] Notification sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
+  return info;
 }
 
