@@ -395,25 +395,7 @@ export default function AttendancePage() {
     window.location.href = "/";
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-      </div>
-    );
-  }
-
-  if (user.role === "SUPER_ADMIN") {
-    router.replace("/super-admin");
-    return (
-      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-      </div>
-    );
-  }
-
-  const isCompanyAdminOrManager = user.role === "ADMIN" || user.role === "MANAGER";
-  const canViewFines = canViewPenaltyAndOvertime(user.role);
+  const canViewFines = canViewPenaltyAndOvertime(user?.role);
   const currentEmployee = monthlyData?.employee;
   const shift = currentEmployee?.shift;
   const shiftStartTime = shift?.startTime || "09:00";
@@ -517,6 +499,25 @@ export default function AttendancePage() {
       totalWorkingMinutes,
     };
   }, [monthlyData, rowEdits, shiftStartTime, shiftEndTime, enableLatePenalty, canViewFines]);
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (user.role === "SUPER_ADMIN") {
+    router.replace("/super-admin");
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  const isCompanyAdminOrManager = user.role === "ADMIN" || user.role === "MANAGER";
 
   return (
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
