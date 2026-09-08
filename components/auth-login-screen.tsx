@@ -55,16 +55,16 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
         {/* Header Banner */}
         <div className="px-6 py-6 border-b border-[#1f1f1f] bg-gradient-to-b from-[#111111] to-[#0a0a0a] text-center relative">
           <ThemeToggle className="absolute right-4 top-4" />
-          <div className="w-12 h-12 rounded-2xl bg-[#111111] border border-[#222222] shadow-inner mx-auto mb-3 flex items-center justify-center text-[#0070f3]">
+          <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 shadow-inner mx-auto mb-3 flex items-center justify-center text-[#0070f3]">
             <svg
-              className="w-6 h-6 text-white"
+              className="w-6 h-6 text-blue-600 dark:text-white"
               viewBox="0 0 76 65"
               fill="currentColor"
             >
               <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
             </svg>
           </div>
-          <h1 className="text-base font-bold tracking-tight text-white">Task Manager Portal</h1>
+          <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Task Manager Portal</h1>
           <p className="text-xs text-[#888888] font-mono mt-1">
             Sign in with Username & Password to access your company dashboard
           </p>
@@ -96,7 +96,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   placeholder="Enter your username or email"
-                  className="w-full min-h-11 bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-[#555555] outline-none font-mono transition-all"
+                  className="w-full min-h-11 bg-slate-950 border border-slate-800 focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 text-slate-900 dark:text-white placeholder-[#555555] outline-none font-mono transition-all"
                 />
                 <User className="w-4 h-4 text-[#555555] absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
@@ -111,7 +111,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full min-h-11 bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 font-mono text-white placeholder-[#555555] outline-none transition-all"
+                  className="w-full min-h-11 bg-slate-950 border border-slate-800 focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 font-mono text-slate-900 dark:text-white placeholder-[#555555] outline-none transition-all"
                 />
                 <KeyRound className="w-4 h-4 text-[#555555] absolute left-3 top-1/2 -translate-y-1/2" />
               </div>

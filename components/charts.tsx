@@ -59,11 +59,11 @@ export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProp
             <circle cx="0" cy="0" r="1" fill="#334155" />
           )}
           {/* Inner cutout for donut effect */}
-          <circle cx="0" cy="0" r="0.68" fill="#0f172a" />
+          <circle cx="0" cy="0" r="0.68" className="donut-inner-cutout" />
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-          <span className="text-2xl font-bold text-white">{total}</span>
+          <span className="text-2xl font-bold text-slate-900 dark:text-white">{total}</span>
           <span className="text-[11px] text-slate-400 font-medium">{totalLabel}</span>
         </div>
       </div>

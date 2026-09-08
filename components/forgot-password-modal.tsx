@@ -155,7 +155,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-[400px] bg-[#0e0f12] border border-[#222328] rounded-2xl shadow-2xl overflow-hidden p-6 relative">
+      <div className="w-full max-w-[400px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 relative">
         {/* =========================================================
             STEP 1: REQUEST OTP
            ========================================================= */}
@@ -167,13 +167,13 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-white tracking-tight">Forgot Password</h3>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white tracking-tight">Forgot Password</h3>
                   <p className="text-xs text-slate-400">Enter your username or email to get code</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors -mr-1"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded-lg hover:bg-slate-800/40 transition-colors -mr-1"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -195,7 +195,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   placeholder="Username or email address"
-                  className="w-full bg-[#16171c] border border-[#26272e] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl pl-9 pr-3.5 py-2.5 text-white placeholder-slate-500 outline-none transition-all text-xs"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-900 dark:text-white placeholder-slate-500 outline-none transition-all text-xs"
                   autoFocus
                 />
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -245,7 +245,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-white tracking-tight">Verify OTP</h3>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white tracking-tight">Verify OTP</h3>
                   {/* 2. Very short subtitle with subtle Change action */}
                   <p className="text-xs text-slate-400">
                     Sent to <span className="text-slate-200 font-medium">{emailMasked || usernameOrEmail}</span>
@@ -262,7 +262,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
 
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors -mr-1"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded-lg hover:bg-slate-800/40 transition-colors -mr-1"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -287,7 +287,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="••••••"
-                  className="w-full bg-[#16171c] border border-[#272830] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-2.5 px-3 text-center text-2xl font-bold tracking-[0.45em] text-white font-mono placeholder:tracking-widest placeholder:text-slate-600 outline-none transition-all"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-2.5 px-3 text-center text-2xl font-bold tracking-[0.45em] text-slate-900 dark:text-white font-mono placeholder:tracking-widest placeholder:text-slate-400 outline-none transition-all"
                   autoFocus
                 />
               </div>
@@ -302,7 +302,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New password (min 6 characters)"
-                    className="w-full bg-[#16171c] border border-[#272830] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2.5 pr-10 text-xs text-white placeholder-slate-500 outline-none transition-all"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2.5 pr-10 text-xs text-slate-900 dark:text-white placeholder-slate-500 outline-none transition-all"
                   />
                   <button
                     type="button"
@@ -322,12 +322,12 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className={`w-full bg-[#16171c] border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all ${
+                    className={`w-full bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-500 outline-none transition-all ${
                       confirmPassword && confirmPassword !== newPassword
                         ? "border-rose-500/80 focus:ring-rose-500"
                         : confirmPassword && confirmPassword === newPassword
                         ? "border-emerald-500/80 focus:ring-emerald-500"
-                        : "border-[#272830] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        : "border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     }`}
                   />
                 </div>

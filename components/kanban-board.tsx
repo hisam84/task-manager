@@ -38,10 +38,10 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
   });
 
   const priorityBadges: Record<string, { label: string; style: string }> = {
-    LOW: { label: "Low", style: "bg-zinc-900 text-zinc-400 border-zinc-800" },
-    MEDIUM: { label: "Medium", style: "bg-cyan-950/50 text-cyan-400 border-cyan-800/40" },
-    HIGH: { label: "High", style: "bg-amber-950/50 text-amber-400 border-amber-800/40" },
-    URGENT: { label: "Urgent", style: "bg-pink-950/60 text-pink-400 border-pink-800/50 animate-pulse" },
+    LOW: { label: "Low", style: "bg-slate-800/60 text-slate-400 border-slate-700/60" },
+    MEDIUM: { label: "Medium", style: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" },
+    HIGH: { label: "High", style: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    URGENT: { label: "Urgent", style: "bg-rose-500/10 text-rose-400 border-rose-500/20 animate-pulse" },
   };
 
   return (
