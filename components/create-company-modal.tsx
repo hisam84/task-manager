@@ -80,22 +80,22 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-[#0a0a0a] border border-[#222222] rounded-t-xl sm:rounded-xl shadow-vercel-card pb-[env(safe-area-inset-bottom)]">
+    <div className="modal-overlay">
+      <div className="w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-surface border border-border rounded-t-xl sm:rounded-xl pb-[env(safe-area-inset-bottom)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f1f] bg-[#050505]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-surface">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-400">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Create Tenant Company</h3>
-              <p className="text-[10px] font-mono text-[#888888]">Setup a new company organization</p>
+              <h3 className="text-sm font-semibold text-foreground">Create Tenant Company</h3>
+              <p className="text-[10px] font-mono text-muted">Setup a new company organization</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#777777] hover:text-white transition-colors rounded hover:bg-[#1a1a1a]"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted hover:text-foreground transition-colors rounded hover:bg-hover"
           >
             <X className="w-4 h-4" />
           </button>
@@ -104,14 +104,14 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
           {error && (
-            <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 flex items-center gap-2 font-mono">
+            <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-2 font-mono">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 flex items-center gap-2 font-mono">
+            <div className="p-2.5 rounded-lg bg-accent/10 border border-accent/20 text-accent flex items-center gap-2 font-mono">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -119,113 +119,113 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
 
           {/* Company Details */}
           <div className="space-y-2.5">
-            <span className="text-[10px] font-mono text-purple-400 font-semibold uppercase tracking-wider">
+            <span className="text-[10px] font-mono text-primary font-semibold uppercase tracking-wider">
               Organization Info
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Company Name *</label>
+                <label className="block text-muted font-mono mb-1">Company Name *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="e.g. Acme Tech Solutions"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 text-foreground placeholder:text-muted outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Slug Identifier *</label>
+                <label className="block text-muted font-mono mb-1">Slug Identifier *</label>
                 <input
                   type="text"
                   required
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="acme-tech"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 font-mono text-foreground placeholder:text-muted outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Initial Admin */}
-          <div className="space-y-2.5 pt-2 border-t border-[#1f1f1f]">
-            <span className="text-[10px] font-mono text-purple-400 font-semibold uppercase tracking-wider">
+          <div className="space-y-2.5 pt-2 border-t border-border">
+            <span className="text-[10px] font-mono text-primary font-semibold uppercase tracking-wider">
               Company Admin Account
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Admin Name *</label>
+                <label className="block text-muted font-mono mb-1">Admin Name *</label>
                 <input
                   type="text"
                   required
                   value={adminName}
                   onChange={(e) => setAdminName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 text-foreground placeholder:text-muted outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Admin Username *</label>
+                <label className="block text-muted font-mono mb-1">Admin Username *</label>
                 <input
                   type="text"
                   required
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
                   placeholder="admin_acme"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 font-mono text-foreground placeholder:text-muted outline-none"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Admin Email *</label>
+                <label className="block text-muted font-mono mb-1">Admin Email *</label>
                 <input
                   type="email"
                   required
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="admin@acme.com"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 text-foreground placeholder:text-muted outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[#888888] font-mono mb-1">Password *</label>
+                <label className="block text-muted font-mono mb-1">Password *</label>
                   <input
                     type="password"
                     required
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white outline-none"
+                    className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 font-mono text-foreground outline-none"
                   />
               </div>
             </div>
 
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Department</label>
+              <label className="block text-muted font-mono mb-1">Department</label>
               <input
                 type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 placeholder="Executive Leadership"
-                className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 text-white outline-none"
+                className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-1.5 text-foreground outline-none"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#1f1f1f]">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] font-medium text-[#888888] hover:text-white border border-[#222222] transition-all"
+              className="px-3.5 py-1.5 rounded-lg bg-input hover:bg-hover font-medium text-muted hover:text-foreground border border-border transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 rounded-lg bg-[#7928ca] hover:bg-[#6820b3] font-medium text-white transition-all shadow-[0_0_15px_rgba(121,40,202,0.4)] disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg bg-primary hover:opacity-90 font-medium text-on-primary transition-all disabled:opacity-50"
             >
               {loading ? "Creating..." : "Create Company"}
             </button>

@@ -53,22 +53,22 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-[#0a0a0a] border border-[#222222] rounded-t-xl sm:rounded-xl shadow-vercel-card pb-[env(safe-area-inset-bottom)]">
+    <div className="modal-overlay">
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-surface border border-border rounded-t-xl sm:rounded-xl pb-[env(safe-area-inset-bottom)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f1f] bg-[#050505]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-surface">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <LogIn className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Admin & User Login</h3>
-              <p className="text-[10px] font-mono text-[#888888]">Log in with your Username and Password</p>
+              <h3 className="text-sm font-semibold text-foreground">Admin & User Login</h3>
+              <p className="text-[10px] font-mono text-muted">Log in with your Username and Password</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#777777] hover:text-white transition-colors rounded hover:bg-[#1a1a1a]"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted hover:text-foreground transition-colors rounded hover:bg-hover"
           >
             <X className="w-4 h-4" />
           </button>
@@ -77,14 +77,14 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
           {error && (
-            <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 flex items-center gap-2 font-mono">
+            <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-2 font-mono">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 flex items-center gap-2 font-mono">
+            <div className="p-2.5 rounded-lg bg-accent/10 border border-accent/20 text-accent flex items-center gap-2 font-mono">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -92,7 +92,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
           <div className="space-y-3">
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Username or Email *</label>
+              <label className="block text-muted font-mono mb-1">Username or Email *</label>
               <div className="relative">
                 <input
                   type="text"
@@ -100,14 +100,14 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   placeholder="e.g. admin_vercel or admin@vercel.com"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-blue-500 rounded-lg pl-8 pr-3 py-2 text-white placeholder-[#555555] outline-none font-mono"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg pl-8 pr-3 py-2 text-foreground placeholder:text-muted outline-none font-mono"
                 />
-                <User className="w-4 h-4 text-[#555555] absolute left-2.5 top-2.5" />
+                <User className="w-4 h-4 text-muted absolute left-2.5 top-2.5" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Password *</label>
+              <label className="block text-muted font-mono mb-1">Password *</label>
               <div className="relative">
                 <input
                   type="password"
@@ -115,25 +115,25 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-blue-500 rounded-lg pl-8 pr-3 py-2 font-mono text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-input border border-border focus:border-primary rounded-lg pl-8 pr-3 py-2 font-mono text-foreground placeholder:text-muted outline-none"
                 />
-                <KeyRound className="w-4 h-4 text-[#555555] absolute left-2.5 top-2.5" />
+                <KeyRound className="w-4 h-4 text-muted absolute left-2.5 top-2.5" />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#1f1f1f]">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg bg-[#111111] hover:bg-[#1a1a1a] font-medium text-[#888888] hover:text-white border border-[#222222] transition-all"
+              className="px-3.5 py-1.5 rounded-lg bg-input hover:bg-hover font-medium text-muted hover:text-foreground border border-border transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] font-medium text-white transition-all shadow-[0_0_15px_rgba(0,112,243,0.4)] disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg bg-primary hover:opacity-90 font-medium text-on-primary transition-all disabled:opacity-50"
             >
               {loading ? "Logging in..." : "Log In"}
             </button>

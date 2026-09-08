@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AuthLoginScreenProps {
   onSuccess?: () => void;
@@ -47,36 +48,31 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] bg-black text-white">
-      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#222222] rounded-2xl shadow-[0_0_40px_rgba(0,112,243,0.15)] overflow-hidden animate-fadeIn">
-        {/* Header Banner */}
-        <div className="px-6 py-6 border-b border-[#1f1f1f] bg-gradient-to-b from-[#111111] to-[#0a0a0a] text-center relative">
-          <div className="w-12 h-12 rounded-2xl bg-[#111111] border border-[#222222] shadow-inner mx-auto mb-3 flex items-center justify-center text-[#0070f3]">
-            <svg
-              className="w-6 h-6 text-white"
-              viewBox="0 0 76 65"
-              fill="currentColor"
-            >
-              <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-            </svg>
+    <div className="min-h-dvh flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] bg-background text-foreground">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md bg-surface border border-border rounded-xl overflow-hidden">
+        <div className="px-6 py-6 border-b border-border text-center">
+          <div className="w-12 h-12 rounded-xl bg-primary mx-auto mb-3 flex items-center justify-center">
+            <LogIn className="w-6 h-6 text-on-primary" />
           </div>
-          <h1 className="text-base font-bold tracking-tight text-white">Task Manager Portal</h1>
-          <p className="text-xs text-[#888888] font-mono mt-1">
-            Sign in with Username & Password to access your company dashboard
+          <h1 className="text-lg font-bold tracking-tight text-foreground">Task Manager Portal</h1>
+          <p className="text-sm text-muted mt-1">
+            Sign in with username and password to access your dashboard
           </p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 flex items-center gap-2 font-mono">
+            <div className="alert-error">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 flex items-center gap-2 font-mono">
+            <div className="alert-success">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -84,7 +80,7 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
 
           <div className="space-y-3.5">
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Username or Email *</label>
+              <label className="label">Username or Email *</label>
               <div className="relative">
                 <input
                   type="text"
@@ -92,14 +88,14 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   placeholder="Enter your username or email"
-                  className="w-full min-h-11 bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-[#555555] outline-none font-mono transition-all"
+                  className="field pl-9"
                 />
-                <User className="w-4 h-4 text-[#555555] absolute left-3 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[#888888] font-mono mb-1">Password *</label>
+              <label className="label">Password *</label>
               <div className="relative">
                 <input
                   type="password"
@@ -107,9 +103,9 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full min-h-11 bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-9 pr-3 py-2.5 font-mono text-white placeholder-[#555555] outline-none transition-all"
+                  className="field pl-9"
                 />
-                <KeyRound className="w-4 h-4 text-[#555555] absolute left-3 top-1/2 -translate-y-1/2" />
+                <KeyRound className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
           </div>
@@ -118,10 +114,10 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-11 py-2.5 rounded-lg bg-[#0070f3] hover:bg-[#0060df] font-medium text-white transition-all shadow-[0_0_20px_rgba(0,112,243,0.4)] disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+              className="btn-primary w-full"
             >
               <LogIn className="w-4 h-4" />
-              <span>{loading ? "Authenticating..." : "Sign In to Task Manager"}</span>
+              <span>{loading ? "Authenticating..." : "Sign In"}</span>
             </button>
           </div>
         </form>
@@ -129,4 +125,3 @@ export function AuthLoginScreen({ onSuccess }: AuthLoginScreenProps) {
     </div>
   );
 }
-

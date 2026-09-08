@@ -108,24 +108,24 @@ export function CreateTaskModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
+    <div className="modal-overlay">
+      <div className="w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-surface border border-border rounded-t-xl sm:rounded-xl pb-[env(safe-area-inset-bottom)]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Plus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">
+              <h3 className="text-base font-semibold text-foreground">
                 {isEmployee ? "Create Self Task" : "Create New Task"}
               </h3>
-              <p className="text-xs text-slate-400">Add a new task item with deadlines</p>
+              <p className="text-xs text-muted">Add a new task item with deadlines</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted hover:text-foreground transition-colors rounded-lg hover:bg-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -134,43 +134,43 @@ export function CreateTaskModal({
         {/* Modal Body / Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Task Title *</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Task Title *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Prepare monthly analytics report"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none transition-all"
+              className="w-full bg-input border border-border focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted outline-none transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Description</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Description</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide details, requirements, or progress notes..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none transition-all resize-none"
+              className="w-full bg-input border border-border focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted outline-none transition-all resize-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {!isEmployee && (
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Assignee *</label>
+                <label className="block text-xs font-medium text-foreground mb-1">Assignee *</label>
                 <select
                   value={assigneeId}
                   onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer"
+                  className="w-full bg-input border border-border focus:border-primary rounded-xl px-3 py-2.5 text-xs text-foreground outline-none transition-all cursor-pointer"
                 >
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -182,11 +182,11 @@ export function CreateTaskModal({
             )}
 
             <div className={isEmployee ? "col-span-2 sm:col-span-1" : ""}>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Priority Level</label>
+              <label className="block text-xs font-medium text-foreground mb-1">Priority Level</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as "LOW" | "MEDIUM" | "HIGH" | "URGENT")}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer font-mono"
+                className="w-full bg-input border border-border focus:border-primary rounded-xl px-3 py-2.5 text-xs text-foreground outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="LOW">Low Priority</option>
                 <option value="MEDIUM">Medium Priority</option>
@@ -198,11 +198,11 @@ export function CreateTaskModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Initial Status</label>
+              <label className="block text-xs font-medium text-foreground mb-1">Initial Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE")}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer font-mono"
+                className="w-full bg-input border border-border focus:border-primary rounded-xl px-3 py-2.5 text-xs text-foreground outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -212,29 +212,29 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Due Date / Deadline</label>
+              <label className="block text-xs font-medium text-foreground mb-1">Due Date / Deadline</label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all font-mono"
+                className="w-full bg-input border border-border focus:border-primary rounded-xl px-3 py-2.5 text-xs text-foreground outline-none transition-all font-mono"
               />
             </div>
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white transition-all"
+              className="px-4 py-2.5 rounded-xl bg-hover hover:bg-hover text-xs font-medium text-foreground hover:text-foreground transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-xs font-semibold text-white transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 text-xs font-semibold text-on-primary transition-all disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Creating..." : "Create Task"}
             </button>

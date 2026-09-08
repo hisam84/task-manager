@@ -264,10 +264,10 @@ export function TaskDetailModal({
   if (!isOpen) return null;
   if (!taskDetail) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-6 text-xs font-mono text-slate-400">
+      <div className="modal-overlay">
+        <div className="w-full max-w-md bg-surface border border-border rounded-xl p-6 text-xs font-mono text-muted">
           {error || "Loading task details..."}
-          <button onClick={onClose} className="mt-4 block text-white hover:underline">
+          <button onClick={onClose} className="mt-4 block text-foreground hover:underline">
             Close
           </button>
         </div>
@@ -278,17 +278,17 @@ export function TaskDetailModal({
   const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser?.role ?? "");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
+    <div className="modal-overlay">
+      <div className="w-full max-w-2xl bg-surface border border-border rounded-t-xl sm:rounded-xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
         {/* Modal Top Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-slate-800 bg-slate-950/70">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-border bg-surface">
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             {/* Status Dropdown */}
             <select
               value={status}
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={updatingStatus}
-              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+              className="min-h-11 bg-surface border border-border hover:border-primary text-base md:text-xs font-medium text-foreground rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
             >
               <option value="TODO">To Do</option>
               <option value="IN_PROGRESS">In Progress</option>
@@ -300,7 +300,7 @@ export function TaskDetailModal({
             <select
               value={priority}
               onChange={(e) => handlePriorityChange(e.target.value)}
-              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+              className="min-h-11 bg-surface border border-border hover:border-primary text-base md:text-xs font-medium text-foreground rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
             >
               <option value="LOW">Low Priority</option>
               <option value="MEDIUM">Medium Priority</option>
@@ -319,8 +319,8 @@ export function TaskDetailModal({
               title="Edit Task"
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isEditing
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                  ? "bg-primary text-on-primary"
+                  : "text-foreground hover:text-foreground bg-hover hover:bg-hover border border-border"
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -336,8 +336,8 @@ export function TaskDetailModal({
               title="Reschedule Due Date"
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isRescheduling
-                  ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
-                  : "text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30"
+                  ? "bg-primary text-on-primary"
+                  : "text-foreground hover:text-foreground bg-hover hover:bg-hover border border-border"
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export function TaskDetailModal({
               <button
                 onClick={handleDeleteTask}
                 title="Delete Task"
-                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -357,7 +357,7 @@ export function TaskDetailModal({
 
             <button
               onClick={onClose}
-              className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+              className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted hover:text-foreground transition-colors rounded-lg hover:bg-hover"
             >
               <X className="w-4 h-4" />
             </button>
@@ -367,7 +367,7 @@ export function TaskDetailModal({
         {/* Scrollable Content */}
         <div className="p-5 flex-1 overflow-y-auto space-y-5">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -375,19 +375,19 @@ export function TaskDetailModal({
 
           {/* Reschedule Task Panel */}
           {isRescheduling && (
-            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-3.5 animate-fadeIn">
+            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-3.5">
               <div className="flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+                  <div className="p-1.5 rounded-lg bg-hover text-muted">
                     <Calendar className="w-4 h-4" />
                   </div>
-                  <h3 className="text-xs font-semibold text-white">
+                  <h3 className="text-xs font-semibold text-foreground">
                     Reschedule Task (টাস্ক রিসিডিউল করুন)
                   </h3>
                 </div>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-muted">
                   Current Due:{" "}
-                  <strong className="text-slate-200">
+                  <strong className="text-foreground">
                     {taskDetail.dueDate
                       ? new Date(taskDetail.dueDate).toLocaleDateString()
                       : "Not set"}
@@ -396,7 +396,7 @@ export function TaskDetailModal({
               </div>
 
               {rescheduleError && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{rescheduleError}</span>
                 </div>
@@ -405,7 +405,7 @@ export function TaskDetailModal({
               <form onSubmit={handleRescheduleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                    <label className="block text-[11px] font-medium text-foreground mb-1">
                       New Due Date (নতুন তারিখ) *
                     </label>
                     <input
@@ -413,19 +413,19 @@ export function TaskDetailModal({
                       required
                       value={newDueDate}
                       onChange={(e) => setNewDueDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
+                      className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                    <label className="block text-[11px] font-medium text-foreground mb-1">
                       Quick Reason Preset
                     </label>
                     <select
                       onChange={(e) => {
                         if (e.target.value) setRescheduleReason(e.target.value);
                       }}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none transition-colors"
+                      className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground outline-none transition-colors"
                     >
                       <option value="">Select a common reason...</option>
                       {COMMON_REASONS.map((r) => (
@@ -438,7 +438,7 @@ export function TaskDetailModal({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                  <label className="block text-[11px] font-medium text-foreground mb-1">
                     Reason for Rescheduling (রিসিডিউল করার কারণ) *
                   </label>
                   <input
@@ -447,7 +447,7 @@ export function TaskDetailModal({
                     value={rescheduleReason}
                     onChange={(e) => setRescheduleReason(e.target.value)}
                     placeholder="e.g. Waiting for client response, extra testing required..."
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none transition-colors"
+                    className="w-full bg-input border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted outline-none transition-colors"
                   />
                 </div>
 
@@ -455,14 +455,14 @@ export function TaskDetailModal({
                   <button
                     type="button"
                     onClick={() => setIsRescheduling(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-foreground bg-hover transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={savingReschedule}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 transition-all shadow-md shadow-amber-600/20 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-on-primary bg-primary hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {savingReschedule && <Loader2 className="w-3 h-3 animate-spin" />}
                     <span>Confirm Reschedule</span>
@@ -476,26 +476,26 @@ export function TaskDetailModal({
           {isEditing ? (
             <form
               onSubmit={handleSaveEdit}
-              className="p-4 rounded-xl bg-slate-950/60 border border-indigo-500/30 space-y-3.5 animate-fadeIn"
+              className="p-4 rounded-xl bg-input border border-primary/20 space-y-3.5"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <span className="text-xs font-semibold text-white">Edit Task Information</span>
-                <span className="text-[11px] text-indigo-400">All team members can edit</span>
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <span className="text-xs font-semibold text-foreground">Edit Task Information</span>
+                <span className="text-[11px] text-primary">All team members can edit</span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Task Title *</label>
+                <label className="block text-[11px] font-medium text-foreground mb-1">Task Title *</label>
                 <input
                   type="text"
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
+                  className="w-full bg-surface border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                <label className="block text-[11px] font-medium text-foreground mb-1">
                   Description
                 </label>
                 <textarea
@@ -503,16 +503,16 @@ export function TaskDetailModal({
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Task details and instructions..."
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none transition-colors resize-none"
+                  className="w-full bg-surface border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted outline-none transition-colors resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Priority</label>
+                <label className="block text-[11px] font-medium text-foreground mb-1">Priority</label>
                 <select
                   value={editPriority}
                   onChange={(e) => setEditPriority(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none"
+                  className="w-full bg-surface border border-border focus:border-primary rounded-lg px-3 py-2 text-xs text-foreground outline-none"
                 >
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
@@ -525,14 +525,14 @@ export function TaskDetailModal({
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-foreground bg-hover transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-md shadow-indigo-600/25 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-on-primary bg-primary hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {savingEdit && <Loader2 className="w-3 h-3 animate-spin" />}
                   <span>Save Changes</span>
@@ -541,53 +541,53 @@ export function TaskDetailModal({
             </form>
           ) : (
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">{taskDetail.title}</h2>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed whitespace-pre-wrap">
+              <h2 className="text-base font-bold text-foreground tracking-tight">{taskDetail.title}</h2>
+              <p className="text-xs text-foreground mt-2 leading-relaxed whitespace-pre-wrap">
                 {taskDetail.description || "No description provided."}
               </p>
             </div>
           )}
 
           {/* Metadata Cards */}
-          <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
+          <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-input border border-border text-xs">
             <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+              <span className="text-[10px] uppercase font-semibold text-muted block tracking-wider">
                 Assignee
               </span>
-              <span className="text-slate-100 font-medium block mt-1 truncate">
+              <span className="text-foreground font-medium block mt-1 truncate">
                 {taskDetail.assignee?.name || "Unassigned"}
               </span>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+              <span className="text-[10px] uppercase font-semibold text-muted block tracking-wider">
                 Due Date
               </span>
-              <span className="text-slate-100 font-medium block mt-1">
+              <span className="text-foreground font-medium block mt-1">
                 {taskDetail.dueDate ? new Date(taskDetail.dueDate).toLocaleDateString() : "—"}
               </span>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+              <span className="text-[10px] uppercase font-semibold text-muted block tracking-wider">
                 Workspace
               </span>
-              <span className="text-indigo-400 font-medium block mt-1 truncate">
+              <span className="text-primary font-medium block mt-1 truncate">
                 {taskDetail.company?.name || "Standard"}
               </span>
             </div>
           </div>
 
           {/* Comments and Activity Stream */}
-          <div className="border-t border-slate-800 pt-4 space-y-3">
-            <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-              <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="border-t border-border pt-4 space-y-3">
+            <h4 className="text-xs font-semibold text-foreground flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-primary" />
               <span>Activity & Comments ({comments.length})</span>
             </h4>
 
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {comments.length === 0 ? (
-                <p className="text-xs text-slate-500 py-1">No updates or comments yet.</p>
+                <p className="text-xs text-muted py-1">No updates or comments yet.</p>
               ) : (
                 comments.map((c) => {
                   const isRescheduleEvent = c.body.includes("[Task Rescheduled]");
@@ -596,18 +596,18 @@ export function TaskDetailModal({
                       key={c.id}
                       className={`p-3 rounded-xl border text-xs transition-colors ${
                         isRescheduleEvent
-                          ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
-                          : "bg-slate-950/50 border-slate-800/80 text-slate-200"
+                          ? "bg-hover border-border text-foreground"
+                          : "bg-hover border-border text-foreground"
                       }`}
                     >
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-                        <span className="font-semibold text-white flex items-center gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-muted mb-1.5">
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">
                           {isRescheduleEvent && (
-                            <Calendar className="w-3.5 h-3.5 text-amber-400 inline" />
+                            <Calendar className="w-3.5 h-3.5 text-muted inline" />
                           )}
                           {c.author?.name}
                           {c.author?.role && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-normal">
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-hover text-muted font-normal">
                               {c.author.role}
                             </span>
                           )}
@@ -634,12 +634,12 @@ export function TaskDetailModal({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Write an update or comment..."
-                className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
+                className="flex-1 bg-input border border-border focus:border-primary rounded-xl px-3.5 py-2 text-xs text-foreground placeholder:text-muted outline-none transition-colors"
               />
               <button
                 type="submit"
                 disabled={loadingComment || !newComment.trim()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+                className="px-4 py-2 rounded-xl bg-primary hover:opacity-90 text-on-primary text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
                 {loadingComment ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

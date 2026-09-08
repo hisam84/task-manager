@@ -55,28 +55,28 @@ export function RoleSwitcherBanner() {
   if (!currentUser) return null;
 
   const roleColors: Record<string, string> = {
-    SUPER_ADMIN: "bg-purple-950/60 text-purple-300 border-purple-800/60",
-    ADMIN: "bg-blue-950/60 text-blue-300 border-blue-800/60",
-    MANAGER: "bg-amber-950/60 text-amber-300 border-amber-800/60",
-    EMPLOYEE: "bg-emerald-950/60 text-emerald-300 border-emerald-800/60",
+    SUPER_ADMIN: "bg-primary/10 text-primary border-primary/20",
+    ADMIN: "bg-primary/10 text-primary border-primary/20",
+    MANAGER: "bg-hover text-foreground border-border",
+    EMPLOYEE: "bg-accent/10 text-accent border-accent/20",
   };
 
   return (
-    <div className="w-full bg-[#050505] border-b border-[#1f1f1f] px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 text-[#a1a1a1]">
+    <div className="w-full bg-surface border-b border-border px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 text-muted">
       <div className="flex items-center gap-2">
-        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-        <span className="font-mono text-[#888888]">Demo Persona Mode:</span>
-        <div className={`px-2 py-0.5 rounded-full border font-mono font-medium flex items-center gap-1.5 ${roleColors[currentUser.role] || "bg-zinc-800 text-zinc-300"}`}>
+        <span className="flex h-2 w-2 rounded-full bg-accent" />
+        <span className="text-muted">Demo Persona Mode:</span>
+        <div className={`px-2 py-0.5 rounded-full border font-medium flex items-center gap-1.5 ${roleColors[currentUser.role] || "bg-hover text-muted"}`}>
           <UserCheck className="w-3 h-3" />
           <span>{currentUser.name}</span>
           <span className="opacity-60">({currentUser.role})</span>
         </div>
-        <span className="text-[#666666] hidden sm:inline">•</span>
-        <span className="text-[#888888] hidden sm:inline">{currentUser.companyName || "Platform Wide"}</span>
+        <span className="text-muted hidden sm:inline">•</span>
+        <span className="text-muted hidden sm:inline">{currentUser.companyName || "Platform Wide"}</span>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-[#666666] hidden md:inline">Quick Switch Role:</span>
+        <span className="text-muted hidden md:inline">Quick Switch Role:</span>
         <div className="flex items-center gap-1.5 flex-wrap">
           {personas.map((p) => {
             const isSelected = p.id === currentUser.id;
@@ -87,8 +87,8 @@ export function RoleSwitcherBanner() {
                 disabled={loading || isSelected}
                 className={`px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1 ${
                   isSelected
-                    ? "bg-[#222222] text-white border border-[#444444] cursor-default shadow-sm"
-                    : "bg-[#111111] text-[#888888] hover:text-white hover:bg-[#1a1a1a] border border-[#222222]"
+                    ? "bg-hover text-foreground border border-border cursor-default shadow-sm"
+                    : "bg-input text-muted hover:text-foreground hover:bg-hover border border-border"
                 }`}
               >
                 <span>{p.name.split(" ")[0]}</span>

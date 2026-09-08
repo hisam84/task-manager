@@ -77,30 +77,29 @@ export default function TeamPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="app-shell">
       <Sidebar
         user={user}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <main className="app-main">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div className="page-header">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-                <Users className="w-6 h-6 text-emerald-400" />
+              <h1 className="page-title">
+                <Users className="w-6 h-6 text-accent" />
                 Employee Team Directory
               </h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="page-desc">
                 Manage employees, assign roles, reset passwords, and assign departments
               </p>
             </div>
@@ -110,7 +109,7 @@ export default function TeamPage() {
                 setEditingEmployee(null);
                 setEmployeeModalOpen(true);
               }}
-              className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-600/25 w-full sm:w-auto"
+              className="btn-primary w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               Add Employee
@@ -120,22 +119,22 @@ export default function TeamPage() {
           {/* Controls Bar */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search by name, email, or department..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full min-h-11 bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                className="field pl-10"
               />
             </div>
           </div>
 
           {/* Employees Table */}
-          <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="table-wrap">
+            <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                <tr className="border-b border-border bg-hover text-muted font-medium">
                   <th className="p-4">Employee</th>
                   <th className="p-4">Role</th>
                   <th className="p-4">Department</th>
@@ -143,47 +142,47 @@ export default function TeamPage() {
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-border text-foreground">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                    <td colSpan={5} className="p-8 text-center text-muted">
                       No employees found.
                     </td>
                   </tr>
                 ) : (
                   filteredEmployees.map((emp) => (
-                    <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={emp.id} className="hover:bg-hover transition-colors">
                       <td className="p-4 font-medium">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs">
+                          <div className="w-8 h-8 rounded-full bg-hover text-accent font-bold flex items-center justify-center text-xs">
                             {emp.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-white">{emp.name}</div>
-                            <div className="text-[11px] text-slate-400">{emp.email}</div>
+                            <div className="font-semibold text-foreground">{emp.name}</div>
+                            <div className="text-xs text-muted">{emp.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
                             emp.role === "ADMIN"
-                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                              ? "bg-primary/10 text-primary border-primary/20"
                               : emp.role === "MANAGER"
-                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                              : "bg-slate-800 text-slate-300 border-slate-700"
+                              ? "bg-primary/10 text-primary border-primary/20"
+                              : "bg-hover text-muted border-border"
                           }`}
                         >
                           {emp.role}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-[11px]">
+                        <span className="px-2.5 py-1 rounded-lg bg-input border border-border text-foreground text-xs">
                           {emp.departmentName || "General"}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="font-medium text-white">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
+                        <span className="font-medium text-foreground">{emp.taskStats?.total || 0}</span> Tasks ({emp.taskStats?.done || 0} Done)
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
@@ -192,7 +191,7 @@ export default function TeamPage() {
                               setResetTargetUser(emp);
                               setResetModalOpen(true);
                             }}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            className="icon-btn"
                             title="Reset Employee Password"
                           >
                             <KeyRound className="w-4 h-4" />
@@ -202,14 +201,14 @@ export default function TeamPage() {
                               setEditingEmployee(emp);
                               setEmployeeModalOpen(true);
                             }}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="icon-btn"
                             title="Edit Employee"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteEmployee(emp.id, emp.name)}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            className="icon-btn hover:text-destructive hover:bg-destructive/10"
                             title="Delete Employee"
                           >
                             <Trash2 className="w-4 h-4" />

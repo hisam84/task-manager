@@ -46,8 +46,8 @@ export default function ReportsPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -64,23 +64,22 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="app-shell">
       <Sidebar
         user={user}
         onOpenChangePassword={() => setChangePasswordOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <main className="app-main">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div className="page-header">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-                <BarChart3 className="w-6 h-6 text-indigo-400" />
+              <h1 className="page-title">
+                <BarChart3 className="w-6 h-6 text-primary" />
                 Task Performance & Employee Reports
               </h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="page-desc">
                 Visual workload analytics, employee task breakdown, and status reports
               </p>
             </div>
@@ -118,30 +117,29 @@ export default function ReportsPage() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-semibold text-white mb-3">Task Status Breakdown</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Task Status Breakdown</h3>
               <DonutChart items={donutItems} totalLabel="Tasks" />
             </div>
 
             {employeeMatrix.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Employee Workload</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Employee Workload</h3>
                 <WorkloadBarChart data={employeeMatrix} />
               </div>
             )}
           </div>
 
-          {/* Employee-Wise Task Report Table */}
           {employeeMatrix.length > 0 && (
             <div className="space-y-3 pt-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Users className="w-4 h-4 text-accent" />
                 Employee-Wise Task Breakdown Matrix
               </h3>
 
-              <div className="table-scroll rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="table-wrap">
+                <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-medium">
+                    <tr className="border-b border-border bg-hover text-muted font-medium">
                       <th className="p-4">Employee</th>
                       <th className="p-4">Department</th>
                       <th className="p-4 text-center">Total Tasks</th>
@@ -152,32 +150,32 @@ export default function ReportsPage() {
                       <th className="p-4 text-right">Completion Rate</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  <tbody className="divide-y divide-border text-foreground">
                     {employeeMatrix.map((emp: any) => (
-                      <tr key={emp.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-4 font-semibold text-white">
+                      <tr key={emp.id} className="hover:bg-hover transition-colors">
+                        <td className="p-4 font-semibold text-foreground">
                           <div>{emp.name}</div>
-                          <div className="text-[11px] text-slate-400 font-normal">{emp.email}</div>
+                          <div className="text-xs text-muted font-normal">{emp.email}</div>
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
+                          <span className="px-2 py-0.5 rounded bg-input border border-border text-foreground">
                             {emp.department}
                           </span>
                         </td>
-                        <td className="p-4 text-center font-bold text-white">{emp.totalTasks}</td>
-                        <td className="p-4 text-center text-emerald-400 font-semibold">{emp.completed}</td>
-                        <td className="p-4 text-center text-blue-400 font-semibold">{emp.inProgress}</td>
-                        <td className="p-4 text-center text-amber-400 font-semibold">{emp.pending}</td>
-                        <td className="p-4 text-center text-rose-400 font-semibold">{emp.overdue}</td>
+                        <td className="p-4 text-center font-bold text-foreground">{emp.totalTasks}</td>
+                        <td className="p-4 text-center text-accent font-semibold">{emp.completed}</td>
+                        <td className="p-4 text-center text-primary font-semibold">{emp.inProgress}</td>
+                        <td className="p-4 text-center font-semibold" style={{ color: "#b45309" }}>{emp.pending}</td>
+                        <td className="p-4 text-center text-destructive font-semibold">{emp.overdue}</td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <div className="w-16 bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div className="w-16 bg-hover h-2 rounded-full overflow-hidden">
                               <div
-                                className="bg-emerald-500 h-full"
+                                className="bg-accent h-full"
                                 style={{ width: `${emp.completionRate}%` }}
                               />
                             </div>
-                            <span className="font-bold text-white">{emp.completionRate}%</span>
+                            <span className="font-bold text-foreground">{emp.completionRate}%</span>
                           </div>
                         </td>
                       </tr>
