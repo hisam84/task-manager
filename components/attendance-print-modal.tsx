@@ -217,24 +217,26 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
         }}
       />
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-fadeIn print:p-0 print:bg-white print:static">
-        <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-white print:text-black">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-fadeIn print:p-0 print:bg-white print:static">
+        <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-white print:text-black">
           {/* Modal Toolbar - Hidden during print */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/80 print:hidden">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 print:hidden">
             <div className="flex items-center gap-2.5">
-              <Printer className="w-5 h-5 text-indigo-400" />
-              <span className="font-semibold text-sm text-white">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 shadow-xs">
+                <Printer className="w-4 h-4" />
+              </div>
+              <span className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">
                 {showPenalty ? "Printable Attendance & Late Penalty Report" : "Printable Attendance Report"}
               </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                 1-Page A4 Optimized
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 Print / Save as PDF
@@ -242,7 +244,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-10 min-w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="min-h-9 min-w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -252,55 +254,59 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
           {/* Printable Document Container */}
           <div
             id="attendance-printable-area"
-            className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-0 bg-white text-slate-900 font-sans leading-tight"
+            className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-0 bg-white text-slate-900 font-sans leading-normal"
           >
             {/* Company & Report Header */}
-            <div className="border-b border-slate-900 pb-2 mb-2 print:pb-1.5 print:mb-1.5">
-              <div className="flex justify-between items-start">
+            <div className="border-b border-slate-200 pb-3 mb-3 print:pb-2 print:mb-2">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
                 <div>
-                  <h1 className="text-xl sm:text-2xl print:text-lg font-bold tracking-tight text-slate-900 leading-none">
+                  <h1 className="text-xl sm:text-2xl print:text-lg font-extrabold tracking-tight text-slate-900 leading-tight">
                     {companyName}
                   </h1>
-                  <h2 className="text-xs sm:text-sm print:text-[11px] font-bold text-indigo-900 mt-1">
+                  <h2 className="text-xs sm:text-sm print:text-[11px] font-bold text-indigo-700 mt-1 uppercase tracking-wide">
                     {showPenalty ? "EMPLOYEE ATTENDANCE & LATE PENALTY REPORT" : "EMPLOYEE ATTENDANCE REPORT"}
                   </h2>
-                  <p className="text-[11px] print:text-[9.5px] text-slate-600 mt-0.5">
-                    Report Period: <span className="font-bold text-slate-900">{monthName} {year}</span>
+                  <p className="text-xs print:text-[10px] text-slate-600 mt-1">
+                    Report Period: <strong className="font-bold text-slate-900">{monthName} {year}</strong>
                   </p>
                 </div>
-                <div className="text-right text-[11px] print:text-[9px] text-slate-500 leading-snug">
-                  <p>Generated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
+                <div className="text-left sm:text-right text-xs print:text-[9.5px] text-slate-500 leading-normal">
+                  <p>Generated: <span className="font-medium text-slate-700">{new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></p>
                   <p className="font-mono mt-0.5 font-semibold text-slate-700">Ref: ATT-{year}{String(month).padStart(2, "0")}-{employee?.id?.slice(-5) || "0000"}</p>
                 </div>
               </div>
 
-              {/* Employee Metadata */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 pt-1.5 border-t border-slate-200 text-xs print:text-[9.5px] print:mt-1 print:pt-1">
+              {/* Employee Metadata Card */}
+              <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs print:mt-1.5 print:p-2 print:bg-slate-50 print:border-slate-300">
                 <div>
-                  <span className="text-slate-500 block text-[9px] print:text-[8px] uppercase tracking-wider font-semibold">
+                  <span className="text-slate-500 block text-[10px] print:text-[8px] uppercase tracking-wider font-semibold">
                     Employee Name
                   </span>
-                  <span className="font-bold text-slate-900">{employee?.name}</span>
+                  <span className="font-bold text-slate-900 text-sm print:text-xs block mt-0.5 leading-snug">
+                    {employee?.name}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[9px] print:text-[8px] uppercase tracking-wider font-semibold">
+                  <span className="text-slate-500 block text-[10px] print:text-[8px] uppercase tracking-wider font-semibold">
                     Designation
                   </span>
-                  <span className="font-medium text-slate-800">{employee?.designation || "Team Member"}</span>
+                  <span className="font-semibold text-slate-800 block mt-0.5 leading-snug">
+                    {employee?.designation || "Team Member"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[9px] print:text-[8px] uppercase tracking-wider font-semibold">
+                  <span className="text-slate-500 block text-[10px] print:text-[8px] uppercase tracking-wider font-semibold">
                     Department
                   </span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-semibold text-slate-800 block mt-0.5 leading-snug">
                     {employee?.departmentRel?.name || employee?.department || "General"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[9px] print:text-[8px] uppercase tracking-wider font-semibold">
+                  <span className="text-slate-500 block text-[10px] print:text-[8px] uppercase tracking-wider font-semibold">
                     Assigned Shift
                   </span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-semibold text-slate-800 block mt-0.5 leading-snug">
                     {shiftName} ({shiftTimes})
                   </span>
                 </div>
