@@ -6,7 +6,7 @@ import type { SessionUser } from "@/lib/types";
 
 export type { SessionUser };
 export { sessionCookieOptions, SESSION_COOKIE };
-export { isManagerOrAdmin, canCreateCompany, canAccessTask } from "@/lib/access";
+export { isManagerOrAdmin, canCreateCompany, canAccessTask, canDeleteTask } from "@/lib/access";
 
 const USER_SESSION_SELECT = {
   id: true,

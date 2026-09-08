@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canAccessTask, getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
+import { canAccessTask, canDeleteTask, getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
@@ -214,8 +214,8 @@ export async function DELETE(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user || !isManagerOrAdmin(user.role)) {
-      return jsonError("Forbidden", 403);
+    if (!user || user.role === "EMPLOYEE" || !canDeleteTask(user.role)) {
+      return jsonError("Regular employees cannot delete tasks. Only Admin or Manager can delete tasks.", 403);
     }
 
     const { id } = await params;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { canAccessTask } from "./access";
+import { canAccessTask, canDeleteTask } from "./access";
 import type { SessionUser } from "./types";
 
 function user(partial: Partial<SessionUser>): SessionUser {
@@ -45,5 +45,29 @@ describe("canAccessTask", () => {
       assigneeId: "emp1",
     });
     assert.equal(ok, false);
+  });
+});
+
+describe("canDeleteTask", () => {
+  it("allows super admins to delete tasks", () => {
+    assert.equal(canDeleteTask("SUPER_ADMIN"), true);
+  });
+
+  it("allows admins to delete tasks", () => {
+    assert.equal(canDeleteTask("ADMIN"), true);
+  });
+
+  it("allows managers to delete tasks", () => {
+    assert.equal(canDeleteTask("MANAGER"), true);
+  });
+
+  it("strictly blocks regular employees from deleting tasks", () => {
+    assert.equal(canDeleteTask("EMPLOYEE"), false);
+  });
+
+  it("blocks null or empty role from deleting tasks", () => {
+    assert.equal(canDeleteTask(null), false);
+    assert.equal(canDeleteTask(undefined), false);
+    assert.equal(canDeleteTask(""), false);
   });
 });

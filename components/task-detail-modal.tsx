@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
+import { canDeleteTask } from "@/lib/access";
 
 interface Comment {
   id: string;
@@ -273,7 +274,28 @@ export function TaskDetailModal({
     }
   }
 
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(currentUser);
+
+  useEffect(() => {
+    if (currentUser) {
+      setSessionUser(currentUser);
+    } else {
+      fetch("/api/auth/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.user) setSessionUser(data.user);
+        })
+        .catch(() => {});
+    }
+  }, [currentUser]);
+
+  const hasDeletePermission = canDeleteTask(sessionUser?.role);
+
   async function handleDeleteTask() {
+    if (!hasDeletePermission) {
+      alert("সাধারণ কর্মীরা টাস্ক ডিলিট করতে পারবেন না। শুধুমাত্র অ্যাডমিন বা ম্যানেজার টাস্ক ডিলিট করতে পারেন।");
+      return;
+    }
     if (!taskDetail || !confirm("Are you sure you want to delete this task?")) return;
     try {
       const res = await fetch(`/api/tasks/${taskDetail.id}`, {
@@ -282,6 +304,9 @@ export function TaskDetailModal({
       if (res.ok) {
         onTaskUpdated();
         onClose();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete task");
       }
     } catch (e) {
       console.error(e);
@@ -301,8 +326,6 @@ export function TaskDetailModal({
       </div>
     );
   }
-
-  const isManagerOrAdmin = ["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser?.role ?? "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
@@ -371,12 +394,13 @@ export function TaskDetailModal({
               <span>{isRescheduling ? "Close" : "Reschedule"}</span>
             </button>
 
-            {/* Delete button (Manager / Admin) */}
-            {isManagerOrAdmin && (
+            {/* Delete button (Super Admin / Admin / Manager only - Regular employees cannot delete) */}
+            {hasDeletePermission && (
               <button
+                type="button"
                 onClick={handleDeleteTask}
                 title="Delete Task"
-                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
