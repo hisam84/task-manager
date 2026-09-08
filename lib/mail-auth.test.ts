@@ -64,7 +64,7 @@ describe("task notification email", () => {
       dueDate: new Date(),
       creatorName: "Admin User",
       companyName: "Tech Corp",
-      taskUrl: "http://localhost:3000/tasks",
+      taskUrl: "https://taskmanager-iit.vercel.app/",
     });
     // In test environment without SMTP credentials, returns null safely without throwing
     assert.ok(result === null || typeof result === "object");

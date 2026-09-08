@@ -293,8 +293,9 @@ export async function sendTaskCreatedEmail({
 
   const targetUrl =
     taskUrl ||
-    (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000") +
-      "/tasks";
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://taskmanager-iit.vercel.app/";
 
   const isSelfAssigned = creatorName.toLowerCase() === assigneeName.toLowerCase();
 

@@ -144,15 +144,11 @@ export async function POST(req: Request) {
 
     // Send email notification to assignee in Gmail
     if (assignee?.email) {
-      const origin = req.headers.get("origin") || "";
-      const host = req.headers.get("host") || "";
-      const protocol = host.includes("localhost") ? "http" : "https";
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.APP_URL ||
-        origin ||
-        (host ? `${protocol}://${host}` : "http://localhost:3000");
-      const taskUrl = `${appUrl}/tasks`;
+        "https://taskmanager-iit.vercel.app/";
+      const taskUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
 
       try {
         await sendTaskCreatedEmail({
