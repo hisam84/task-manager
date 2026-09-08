@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { ChangePasswordModal } from "@/components/change-password-modal";
@@ -112,8 +112,19 @@ export default function AttendancePage() {
   const [selectedHolidayDate, setSelectedHolidayDate] = useState<string | null>(null);
   const [printModalOpen, setPrintModalOpen] = useState(false);
 
+  // Auto-save states
+  const autoSaveTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const [savingDates, setSavingDates] = useState<Record<string, boolean>>({});
+  const [savedDates, setSavedDates] = useState<Record<string, boolean>>({});
+
   // Clock in/out button state
   const [clocking, setClocking] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      Object.values(autoSaveTimersRef.current).forEach((t) => clearTimeout(t));
+    };
+  }, []);
 
   // Fetch initial session
   useEffect(() => {
@@ -144,10 +155,10 @@ export default function AttendancePage() {
   }
 
   // Fetch attendance data
-  const fetchAttendance = useCallback(async () => {
+  const fetchAttendance = useCallback(async (silent = false) => {
     if (!selectedUserId) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
       const res = await fetch(
         `/api/attendance?userId=${selectedUserId}&year=${currentYear}&month=${currentMonth}`
@@ -158,22 +169,24 @@ export default function AttendancePage() {
       }
       setMonthlyData(data);
 
-      // Initialize row edits from returned data
-      const edits: Record<string, { inTime: string; outTime: string; status: string }> = {};
-      if (data.records) {
-        data.records.forEach((r: AttendanceRecord) => {
-          edits[r.date] = {
-            inTime: r.inTime || "",
-            outTime: r.outTime || "",
-            status: r.status,
-          };
-        });
+      // Only initialize row edits if not silent to prevent overwriting active typing
+      if (!silent) {
+        const edits: Record<string, { inTime: string; outTime: string; status: string }> = {};
+        if (data.records) {
+          data.records.forEach((r: AttendanceRecord) => {
+            edits[r.date] = {
+              inTime: r.inTime || "",
+              outTime: r.outTime || "",
+              status: r.status,
+            };
+          });
+        }
+        setRowEdits(edits);
       }
-      setRowEdits(edits);
     } catch (err: any) {
-      setError(err.message || "Failed to load attendance records.");
+      if (!silent) setError(err.message || "Failed to load attendance records.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [selectedUserId, currentYear, currentMonth]);
 
@@ -207,17 +220,134 @@ export default function AttendancePage() {
     setCurrentMonth(today.getMonth() + 1);
   };
 
+  // Auto-save function
+  const triggerAutoSave = useCallback(
+    async (date: string, dataToSave: { inTime: string; outTime: string; status: string }) => {
+      if (!selectedUserId) return;
+      try {
+        setSavingDates((prev) => ({ ...prev, [date]: true }));
+        const res = await fetch("/api/attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: selectedUserId,
+            date,
+            inTime: dataToSave.inTime || null,
+            outTime: dataToSave.outTime || null,
+            status: dataToSave.status,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to update record.");
+        }
+
+        setSavedDates((prev) => ({ ...prev, [date]: true }));
+        setTimeout(() => {
+          setSavedDates((prev) => {
+            const copy = { ...prev };
+            delete copy[date];
+            return copy;
+          });
+        }, 2000);
+
+        fetchAttendance(true);
+      } catch (err: any) {
+        console.error("Auto-save failed:", err);
+      } finally {
+        setSavingDates((prev) => {
+          const copy = { ...prev };
+          delete copy[date];
+          return copy;
+        });
+      }
+    },
+    [selectedUserId, fetchAttendance]
+  );
+
   const handleRowTimeChange = (date: string, field: "inTime" | "outTime", val: string) => {
-    setRowEdits((prev) => {
-      const existing = prev[date] || { inTime: "", outTime: "", status: "PRESENT" };
-      return {
-        ...prev,
-        [date]: {
-          ...existing,
-          [field]: val,
-        },
-      };
-    });
+    const currentRecord = monthlyData?.records?.find((r) => r.date === date);
+    const existing = rowEdits[date] || {
+      inTime: currentRecord?.inTime || "",
+      outTime: currentRecord?.outTime || "",
+      status: currentRecord?.status || "ABSENT",
+    };
+
+    const newInTime = field === "inTime" ? val : existing.inTime;
+    const newOutTime = field === "outTime" ? val : existing.outTime;
+
+    // Automatic status determination:
+    let newStatus = existing.status;
+    if (newStatus !== "LEAVE") {
+      if (newInTime) {
+        const lateMin = calculateLateMinutes(newInTime, shiftStartTime);
+        newStatus = lateMin > 15 ? "LATE" : "PRESENT";
+      } else {
+        if (currentRecord?.isHoliday) {
+          newStatus = "HOLIDAY";
+        } else if (currentRecord?.isWeekend) {
+          newStatus = "WEEKEND";
+        } else {
+          newStatus = "ABSENT";
+        }
+      }
+    }
+
+    const updated = {
+      inTime: newInTime,
+      outTime: newOutTime,
+      status: newStatus,
+    };
+
+    setRowEdits((prev) => ({
+      ...prev,
+      [date]: updated,
+    }));
+
+    // Debounced Auto-Save (600ms)
+    if (autoSaveTimersRef.current[date]) {
+      clearTimeout(autoSaveTimersRef.current[date]);
+    }
+    autoSaveTimersRef.current[date] = setTimeout(() => {
+      triggerAutoSave(date, updated);
+      delete autoSaveTimersRef.current[date];
+    }, 600);
+  };
+
+  const handleTimeBlur = (date: string) => {
+    if (autoSaveTimersRef.current[date]) {
+      clearTimeout(autoSaveTimersRef.current[date]);
+      delete autoSaveTimersRef.current[date];
+      if (rowEdits[date]) {
+        triggerAutoSave(date, rowEdits[date]);
+      }
+    }
+  };
+
+  const handleStatusChange = (date: string, newStatus: string) => {
+    const currentRecord = monthlyData?.records?.find((r) => r.date === date);
+    const existing = rowEdits[date] || {
+      inTime: currentRecord?.inTime || "",
+      outTime: currentRecord?.outTime || "",
+      status: currentRecord?.status || "ABSENT",
+    };
+
+    const updated = {
+      ...existing,
+      status: newStatus,
+    };
+
+    setRowEdits((prev) => ({
+      ...prev,
+      [date]: updated,
+    }));
+
+    if (autoSaveTimersRef.current[date]) {
+      clearTimeout(autoSaveTimersRef.current[date]);
+      delete autoSaveTimersRef.current[date];
+    }
+    triggerAutoSave(date, updated);
   };
 
   const handleToggleHoliday = async (record: AttendanceRecord) => {
@@ -225,18 +355,7 @@ export default function AttendancePage() {
     const currentStatus = rowEdits[date]?.status || record.status;
     const newStatus = currentStatus === "HOLIDAY" ? "PRESENT" : "HOLIDAY";
 
-    setRowEdits((prev) => ({
-      ...prev,
-      [date]: {
-        ...prev[date],
-        status: newStatus,
-      },
-    }));
-
-    await saveAttendanceRow(date, {
-      ...rowEdits[date],
-      status: newStatus,
-    });
+    handleStatusChange(date, newStatus);
   };
 
   const saveAttendanceRow = async (
@@ -245,34 +364,7 @@ export default function AttendancePage() {
   ) => {
     const dataToSave = overrideData || rowEdits[date];
     if (!dataToSave) return;
-
-    try {
-      setSavingDate(date);
-      const res = await fetch("/api/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: selectedUserId,
-          date,
-          inTime: dataToSave.inTime || null,
-          outTime: dataToSave.outTime || null,
-          status: dataToSave.status,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update record.");
-      }
-
-      setSuccessToast(`Saved record for ${date}`);
-      setTimeout(() => setSuccessToast(null), 2500);
-      fetchAttendance();
-    } catch (err: any) {
-      alert(err.message || "Failed to save attendance.");
-    } finally {
-      setSavingDate(null);
-    }
+    triggerAutoSave(date, dataToSave);
   };
 
   const handleClockAction = async (action: "in" | "out") => {
@@ -684,11 +776,25 @@ export default function AttendancePage() {
                         status: record.status,
                       };
 
+                      // Automatic status determination if not manually set to LEAVE:
+                      let effectiveStatus = rowState.status;
+                      if (effectiveStatus !== "LEAVE") {
+                        if (rowState.inTime) {
+                          const lateMin = calculateLateMinutes(rowState.inTime, shiftStartTime);
+                          effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
+                        } else {
+                          if (record.isHoliday) effectiveStatus = "HOLIDAY";
+                          else if (record.isWeekend) effectiveStatus = "WEEKEND";
+                          else effectiveStatus = "ABSENT";
+                        }
+                      }
+
                       const isToday = date === todayStr;
                       const isWeekend = record.isWeekend;
-                      const isHoliday = rowState.status === "HOLIDAY" || record.isHoliday;
-                      const isLeave = rowState.status === "LEAVE" || record.isLeave;
-                      const isSaving = savingDate === date;
+                      const isHoliday = effectiveStatus === "HOLIDAY" || record.isHoliday;
+                      const isLeave = effectiveStatus === "LEAVE" || record.isLeave;
+                      const isSaving = savingDates[date];
+                      const isSaved = savedDates[date];
 
                       // Live calculation on row
                       const currentLateMin = rowState.inTime
@@ -759,27 +865,18 @@ export default function AttendancePage() {
                           <td className="py-2.5 px-3 text-center">
                             {isCompanyAdminOrManager ? (
                               <select
-                                value={rowState.status}
-                                onChange={(e) => {
-                                  const newStatus = e.target.value;
-                                  setRowEdits((prev) => ({
-                                    ...prev,
-                                    [date]: {
-                                      ...(prev[date] || { inTime: record.inTime || "", outTime: record.outTime || "" }),
-                                      status: newStatus,
-                                    },
-                                  }));
-                                }}
-                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold border focus:outline-none transition-colors ${
-                                  rowState.status === "PRESENT"
+                                value={effectiveStatus}
+                                onChange={(e) => handleStatusChange(date, e.target.value)}
+                                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border focus:outline-none transition-colors cursor-pointer ${
+                                  effectiveStatus === "PRESENT"
                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                    : rowState.status === "LATE" || currentLateMin > 15
+                                    : effectiveStatus === "LATE" || currentLateMin > 15
                                     ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                                    : rowState.status === "HOLIDAY"
+                                    : effectiveStatus === "HOLIDAY"
                                     ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                    : rowState.status === "LEAVE"
+                                    : effectiveStatus === "LEAVE"
                                     ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                                    : rowState.status === "WEEKEND"
+                                    : effectiveStatus === "WEEKEND"
                                     ? "bg-slate-800 text-slate-400 border-slate-700"
                                     : "bg-slate-900 text-slate-400 border-slate-800"
                                 }`}
@@ -792,23 +889,23 @@ export default function AttendancePage() {
                               </select>
                             ) : (
                               <span
-                                className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                                  rowState.status === "PRESENT"
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                  effectiveStatus === "PRESENT"
                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                    : rowState.status === "LATE" || currentLateMin > 15
+                                    : effectiveStatus === "LATE" || currentLateMin > 15
                                     ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                                    : rowState.status === "HOLIDAY"
+                                    : effectiveStatus === "HOLIDAY"
                                     ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                    : rowState.status === "LEAVE"
+                                    : effectiveStatus === "LEAVE"
                                     ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                    : rowState.status === "WEEKEND"
+                                    : effectiveStatus === "WEEKEND"
                                     ? "bg-slate-800 text-slate-400 border-slate-700"
                                     : "bg-slate-900 text-slate-500 border-slate-800"
                                 }`}
                               >
-                                {rowState.status === "HOLIDAY" || record.isHoliday
+                                {effectiveStatus === "HOLIDAY" || record.isHoliday
                                   ? "Holiday"
-                                  : rowState.status === "LEAVE"
+                                  : effectiveStatus === "LEAVE"
                                   ? "Leave (ছুটি)"
                                   : isWeekend
                                   ? "Weekend"
@@ -828,6 +925,7 @@ export default function AttendancePage() {
                               value={rowState.inTime}
                               disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "inTime", e.target.value)}
+                              onBlur={() => handleTimeBlur(date)}
                               className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
                           </td>
@@ -839,6 +937,7 @@ export default function AttendancePage() {
                               value={rowState.outTime}
                               disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "outTime", e.target.value)}
+                              onBlur={() => handleTimeBlur(date)}
                               className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
                           </td>
@@ -887,9 +986,22 @@ export default function AttendancePage() {
                             )}
                           </td>
 
-                          {/* Row Actions */}
+                          {/* Row Actions & Auto-Save Indicator */}
                           <td className="py-2.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Auto-Save Live Feedback */}
+                              {isSaving ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-indigo-400 font-medium animate-pulse">
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  Saving...
+                                </span>
+                              ) : isSaved ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-medium animate-fadeIn">
+                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                  Saved
+                                </span>
+                              ) : null}
+
                               {isCompanyAdminOrManager && (
                                 <button
                                   type="button"
@@ -897,32 +1009,17 @@ export default function AttendancePage() {
                                     setSelectedHolidayDate(date);
                                     setHolidayModalOpen(true);
                                   }}
-                                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
                                     isHoliday
                                       ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
                                       : "bg-slate-800 text-slate-300 hover:text-amber-300 hover:bg-slate-700 border border-slate-700"
                                   }`}
                                   title={isHoliday ? "কোম্পানি ছুটি পরিবর্তন বা মুছুন" : "এই তারিখে কোম্পানি ছুটি এড করুন"}
                                 >
-                                  <Calendar className="w-3 h-3 text-amber-400" />
+                                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
                                   {isHoliday ? "ছুটি ম্যানেজ" : "+ ছুটি এড"}
                                 </button>
                               )}
-
-                              <button
-                                type="button"
-                                onClick={() => saveAttendanceRow(date)}
-                                disabled={isSaving}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50"
-                                title="Save changes for this day"
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Save className="w-3 h-3" />
-                                )}
-                                Save
-                              </button>
                             </div>
                           </td>
                         </tr>
