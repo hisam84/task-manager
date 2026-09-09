@@ -342,7 +342,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               {showPenalty && (
                 <div className="p-1.5 print:p-1 rounded border border-rose-400 bg-rose-50">
                   <span className="block text-[9px] print:text-[8px] uppercase font-bold text-rose-800">Penalty Total</span>
-                  <span className="text-sm print:text-xs font-bold text-rose-700">৳ {summary.totalLatePenalty}</span>
+                  <span className="text-sm print:text-xs font-bold text-rose-700">BDT {summary.totalLatePenalty}</span>
                 </div>
               )}
               {showOvertime && (
@@ -375,7 +375,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                     <th className="py-1 px-2 print:py-0.5 print:px-1.5 border-r border-slate-300 text-center">Work Hrs</th>
                     <th className="py-1 px-2 print:py-0.5 print:px-1.5 border-r border-slate-300 text-center">Late (min)</th>
                     {showPenalty && (
-                      <th className="py-1 px-2 print:py-0.5 print:px-1.5 border-r border-slate-300 text-center">Penalty (৳)</th>
+                      <th className="py-1 px-2 print:py-0.5 print:px-1.5 border-r border-slate-300 text-center">Penalty (BDT)</th>
                     )}
                     {showOvertime && (
                       <th className="py-1 px-2 print:py-0.5 print:px-1.5 text-center">Overtime</th>
@@ -458,7 +458,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                         {showPenalty && (
                           <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 border-r border-slate-200 text-center font-bold">
                             {r.latePenalty > 0 ? (
-                              <span className="text-rose-700">৳ {r.latePenalty}</span>
+                              <span className="text-rose-700">BDT {r.latePenalty}</span>
                             ) : (
                               <span className="text-slate-400 font-normal">-</span>
                             )}
@@ -489,7 +489,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                     </td>
                     {showPenalty && (
                       <td className="py-1 px-2 print:py-0.5 print:px-1.5 text-center border-r border-slate-300 text-rose-800 font-bold">
-                        ৳ {summary.totalLatePenalty}
+                        BDT {summary.totalLatePenalty}
                       </td>
                     )}
                     {showOvertime && (
@@ -509,7 +509,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                   Penalty Policy:{" "}
                 </span>
                 <span>
-                  1-15m: Grace (৳0) • 16-20m: Flat ৳20 • 21-30m: Flat ৳30 • 31m+: ৳30 + (t × 2) where t is minutes beyond 30 min.
+                  1-15m: Grace (BDT 0) • 16-20m: Flat BDT 20 • 21-30m: Flat BDT 30 • 31m+: BDT 30 + (t × 2) where t is minutes beyond 30 min.
                 </span>
               </div>
             )}

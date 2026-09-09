@@ -155,16 +155,34 @@ export async function POST(req: Request) {
       },
     });
 
+    // Compute app URL for one-click action links in email
+    const forwardedProto = req.headers.get("x-forwarded-proto");
+    const proto = forwardedProto || (req.url.startsWith("https") ? "https" : "http");
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const origin = req.headers.get("origin");
+    const computedAppUrl = origin || (host ? `${proto}://${host}` : undefined);
+
     // Fetch all Admins and Managers in the company to notify via email
     try {
-      const adminsAndManagers = await prisma.user.findMany({
+      let adminsAndManagers = await prisma.user.findMany({
         where: {
           companyId,
           role: { in: ["ADMIN", "MANAGER"] },
           NOT: { id: sessionUser.id }, // Don't email oneself if admin applied
         },
-        select: { email: true, name: true },
+        select: { email: true, name: true, role: true },
       });
+
+      // If no company manager or admin exists, fall back to super admins
+      if (adminsAndManagers.length === 0) {
+        adminsAndManagers = await prisma.user.findMany({
+          where: {
+            role: "SUPER_ADMIN",
+            NOT: { id: sessionUser.id },
+          },
+          select: { email: true, name: true, role: true },
+        });
+      }
 
       const recipientEmails = adminsAndManagers
         .map((u) => u.email)
@@ -184,7 +202,7 @@ export async function POST(req: Request) {
           timeZone: "UTC",
         });
 
-        // Send email in background without blocking response
+        // Send email with direct 1-click Approve / Reject links
         sendLeaveApplicationEmail({
           to: recipientEmails,
           applicantName: leaveRequest.user.name,
@@ -198,6 +216,7 @@ export async function POST(req: Request) {
           leaveType: leaveRequest.leaveType,
           reason: trimmedReason,
           actionToken,
+          appUrl: computedAppUrl,
         }).catch((err) => {
           console.error("Background leave notification email error:", err);
         });

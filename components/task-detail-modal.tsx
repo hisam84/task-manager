@@ -293,7 +293,7 @@ export function TaskDetailModal({
 
   async function handleDeleteTask() {
     if (!hasDeletePermission) {
-      alert("সাধারণ কর্মীরা টাস্ক ডিলিট করতে পারবেন না। শুধুমাত্র অ্যাডমিন বা ম্যানেজার টাস্ক ডিলিট করতে পারেন।");
+      alert("Employees cannot delete tasks. Only an Admin or Manager can delete tasks.");
       return;
     }
     if (!taskDetail || !confirm("Are you sure you want to delete this task?")) return;

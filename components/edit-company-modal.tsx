@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Clock,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface Company {
@@ -60,6 +62,7 @@ export function EditCompanyModal({
   const [adminUsername, setAdminUsername] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -321,7 +324,7 @@ export function EditCompanyModal({
                 className="mt-0.5 w-4 h-4 rounded bg-[#0a0a0a] border-[#333333] text-purple-600 focus:ring-purple-500 cursor-pointer"
               />
               <label htmlFor="editLatePenalty" className="text-xs text-slate-200 cursor-pointer select-none">
-                <span className="font-semibold block text-white">Enable Late Penalty (লেট পেনাল্টি চালু করুন)</span>
+                <span className="font-semibold block text-white">Enable Late Penalty</span>
                 <span className="text-[11px] text-[#888888] block mt-0.5 leading-relaxed">
                   Turn ON to allow this company's Admin to view late penalties in attendance sheets. When turned OFF, late penalty options and columns will be hidden from this company.
                 </span>
@@ -376,13 +379,23 @@ export function EditCompanyModal({
                 <label className="block text-[#888888] font-mono mb-1">
                   Change Password <span className="text-slate-500 font-normal">(Optional)</span>
                 </label>
-                <input
-                  type="password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="Leave blank to keep unchanged"
-                  className="w-full px-3 py-2 rounded-lg bg-[#111111] border border-[#222222] text-white focus:outline-none focus:border-purple-500 font-mono"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="Leave blank to keep unchanged"
+                    className="w-full pl-3 pr-10 py-2 rounded-lg bg-[#111111] border border-[#222222] text-white focus:outline-none focus:border-purple-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

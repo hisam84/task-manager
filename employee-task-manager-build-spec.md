@@ -367,7 +367,7 @@ export async function POST(req: Request) {
 }
 ```
 
-This is the "কম্পানি ক্রিয়েট করা" flow: Super Admin submits a form (company name, slug, and the company's first Admin's name/email/password) → this route creates the `Company` row and its initial `ADMIN` user in one transaction-like call. That Admin then logs in and invites Managers/Employees within their own company (all scoped by `companyId`).
+This is the "Company Creation" flow: Super Admin submits a form (company name, slug, and the company's first Admin's name/email/password) → this route creates the `Company` row and its initial `ADMIN` user in one transaction-like call. That Admin then logs in and invites Managers/Employees within their own company (all scoped by `companyId`).
 
 ## 8. Role-Based Access
 

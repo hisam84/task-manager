@@ -7,6 +7,8 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { ApplyLeaveModal } from "@/components/apply-leave-modal";
+import { LeaveRequestsModal } from "@/components/leave-requests-modal";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
 import { Footer } from "@/components/footer";
 import { ProgressCard, DonutChart, WorkloadBarChart } from "@/components/charts";
@@ -23,6 +25,13 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Coffee,
+  Check,
+  X as XIcon,
+  Calendar,
+  ArrowUpRight,
+  AlertCircle,
+  CalendarDays,
 } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser } from "@/lib/types";
@@ -50,6 +59,12 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
 
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [loadingLeaves, setLoadingLeaves] = useState(false);
+  const [actioningLeaveId, setActioningLeaveId] = useState<string | null>(null);
+  const [isApplyLeaveOpen, setIsApplyLeaveOpen] = useState(false);
+  const [isLeaveRequestsModalOpen, setIsLeaveRequestsModalOpen] = useState(false);
+
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -76,6 +91,47 @@ export default function DashboardPage() {
     [statusFilter, priorityFilter, debouncedSearch]
   );
 
+  const fetchLeaves = useCallback(async () => {
+    setLoadingLeaves(true);
+    try {
+      const res = await fetch("/api/leaves");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setLeaveRequests(data);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load leaves for dashboard:", e);
+    } finally {
+      setLoadingLeaves(false);
+    }
+  }, []);
+
+  const handleQuickLeaveAction = async (leaveId: string, action: "APPROVED" | "REJECTED") => {
+    setActioningLeaveId(leaveId);
+    try {
+      const res = await fetch(`/api/leaves/${leaveId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: action,
+          reviewNotes: `Quick ${action.toLowerCase()} from Dashboard`,
+        }),
+      });
+      if (res.ok) {
+        await fetchLeaves();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update leave request.");
+      }
+    } catch (err) {
+      console.error("Leave quick action error:", err);
+    } finally {
+      setActioningLeaveId(null);
+    }
+  };
+
   const fetchSessionAndTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -89,6 +145,7 @@ export default function DashboardPage() {
 
       if (!authData.user) {
         setTasks([]);
+        setLeaveRequests([]);
         setNextCursor(null);
         return;
       }
@@ -98,15 +155,20 @@ export default function DashboardPage() {
         setReportData(repData);
       }
 
-      const data = await loadTasks();
-      setTasks(data.tasks as TaskRow[]);
-      setNextCursor(data.nextCursor);
+      await Promise.all([
+        (async () => {
+          const data = await loadTasks();
+          setTasks(data.tasks as TaskRow[]);
+          setNextCursor(data.nextCursor);
+        })(),
+        fetchLeaves(),
+      ]);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [loadTasks]);
+  }, [loadTasks, fetchLeaves]);
 
   useEffect(() => {
     fetchSessionAndTasks();
@@ -189,7 +251,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
         onUserUpdated={(u) => setCurrentUser(u)}
@@ -201,19 +263,19 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-6 md:p-8 flex-1">
           <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-                <LayoutDashboard className="w-6 h-6 text-indigo-400" />
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <LayoutDashboard className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 {isSuperAdmin
                   ? "Platform Global Dashboard"
                   : isCompanyAdmin
                   ? `${currentUser.companyName || "Company"} Admin Dashboard`
                   : "My Task Progression Workspace"}
               </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Welcome back, <span className="text-white font-medium">{currentUser.name}</span>! Role:{" "}
-                <span className="text-indigo-400 font-semibold">{currentUser.role}</span>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Welcome back, <span className="text-slate-900 dark:text-white font-semibold">{currentUser.name}</span>! Role:{" "}
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">{currentUser.role}</span>
               </p>
             </div>
 
@@ -221,7 +283,7 @@ export default function DashboardPage() {
               {isSuperAdmin && (
                 <button
                   onClick={() => setIsCreateCompanyOpen(true)}
-                  className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 w-full sm:w-auto cursor-pointer"
                 >
                   <Building2 className="w-4 h-4" />
                   Create Company
@@ -230,7 +292,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => setIsCreateTaskOpen(true)}
-                className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 w-full sm:w-auto cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 {isEmployee ? "Create Self Task" : "Create Task"}
@@ -270,20 +332,20 @@ export default function DashboardPage() {
           {/* Donut Chart & Filter Controls */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <h3 className="text-sm font-semibold text-white mb-3">Status Distribution</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Status Distribution</h3>
               <DonutChart items={donutItems} totalLabel="Tasks" />
             </div>
 
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
                 <div className="relative flex-1 max-w-sm">
-                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search task title..."
-                    className="w-full min-h-11 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2.5 text-base md:text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
+                    className="w-full min-h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2.5 text-base md:text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors"
                   />
                 </div>
 
@@ -291,7 +353,7 @@ export default function DashboardPage() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="min-h-11 flex-1 bg-slate-950 border border-slate-800 text-base md:text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-11 flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-base md:text-xs font-mono text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="TODO">To Do</option>
@@ -303,7 +365,7 @@ export default function DashboardPage() {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="min-h-11 flex-1 bg-slate-950 border border-slate-800 text-base md:text-xs font-mono text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-11 flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-base md:text-xs font-mono text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Priorities</option>
                     <option value="URGENT">Urgent</option>
@@ -315,7 +377,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tasks Table (Desktop) & Accordion Cards (Mobile) */}
-              <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-hidden">
+              <div className="rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none overflow-hidden">
                 {tasks.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-500">
                     No tasks found matching your filters.
@@ -326,7 +388,7 @@ export default function DashboardPage() {
                     <div className="hidden md:block overflow-x-auto">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/50 text-slate-700 dark:text-slate-400 font-semibold">
+                          <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                             <th className="py-3 px-4">Task Title</th>
                             <th className="py-3 px-4">Status Progression</th>
                             <th className="py-3 px-4">Priority</th>
@@ -335,7 +397,7 @@ export default function DashboardPage() {
                             <th className="py-3 px-4 text-right">Details</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                        <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                           {tasks.map((t) => {
                             const isDone = t.status === "DONE";
                             return (
@@ -344,14 +406,14 @@ export default function DashboardPage() {
                                 onClick={() => setSelectedTask(t)}
                                 className={`transition-all cursor-pointer group ${
                                   isDone
-                                    ? "bg-emerald-950/25 dark:bg-emerald-950/35 hover:bg-emerald-950/45 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
-                                    : "hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                                    ? "bg-emerald-50/50 dark:bg-emerald-950/25 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/45 border-l-4 border-l-emerald-500 opacity-90 hover:opacity-100"
+                                    : "hover:bg-slate-50 dark:hover:bg-slate-800/40"
                                 }`}
                               >
                                 <td
                                   className={`py-3 px-4 font-semibold transition-colors ${
                                     isDone
-                                      ? "text-emerald-600 dark:text-emerald-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-200"
+                                      ? "text-emerald-700 dark:text-emerald-300 group-hover:text-emerald-800 dark:group-hover:text-emerald-200"
                                       : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                   }`}
                                 >
@@ -365,83 +427,83 @@ export default function DashboardPage() {
                                       e.stopPropagation();
                                       handleQuickStatusChange(t.id, e.target.value);
                                     }}
-                                    className={`border rounded-lg px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer transition-colors ${
+                                    className={`border rounded-lg px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer transition-colors ${
                                       isDone
-                                        ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
-                                        : "bg-slate-950 border-slate-800 text-slate-200 hover:border-indigo-500"
+                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-500/40 dark:text-emerald-300 hover:border-emerald-400"
+                                        : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-500"
                                     }`}
                                   >
-                                  <option value="TODO">To Do</option>
-                                  <option value="IN_PROGRESS">In Progress</option>
-                                  <option value="IN_REVIEW">In Review</option>
-                                  <option value="DONE">Completed</option>
-                                </select>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span
-                                  className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                                    t.priority === "URGENT"
-                                      ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                                      : t.priority === "HIGH"
-                                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                      : t.priority === "MEDIUM"
-                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                      : "bg-slate-800 text-slate-400 border-slate-700"
-                                  }`}
-                                >
-                                  {t.priority}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                {t.dueDate ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-300/90 font-mono bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-                                    <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                                    <span>
-                                      {new Date(t.dueDate).toLocaleString([], {
-                                        month: "short",
-                                        day: "numeric",
-                                        hour: "numeric",
-                                        minute: "2-digit",
-                                        hour12: true,
-                                      })}
-                                    </span>
+                                    <option value="TODO">To Do</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="IN_REVIEW">In Review</option>
+                                    <option value="DONE">Completed</option>
+                                  </select>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                      t.priority === "URGENT"
+                                        ? "bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+                                        : t.priority === "HIGH"
+                                        ? "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
+                                        : t.priority === "MEDIUM"
+                                        ? "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                                        : "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                                    }`}
+                                  >
+                                    {t.priority}
                                   </span>
-                                ) : (
-                                  <span className="text-slate-500 text-[11px] font-mono">—</span>
-                                )}
-                              </td>
-                              <td className="py-3 px-4 text-slate-300 font-medium">
-                                <div className="flex items-center gap-2">
-                                  {t.assignee?.avatar ? (
-                                    <img
-                                      src={t.assignee.avatar}
-                                      alt={t.assignee.name || "Assignee"}
-                                      className="w-5 h-5 rounded-full object-cover border border-slate-700 shrink-0"
-                                    />
-                                  ) : null}
-                                  <span>{t.assignee?.name || "Unassigned"}</span>
-                                </div>
-                              </td>
-                              <td className="py-3 px-4 text-right">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedTask(t);
-                                  }}
-                                  className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-transparent transition-colors"
-                                >
-                                  View / Edit
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {t.dueDate ? (
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300 font-mono bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-300 dark:border-amber-500/20">
+                                      <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                      <span>
+                                        {new Date(t.dueDate).toLocaleString([], {
+                                          month: "short",
+                                          day: "numeric",
+                                          hour: "numeric",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-4 text-slate-800 dark:text-slate-300 font-medium">
+                                  <div className="flex items-center gap-2">
+                                    {t.assignee?.avatar ? (
+                                      <img
+                                        src={t.assignee.avatar}
+                                        alt={t.assignee.name || "Assignee"}
+                                        className="w-5 h-5 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0"
+                                      />
+                                    ) : null}
+                                    <span>{t.assignee?.name || "Unassigned"}</span>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTask(t);
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-transparent transition-colors cursor-pointer"
+                                  >
+                                    View / Edit
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
 
                     {/* Mobile Accordion Card View (visible on mobile, hidden on md and up) */}
-                    <div className="md:hidden divide-y divide-slate-800/80">
+                    <div className="md:hidden divide-y divide-slate-200/80 dark:divide-slate-800/80">
                       {tasks.map((t) => {
                         const isExpanded = expandedTaskId === t.id;
                         const isDone = t.status === "DONE";
@@ -455,8 +517,8 @@ export default function DashboardPage() {
                             key={t.id}
                             className={`p-3.5 transition-all ${
                               isDone
-                                ? "bg-emerald-950/25 dark:bg-emerald-950/35 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
-                                : "transition-colors hover:bg-slate-100/70 dark:hover:bg-slate-800/20"
+                                ? "bg-emerald-50/60 dark:bg-emerald-950/25 border-l-4 border-l-emerald-500 opacity-90 hover:opacity-100"
+                                : "transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/20"
                             }`}
                           >
                             {/* Tap header to toggle dropdown */}
@@ -467,7 +529,7 @@ export default function DashboardPage() {
                               <div className="flex items-start justify-between gap-2.5">
                                 <h4
                                   className={`text-sm font-semibold leading-snug break-words flex-1 transition-colors ${
-                                    isDone ? "text-emerald-300" : "text-white"
+                                    isDone ? "text-emerald-700 dark:text-emerald-300" : "text-slate-900 dark:text-white"
                                   }`}
                                 >
                                   {t.title}
@@ -476,19 +538,19 @@ export default function DashboardPage() {
                                   <span
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                                       t.priority === "URGENT"
-                                        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                        ? "bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
                                         : t.priority === "HIGH"
-                                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                        ? "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
                                         : t.priority === "MEDIUM"
-                                        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                        : "bg-slate-800 text-slate-400 border-slate-700"
+                                        ? "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                                        : "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
                                     }`}
                                   >
                                     {t.priority}
                                   </span>
                                   <div className="p-1 text-slate-400">
                                     {isExpanded ? (
-                                      <ChevronUp className="w-4 h-4 text-indigo-400" />
+                                      <ChevronUp className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
                                     ) : (
                                       <ChevronDown className="w-4 h-4" />
                                     )}
@@ -499,14 +561,14 @@ export default function DashboardPage() {
                               {/* Short Details Preview */}
                               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
                                 <span
-                                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                                     t.status === "DONE"
-                                      ? "bg-emerald-500/15 text-emerald-400"
+                                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400"
                                       : t.status === "IN_PROGRESS"
-                                      ? "bg-blue-500/15 text-blue-400"
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-400"
                                       : t.status === "IN_REVIEW"
-                                      ? "bg-amber-500/15 text-amber-400"
-                                      : "bg-slate-800 text-slate-400"
+                                      ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400"
+                                      : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
                                   }`}
                                 >
                                   {t.status === "DONE"
@@ -521,7 +583,7 @@ export default function DashboardPage() {
                                 {t.dueDate && (
                                   <span
                                     className={`inline-flex items-center gap-1 font-mono text-[10px] ${
-                                      isOverdue ? "text-rose-400 font-medium" : "text-amber-300/90"
+                                      isOverdue ? "text-rose-600 dark:text-rose-400 font-medium" : "text-amber-800 dark:text-amber-300/90"
                                     }`}
                                   >
                                     <Clock className="w-3 h-3" />
@@ -536,14 +598,14 @@ export default function DashboardPage() {
                                 )}
 
                                 {t.assignee?.name && (
-                                  <span className="text-slate-400 text-[10px] truncate max-w-[130px]">
+                                  <span className="text-slate-600 dark:text-slate-400 text-[10px] truncate max-w-[130px]">
                                     👤 {t.assignee.name}
                                   </span>
                                 )}
                               </div>
 
                               {!isExpanded && t.description && (
-                                <p className="mt-1.5 text-xs text-slate-400 line-clamp-1 leading-relaxed">
+                                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-1 leading-relaxed">
                                   {t.description}
                                 </p>
                               )}
@@ -551,26 +613,26 @@ export default function DashboardPage() {
 
                             {/* Dropdown Full Details */}
                             {isExpanded && (
-                              <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-3 animate-fadeIn">
+                              <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3 animate-fadeIn">
                                 {t.description && (
                                   <div>
                                     <span className="text-[10px] uppercase font-semibold text-slate-500 block mb-1">
                                       Description
                                     </span>
-                                    <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+                                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                                       {t.description}
                                     </p>
                                   </div>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
+                                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                                   <div>
                                     <span className="text-[10px] text-slate-500 block">Status</span>
                                     <select
                                       value={t.status}
                                       onClick={(e) => e.stopPropagation()}
                                       onChange={(e) => handleQuickStatusChange(t.id, e.target.value)}
-                                      className="mt-1 w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2 py-1.5 text-xs outline-none cursor-pointer"
+                                      className="mt-1 w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2 py-1.5 text-xs outline-none cursor-pointer"
                                     >
                                       <option value="TODO">To Do</option>
                                       <option value="IN_PROGRESS">In Progress</option>
@@ -581,16 +643,16 @@ export default function DashboardPage() {
 
                                   <div>
                                     <span className="text-[10px] text-slate-500 block">Assignee</span>
-                                    <span className="text-slate-200 font-medium block mt-2 truncate">
+                                    <span className="text-slate-800 dark:text-slate-200 font-medium block mt-2 truncate">
                                       {t.assignee?.name || "Unassigned"}
                                     </span>
                                   </div>
 
-                                  <div className="col-span-2 pt-1 border-t border-slate-800/60 flex items-center justify-between">
+                                  <div className="col-span-2 pt-1 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between">
                                     <span className="text-[10px] text-slate-500">Deadline (Date & Time):</span>
                                     <span
                                       className={`font-mono text-xs font-medium flex items-center gap-1 ${
-                                        isOverdue ? "text-rose-400" : "text-amber-300"
+                                        isOverdue ? "text-rose-600 dark:text-rose-400" : "text-amber-700 dark:text-amber-300"
                                       }`}
                                     >
                                       <Clock className="w-3.5 h-3.5" />
@@ -614,7 +676,7 @@ export default function DashboardPage() {
                                       e.stopPropagation();
                                       setSelectedTask(t);
                                     }}
-                                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-600/20 flex items-center justify-center gap-1.5"
+                                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
                                   >
                                     <span>View Full Details & Edit / Reschedule</span>
                                   </button>
@@ -634,13 +696,193 @@ export default function DashboardPage() {
                   <button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="px-5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     {loadingMore ? "Loading..." : "Load More Tasks"}
                   </button>
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Leave Management & Status Widget on Dashboard */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 shadow-xs dark:shadow-none space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 flex items-center justify-center">
+                  <Coffee className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {isEmployee ? "My Leave Applications" : "Leave Requests & Approvals"}
+                    </h3>
+                    {!isEmployee && leaveRequests.filter((l) => l.status === "PENDING").length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">
+                        {leaveRequests.filter((l) => l.status === "PENDING").length} Pending
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {isEmployee
+                      ? "Track your submitted leave applications and approval statuses"
+                      : "Review, approve, or reject employee leave applications"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setIsApplyLeaveOpen(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-sm transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Apply for Leave</span>
+                </button>
+
+                {!isEmployee && (
+                  <button
+                    onClick={() => setIsLeaveRequestsModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
+                  >
+                    <span>View All History</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => router.push("/attendance")}
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 transition-colors cursor-pointer"
+                >
+                  <span>Attendance Sheet</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {loadingLeaves ? (
+              <div className="py-8 flex items-center justify-center gap-2 text-xs text-slate-400">
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                <span>Loading leave records...</span>
+              </div>
+            ) : leaveRequests.length === 0 ? (
+              <div className="py-8 text-center bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-800/80">
+                <Coffee className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">No leave applications found.</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                  {isEmployee
+                    ? "Need time off? Click 'Apply for Leave' to submit a request."
+                    : "There are no pending or recorded leave requests at this time."}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {leaveRequests.slice(0, 6).map((leave) => {
+                  const isPending = leave.status === "PENDING";
+                  const isApproved = leave.status === "APPROVED";
+                  const isRejected = leave.status === "REJECTED";
+                  const isActioning = actioningLeaveId === leave.id;
+
+                  const startFormatted = new Date(leave.startDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  });
+                  const endFormatted = new Date(leave.endDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  });
+
+                  return (
+                    <div
+                      key={leave.id}
+                      className={`p-3.5 rounded-xl border transition-all ${
+                        isPending
+                          ? "bg-amber-50/50 dark:bg-amber-950/15 border-amber-200 dark:border-amber-500/30"
+                          : isApproved
+                          ? "bg-emerald-50/50 dark:bg-emerald-950/15 border-emerald-200 dark:border-emerald-500/30"
+                          : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          {!isEmployee && (
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="font-semibold text-xs text-slate-900 dark:text-white truncate">
+                                {leave.user?.name || "Employee"}
+                              </span>
+                              {leave.user?.department && (
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                  ({leave.user.department})
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1.5">
+                            <CalendarDays className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                              {startFormatted} - {endFormatted}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
+                            isApproved
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30"
+                              : isRejected
+                              ? "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30"
+                              : "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30 animate-pulse"
+                          }`}
+                        >
+                          {leave.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-2 text-[11px]">
+                        <span className="px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                          {leave.daysCount} Day{leave.daysCount > 1 ? "s" : ""}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-500/20">
+                          {leave.leaveType}
+                        </span>
+                      </div>
+
+                      {leave.reason && (
+                        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 italic bg-white/70 dark:bg-slate-950/40 p-2 rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                          "{leave.reason}"
+                        </p>
+                      )}
+
+                      {/* Quick decision actions for Admins / Managers on PENDING leaves */}
+                      {!isEmployee && isPending && (
+                        <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-500/20 flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isActioning}
+                            onClick={() => handleQuickLeaveAction(leave.id, "APPROVED")}
+                            className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isActioning}
+                            onClick={() => handleQuickLeaveAction(leave.id, "REJECTED")}
+                            className="flex-1 py-1.5 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                          >
+                            <XIcon className="w-3.5 h-3.5" />
+                            <span>Reject</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -674,6 +916,22 @@ export default function DashboardPage() {
         isOpen={changePasswordOpen}
         onClose={() => setChangePasswordOpen(false)}
       />
+
+      <ApplyLeaveModal
+        isOpen={isApplyLeaveOpen}
+        onClose={() => setIsApplyLeaveOpen(false)}
+        onLeaveApplied={fetchLeaves}
+      />
+
+      {currentUser && (
+        <LeaveRequestsModal
+          isOpen={isLeaveRequestsModalOpen}
+          onClose={() => setIsLeaveRequestsModalOpen(false)}
+          currentUser={currentUser}
+          onOpenApplyLeave={() => setIsApplyLeaveOpen(true)}
+          onLeaveDecided={fetchLeaves}
+        />
+      )}
     </div>
   );
 }

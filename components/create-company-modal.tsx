@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Building2, Plus, AlertCircle, CheckCircle2, Calendar, Clock, ShieldAlert } from "lucide-react";
+import { X, Building2, Plus, AlertCircle, CheckCircle2, Calendar, Clock, ShieldAlert, Eye, EyeOff } from "lucide-react";
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
   const [adminUsername, setAdminUsername] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("password123");
+  const [showPassword, setShowPassword] = useState(false);
   const [department, setDepartment] = useState("Executive Leadership");
   const [enableLatePenalty, setEnableLatePenalty] = useState(false);
   const [subscriptionPreset, setSubscriptionPreset] = useState<string>("1_YEAR");
@@ -210,13 +211,23 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
               </div>
               <div>
                 <label className="block text-[#888888] font-mono mb-1">Password *</label>
+                <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg px-3 py-1.5 font-mono text-white outline-none"
+                    className="w-full bg-[#111111] border border-[#222222] focus:border-purple-500 rounded-lg pl-3 pr-10 py-1.5 font-mono text-white outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -293,7 +304,7 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
                 className="mt-0.5 w-4 h-4 rounded bg-[#0a0a0a] border-[#333333] text-purple-600 focus:ring-purple-500 cursor-pointer"
               />
               <label htmlFor="createLatePenalty" className="text-xs text-slate-200 cursor-pointer select-none">
-                <span className="font-semibold block text-white">Enable Late Penalty (লেট পেনাল্টি চালু করুন)</span>
+                <span className="font-semibold block text-white">Enable Late Penalty</span>
                 <span className="text-[11px] text-[#888888] block mt-0.5 leading-relaxed">
                   Turn ON to allow this company's Admin to calculate and view late penalties in attendance sheets.
                 </span>

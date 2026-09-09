@@ -790,11 +790,11 @@ export default function AttendancePage() {
                   Penalty Formula:
                 </span>
                 <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
-                  16-20m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">৳20</strong>
+                  16-20m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">BDT 20</strong>
                 </span>
                 <span className="text-slate-300 dark:text-slate-700">•</span>
                 <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
-                  21-30m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">৳30</strong>
+                  21-30m = <strong className="text-rose-600 dark:text-rose-400 font-semibold font-mono">BDT 30</strong>
                 </span>
                 <span className="text-slate-300 dark:text-slate-700">•</span>
                 <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300">
@@ -850,7 +850,7 @@ export default function AttendancePage() {
                 <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 shadow-xs">
                   <span className="text-xs text-rose-700 dark:text-rose-300 block font-medium">Total Late Fine</span>
                   <span className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1 block">
-                    ৳ {liveSummary.totalLatePenalty}
+                    BDT {liveSummary.totalLatePenalty}
                   </span>
                   <span className="text-[10px] text-rose-600/70 dark:text-rose-300/70 mt-0.5 block">
                     Calculated penalty
@@ -895,18 +895,18 @@ export default function AttendancePage() {
           )}
 
           {/* Attendance Sheet Table */}
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-sm text-white">Daily Attendance & Timings</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Daily Attendance & Timings</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {canViewFines
                     ? "Input in-time and out-time. Fines and overtime will calculate automatically."
                     : "Input in-time and out-time. Working hours will calculate automatically."}
                 </p>
               </div>
-              <div className="text-xs text-slate-400">
-                Employee: <strong className="text-slate-200">{currentEmployee?.name}</strong>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Employee: <strong className="text-slate-800 dark:text-slate-200">{currentEmployee?.name}</strong>
               </div>
             </div>
 
@@ -935,7 +935,7 @@ export default function AttendancePage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/60">
                     {monthlyData?.records?.map((record) => {
                       const date = record.date;
                       const dayName = DAY_NAMES[record.dayOfWeek];
@@ -1041,18 +1041,18 @@ export default function AttendancePage() {
                               <select
                                 value={effectiveStatus}
                                 onChange={(e) => handleStatusChange(date, e.target.value)}
-                                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border focus:outline-none transition-colors cursor-pointer ${
+                                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border focus:outline-none transition-colors cursor-pointer shadow-sm ${
                                   effectiveStatus === "PRESENT"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-500/40"
                                     : effectiveStatus === "LATE" || currentLateMin > 15
-                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                                    ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-500/40"
                                     : effectiveStatus === "HOLIDAY"
-                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                                    ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-500/40"
                                     : effectiveStatus === "LEAVE"
-                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
+                                    ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-500/40"
                                     : effectiveStatus === "WEEKEND"
-                                    ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700"
-                                    : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                                    ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                                    : "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800"
                                 }`}
                               >
                                 <option value="PRESENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Present</option>
@@ -1063,18 +1063,18 @@ export default function AttendancePage() {
                               </select>
                             ) : (
                               <span
-                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold border shadow-sm ${
                                   effectiveStatus === "PRESENT"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                    ? "bg-emerald-100/90 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-500/30"
                                     : effectiveStatus === "LATE" || currentLateMin > 15
-                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                                    ? "bg-rose-100/90 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-500/30"
                                     : effectiveStatus === "HOLIDAY"
-                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                    ? "bg-amber-100/90 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/30"
                                     : effectiveStatus === "LEAVE"
-                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                                    ? "bg-blue-100/90 text-blue-800 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-500/30"
                                     : effectiveStatus === "WEEKEND"
-                                    ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700"
-                                    : "bg-slate-100 dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800"
+                                    ? "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                                    : "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800"
                                 }`}
                               >
                                 {effectiveStatus === "HOLIDAY" || record.isHoliday
@@ -1141,7 +1141,7 @@ export default function AttendancePage() {
                             <td className="py-2.5 px-3 text-center font-bold">
                               {currentPenalty > 0 ? (
                                 <span className="text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
-                                  ৳ {currentPenalty}
+                                  BDT {currentPenalty}
                                 </span>
                               ) : (
                                 <span className="text-slate-400 dark:text-slate-600 font-normal">-</span>

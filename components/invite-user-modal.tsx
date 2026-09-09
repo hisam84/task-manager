@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, UserPlus, AlertCircle } from "lucide-react";
+import { X, UserPlus, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   const [role, setRole] = useState<"ADMIN" | "MANAGER" | "EMPLOYEE">("EMPLOYEE");
   const [department, setDepartment] = useState("Frontend Core");
   const [password, setPassword] = useState("password123");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,12 +134,23 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
 
           <div>
             <label className="block text-xs font-mono text-[#888888] mb-1">Default Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-[#111111] border border-[#222222] focus:border-[#0070f3] rounded-lg pl-3 pr-9 py-2 text-xs font-mono text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                className="absolute right-2.5 top-2 p-0.5 text-[#666666] hover:text-white transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#1f1f1f]">

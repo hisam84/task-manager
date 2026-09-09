@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, LogIn, KeyRound, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, LogIn, KeyRound, User, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { ForgotPasswordModal } from "./forgot-password-modal";
 
 interface LoginModalProps {
@@ -13,6 +13,7 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -122,14 +123,23 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               <label className="block text-[#888888] font-mono mb-1">Password *</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#111111] border border-[#222222] focus:border-blue-500 rounded-lg pl-8 pr-3 py-2 font-mono text-white placeholder-[#555555] outline-none"
+                  className="w-full bg-[#111111] border border-[#222222] focus:border-blue-500 rounded-lg pl-8 pr-9 py-2 font-mono text-white placeholder-[#555555] outline-none"
                 />
-                <KeyRound className="w-4 h-4 text-[#555555] absolute left-2.5 top-2.5" />
+                <KeyRound className="w-4 h-4 text-[#555555] absolute left-2.5 top-2.5 pointer-events-none" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  className="absolute right-2.5 top-2.5 p-0.5 text-[#666666] hover:text-white transition-colors cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           </div>
