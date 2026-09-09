@@ -7,6 +7,8 @@ import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ShiftModal } from "@/components/shift-modal";
 import { HolidayModal } from "@/components/holiday-modal";
 import { AttendancePrintModal } from "@/components/attendance-print-modal";
+import { ApplyLeaveModal } from "@/components/apply-leave-modal";
+import { LeaveRequestsModal } from "@/components/leave-requests-modal";
 import { Footer } from "@/components/footer";
 import { canViewPenaltyAndOvertime } from "@/lib/access";
 import {
@@ -113,6 +115,9 @@ export default function AttendancePage() {
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [selectedHolidayDate, setSelectedHolidayDate] = useState<string | null>(null);
   const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [applyLeaveModalOpen, setApplyLeaveModalOpen] = useState(false);
+  const [leaveRequestsModalOpen, setLeaveRequestsModalOpen] = useState(false);
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
 
   // Auto-save states
   const autoSaveTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
@@ -155,6 +160,22 @@ export default function AttendancePage() {
       console.error(err);
     }
   }
+
+  const fetchPendingLeaves = useCallback(async () => {
+    try {
+      const res = await fetch("/api/leaves?status=PENDING");
+      if (res.ok) {
+        const data = await res.json();
+        setPendingLeaveCount(data.leaves?.length || 0);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPendingLeaves();
+  }, [fetchPendingLeaves]);
 
   // Fetch attendance data
   const fetchAttendance = useCallback(async (silent = false) => {
@@ -579,6 +600,33 @@ export default function AttendancePage() {
                   </button>
                 </div>
               )}
+
+              {/* Apply Leave Button */}
+              <button
+                type="button"
+                onClick={() => setApplyLeaveModalOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all shadow-sm"
+                title="Apply for a new leave request"
+              >
+                <Coffee className="w-4 h-4 text-emerald-400" />
+                Apply Leave
+              </button>
+
+              {/* Leave Requests / History */}
+              <button
+                type="button"
+                onClick={() => setLeaveRequestsModalOpen(true)}
+                className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-all shadow-sm"
+                title={isCompanyAdminOrManager ? "Review and manage employee leave applications" : "View your submitted leave requests"}
+              >
+                <Calendar className="w-4 h-4 text-sky-400" />
+                {isCompanyAdminOrManager ? "Leave Requests" : "My Leaves"}
+                {pendingLeaveCount > 0 && (
+                  <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-sm animate-pulse">
+                    {pendingLeaveCount}
+                  </span>
+                )}
+              </button>
 
               {/* Print Penalty Report Button */}
               <button
@@ -1222,6 +1270,30 @@ export default function AttendancePage() {
         }
         enableLatePenalty={enableLatePenalty && canViewFines}
         isManagerOrAdmin={canViewFines}
+      />
+
+      {/* Leave Modals */}
+      <ApplyLeaveModal
+        isOpen={applyLeaveModalOpen}
+        onClose={() => setApplyLeaveModalOpen(false)}
+        onLeaveApplied={() => {
+          fetchAttendance(true);
+          fetchPendingLeaves();
+        }}
+      />
+
+      <LeaveRequestsModal
+        isOpen={leaveRequestsModalOpen}
+        onClose={() => setLeaveRequestsModalOpen(false)}
+        currentUser={user}
+        onOpenApplyLeave={() => {
+          setLeaveRequestsModalOpen(false);
+          setApplyLeaveModalOpen(true);
+        }}
+        onLeaveDecided={() => {
+          fetchAttendance(true);
+          fetchPendingLeaves();
+        }}
       />
     </div>
   );

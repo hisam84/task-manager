@@ -1,0 +1,221 @@
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { sendLeaveApplicationEmail } from "@/lib/mail";
+
+export async function GET(req: Request) {
+  try {
+    const sessionUser = await getCurrentUser();
+    if (!sessionUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const isEmployee = sessionUser.role === "EMPLOYEE";
+    const isSuperAdmin = sessionUser.role === "SUPER_ADMIN";
+
+    const whereClause: any = {};
+
+    if (isEmployee) {
+      // Employees only view their own leave applications
+      whereClause.userId = sessionUser.id;
+    } else if (!isSuperAdmin) {
+      // Company Admins / Managers view all leave applications in their company
+      if (sessionUser.companyId) {
+        whereClause.companyId = sessionUser.companyId;
+      }
+    }
+
+    const leaveRequests = await prisma.leaveRequest.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            designation: true,
+            department: true,
+            departmentRel: { select: { id: true, name: true } },
+          },
+        },
+        reviewer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+
+    return NextResponse.json(leaveRequests);
+  } catch (err: any) {
+    console.error("GET /api/leaves error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to fetch leave requests." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const sessionUser = await getCurrentUser();
+    if (!sessionUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { startDate, endDate, leaveType, reason } = body || {};
+
+    if (!startDate || !endDate) {
+      return NextResponse.json(
+        { error: "Start date and end date are required." },
+        { status: 400 }
+      );
+    }
+
+    const trimmedReason = typeof reason === "string" ? reason.trim() : "";
+    if (!trimmedReason || trimmedReason.length < 5) {
+      return NextResponse.json(
+        { error: "Please provide a valid reason (at least 5 characters)." },
+        { status: 400 }
+      );
+    }
+
+    const startObj = new Date(`${startDate}T00:00:00.000Z`);
+    const endObj = new Date(`${endDate}T00:00:00.000Z`);
+
+    if (isNaN(startObj.getTime()) || isNaN(endObj.getTime())) {
+      return NextResponse.json({ error: "Invalid date format." }, { status: 400 });
+    }
+
+    if (endObj < startObj) {
+      return NextResponse.json(
+        { error: "End date cannot be earlier than start date." },
+        { status: 400 }
+      );
+    }
+
+    // Calculate calendar days
+    const diffMs = endObj.getTime() - startObj.getTime();
+    const daysCount = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    // Resolve company ID
+    let companyId = sessionUser.companyId;
+    if (!companyId) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: sessionUser.id },
+        select: { companyId: true },
+      });
+      companyId = dbUser?.companyId || null;
+    }
+
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Company association is required to submit a leave application." },
+        { status: 400 }
+      );
+    }
+
+    // Generate secure token for one-click email actions
+    const actionToken = crypto.randomBytes(32).toString("hex");
+
+    const leaveRequest = await prisma.leaveRequest.create({
+      data: {
+        userId: sessionUser.id,
+        companyId,
+        startDate: startObj,
+        endDate: endObj,
+        daysCount,
+        leaveType: leaveType || "CASUAL",
+        reason: trimmedReason,
+        status: "PENDING",
+        actionToken,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            designation: true,
+            department: true,
+            departmentRel: { select: { name: true } },
+          },
+        },
+        company: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Fetch all Admins and Managers in the company to notify via email
+    try {
+      const adminsAndManagers = await prisma.user.findMany({
+        where: {
+          companyId,
+          role: { in: ["ADMIN", "MANAGER"] },
+          NOT: { id: sessionUser.id }, // Don't email oneself if admin applied
+        },
+        select: { email: true, name: true },
+      });
+
+      const recipientEmails = adminsAndManagers
+        .map((u) => u.email)
+        .filter((e) => Boolean(e) && e.includes("@"));
+
+      if (recipientEmails.length > 0) {
+        const startDateFormatted = startObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+        const endDateFormatted = endObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+
+        // Send email in background without blocking response
+        sendLeaveApplicationEmail({
+          to: recipientEmails,
+          applicantName: leaveRequest.user.name,
+          applicantDesignation: leaveRequest.user.designation,
+          applicantDepartment:
+            leaveRequest.user.departmentRel?.name || leaveRequest.user.department,
+          companyName: leaveRequest.company?.name || "Task Manager",
+          startDate: startDateFormatted,
+          endDate: endDateFormatted,
+          daysCount,
+          leaveType: leaveRequest.leaveType,
+          reason: trimmedReason,
+          actionToken,
+        }).catch((err) => {
+          console.error("Background leave notification email error:", err);
+        });
+      }
+    } catch (mailErr) {
+      console.error("Failed to query admins for leave notification:", mailErr);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Leave application submitted successfully and sent to managers.",
+      leaveRequest,
+    });
+  } catch (err: any) {
+    console.error("POST /api/leaves error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to submit leave request." },
+      { status: 500 }
+    );
+  }
+}
