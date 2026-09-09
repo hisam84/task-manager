@@ -760,7 +760,7 @@ function AttendanceContent() {
                   onChange={(e) => setSelectedUserId(e.target.value)}
                   className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
-                  <option value="">-- Select an Employee (ইমপ্লয়ী নির্বাচন করুন) --</option>
+                  <option value="">-- Select an Employee --</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.name} ({emp.designation || "Employee"}) - {emp.email}
@@ -815,7 +815,7 @@ function AttendanceContent() {
                 <Users className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
-                হাজিরা শিট দেখার জন্য ইমপ্লয়ী নির্বাচন করুন
+                Select an Employee to View Attendance Sheet
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
                 Please select an employee from the dropdown above to load and view their attendance records, assigned shift, and monthly report.
@@ -1003,7 +1003,7 @@ function AttendanceContent() {
                   {/* Expand/Collapse All Bar */}
                   <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-xs">
                     <span className="text-slate-500 dark:text-slate-400 font-medium text-[11px]">
-                      {monthlyData?.records?.length || 0} Days • ড্রপডাউনে ট্যাপ করে বিস্তারিত দেখুন
+                      {monthlyData?.records?.length || 0} Days • Tap date to expand details
                     </span>
                     <div className="flex items-center gap-1.5">
                       <button
@@ -1233,11 +1233,11 @@ function AttendanceContent() {
                                         : "bg-white text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800"
                                     }`}
                                   >
-                                    <option value="PRESENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Present (উপস্থিত)</option>
-                                    <option value="LATE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Late (দেরি)</option>
-                                    <option value="ABSENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Absent (অনুপস্থিত)</option>
-                                    <option value="LEAVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Leave (ছুটি)</option>
-                                    <option value="HOLIDAY" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Holiday (ছুটি)</option>
+                                    <option value="PRESENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Present</option>
+                                    <option value="LATE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Late</option>
+                                    <option value="ABSENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Absent</option>
+                                    <option value="LEAVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Leave</option>
+                                    <option value="HOLIDAY" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Holiday</option>
                                   </select>
                                 </div>
                               )}

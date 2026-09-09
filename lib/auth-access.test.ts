@@ -110,7 +110,7 @@ describe("canAssignTaskToUser", () => {
     const manager = { id: "m1", role: "MANAGER", order: 5 };
     const res = canAssignTaskToUser(emp, manager);
     assert.equal(res.allowed, false);
-    assert.match(res.reason || "", /সিনিয়র/);
+    assert.match(res.reason || "", /managers or admins/);
   });
 
   it("allows senior employee (earlier order) to assign to junior employee (later order)", () => {
@@ -125,7 +125,7 @@ describe("canAssignTaskToUser", () => {
     const seniorEmp = { id: "e1", role: "EMPLOYEE", order: 1 };
     const res = canAssignTaskToUser(juniorEmp, seniorEmp);
     assert.equal(res.allowed, false);
-    assert.match(res.reason || "", /সিনিয়র/);
+    assert.match(res.reason || "", /senior or equal/);
   });
 
   it("blocks employee from assigning to peer with the same order", () => {
@@ -133,7 +133,7 @@ describe("canAssignTaskToUser", () => {
     const empB = { id: "e2", role: "EMPLOYEE", order: 2 };
     const res = canAssignTaskToUser(empA, empB);
     assert.equal(res.allowed, false);
-    assert.match(res.reason || "", /সমমর্যাদার/);
+    assert.match(res.reason || "", /senior or equal/);
   });
 });
 

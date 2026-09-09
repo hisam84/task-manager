@@ -285,13 +285,13 @@ export default function TeamPage() {
               {reordering && (
                 <span className="inline-flex items-center gap-1 text-xs text-amber-400 font-medium animate-pulse">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  অর্ডার সেভ হচ্ছে...
+                  Saving order...
                 </span>
               )}
               {reorderSuccess && (
                 <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  অর্ডার সেভ হয়েছে!
+                  Order saved!
                 </span>
               )}
               <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs">

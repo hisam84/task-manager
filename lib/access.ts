@@ -46,7 +46,7 @@ export function canAssignTaskToUser(
   if (isManagerOrAdmin(assignee.role)) {
     return {
       allowed: false,
-      reason: "সিনিয়র কর্মকর্তাদের টাস্ক এসাইন করা যাবে না। (Employees cannot assign tasks to managers or admins)",
+      reason: "Employees cannot assign tasks to managers or admins.",
     };
   }
 
@@ -57,7 +57,7 @@ export function canAssignTaskToUser(
   if (assigneeOrder <= creatorOrder) {
     return {
       allowed: false,
-      reason: "সিনিয়র বা সমমর্যাদার সহকর্মীদের টাস্ক এসাইন করা যাবে না। আপনি শুধুমাত্র আপনার জুনিয়রদের টাস্ক এসাইন করতে পারবেন। (You can only assign tasks to junior team members)",
+      reason: "Cannot assign tasks to senior or equal ranking members. You can only assign tasks to junior team members or yourself.",
     };
   }
 

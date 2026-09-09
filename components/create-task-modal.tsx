@@ -95,7 +95,7 @@ export function CreateTaskModal({
       const targetOrder = targetUser?.order ?? 0;
 
       if (targetUser && (targetUser.role !== "EMPLOYEE" || targetOrder <= currentOrder)) {
-        setError("সিনিয়র কর্মকর্তাদের টাস্ক এসাইন করা যাবে না। আপনি শুধুমাত্র আপনার জুনিয়র সহকর্মীদের টাস্ক এসাইন করতে পারবেন।");
+        setError("Cannot assign tasks to senior members. You can only assign tasks to junior colleagues or yourself.");
         return;
       }
     }
@@ -196,7 +196,7 @@ export function CreateTaskModal({
                 <label className="block text-xs font-medium text-slate-300">Assignee *</label>
                 {isEmployee && (
                   <span className="text-[10px] text-amber-400/90 font-medium">
-                    জুনিয়র বা নিজের জন্য
+                    Self or Junior Colleagues
                   </span>
                 )}
               </div>
@@ -235,7 +235,7 @@ export function CreateTaskModal({
               </select>
               {isEmployee && (
                 <p className="text-[11px] text-slate-400 mt-1">
-                  💡 অর্ডারে আগের ইমপ্লয়ীরা তাদের জুনিয়র ইমপ্লয়ীদের টাস্ক এসাইন করতে পারবে।
+                  💡 Employees can assign tasks to junior team members or themselves based on company seniority order.
                 </p>
               )}
             </div>
