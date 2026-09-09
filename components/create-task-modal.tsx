@@ -42,16 +42,53 @@ export function CreateTaskModal({
   const isEmployee = currentUserRole === "EMPLOYEE";
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const setQuickDate = (daysAhead: number, targetHour: number = 17) => {
-    const d = new Date();
-    d.setDate(d.getDate() + daysAhead);
-    d.setHours(targetHour, 0, 0, 0);
+  const formatDateTimeLocal = (d: Date): string => {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     const hours = String(d.getHours()).padStart(2, "0");
     const minutes = String(d.getMinutes()).padStart(2, "0");
-    setDueDate(`${year}-${month}-${day}T${hours}:${minutes}`);
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const setQuickHours = (hoursAhead: number) => {
+    const d = new Date();
+    d.setHours(d.getHours() + hoursAhead);
+    d.setMinutes(0, 0, 0);
+    setDueDate(formatDateTimeLocal(d));
+  };
+
+  const setQuickDate = (daysAhead: number, targetHour: number = 17, targetMinute: number = 0) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    d.setHours(targetHour, targetMinute, 0, 0);
+    setDueDate(formatDateTimeLocal(d));
+  };
+
+  const setThisFriday = () => {
+    const d = new Date();
+    const day = d.getDay(); // 0 is Sun, 5 is Fri
+    let diff = 5 - day;
+    if (diff <= 0) diff += 7;
+    d.setDate(d.getDate() + diff);
+    d.setHours(17, 0, 0, 0);
+    setDueDate(formatDateTimeLocal(d));
+  };
+
+  const setNextMonday = () => {
+    const d = new Date();
+    const day = d.getDay(); // 1 is Mon
+    let diff = (1 - day + 7) % 7;
+    if (diff === 0) diff = 7;
+    d.setDate(d.getDate() + diff);
+    d.setHours(10, 0, 0, 0);
+    setDueDate(formatDateTimeLocal(d));
+  };
+
+  const setEndOfMonth = () => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 17, 0, 0);
+    setDueDate(formatDateTimeLocal(lastDay));
   };
 
   useEffect(() => {
@@ -65,11 +102,12 @@ export function CreateTaskModal({
       const res = await fetch("/api/users");
       const data = await res.json();
       if (Array.isArray(data)) {
-        setUsers(data);
-        if (data.length > 0) {
+        const sorted = [...data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setUsers(sorted);
+        if (sorted.length > 0) {
           const defaultUser = currentUserId
-            ? data.find((u) => u.id === currentUserId)?.id || data[0].id
-            : data[0].id;
+            ? sorted.find((u) => u.id === currentUserId)?.id || sorted[0].id
+            : sorted[0].id;
           setAssigneeId(defaultUser);
         }
       }
@@ -313,13 +351,35 @@ export function CreateTaskModal({
               </div>
 
               {/* Quick Date Presets */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                <button
+                  type="button"
+                  onClick={() => setQuickHours(2)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  title="2 hours from now"
+                >
+                  +2 Hours
+                </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(0, 17)}
                   className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Today (5 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(0, 22)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  Tonight (10 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(1, 10)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  Tomorrow (10 AM)
                 </button>
                 <button
                   type="button"
@@ -337,11 +397,51 @@ export function CreateTaskModal({
                 </button>
                 <button
                   type="button"
+                  onClick={setThisFriday}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  title="Upcoming Friday at 5:00 PM"
+                >
+                  This Friday (5 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={setNextMonday}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  title="Next Monday at 10:00 AM"
+                >
+                  Next Monday (10 AM)
+                </button>
+                <button
+                  type="button"
                   onClick={() => setQuickDate(7, 17)}
                   className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
-                  Next Week
+                  In 1 Week
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(14, 17)}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  In 2 Weeks
+                </button>
+                <button
+                  type="button"
+                  onClick={setEndOfMonth}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  End of Month
+                </button>
+                {dueDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDueDate("")}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
+                    title="Clear selected deadline"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
           </div>

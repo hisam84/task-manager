@@ -33,6 +33,7 @@ export async function GET(req: Request) {
         designation: true,
         department: true,
         departmentRel: { select: { id: true, name: true } },
+        order: true,
         companyId: true,
         company: { select: { id: true, name: true, enableLatePenalty: true } },
         shiftId: true,

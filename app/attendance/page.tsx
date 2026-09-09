@@ -183,7 +183,8 @@ function AttendanceContent() {
       const res = await fetch("/api/users");
       const data = await res.json();
       if (Array.isArray(data)) {
-        setEmployees(data);
+        const sorted = [...data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setEmployees(sorted);
       }
     } catch (err) {
       console.error(err);
@@ -763,7 +764,7 @@ function AttendanceContent() {
                   <option value="">-- Select an Employee --</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.designation || "Employee"}) - {emp.email}
+                      #{((emp.order ?? 0) + 1)} {emp.name} ({emp.designation || "Employee"}) - {emp.email}
                     </option>
                   ))}
                 </select>

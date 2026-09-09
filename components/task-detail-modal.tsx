@@ -39,9 +39,9 @@ const COMMON_REASONS = [
   "Workload priority shift",
 ];
 
-function toDateTimeLocalString(dateStr?: string | null): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
+function toDateTimeLocalString(dateInput?: string | Date | null): string {
+  if (!dateInput) return "";
+  const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
   if (isNaN(d.getTime())) return "";
   const pad = (n: number) => n.toString().padStart(2, "0");
   const year = d.getFullYear();
@@ -107,6 +107,46 @@ export function TaskDetailModal({
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [savingReschedule, setSavingReschedule] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+
+  const setQuickHours = (hoursAhead: number) => {
+    const d = new Date();
+    d.setHours(d.getHours() + hoursAhead);
+    d.setMinutes(0, 0, 0);
+    setNewDueDate(toDateTimeLocalString(d));
+  };
+
+  const setQuickDate = (daysAhead: number, targetHour: number = 17, targetMinute: number = 0) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    d.setHours(targetHour, targetMinute, 0, 0);
+    setNewDueDate(toDateTimeLocalString(d));
+  };
+
+  const setThisFriday = () => {
+    const d = new Date();
+    const day = d.getDay();
+    let diff = 5 - day;
+    if (diff <= 0) diff += 7;
+    d.setDate(d.getDate() + diff);
+    d.setHours(17, 0, 0, 0);
+    setNewDueDate(toDateTimeLocalString(d));
+  };
+
+  const setNextMonday = () => {
+    const d = new Date();
+    const day = d.getDay();
+    let diff = (1 - day + 7) % 7;
+    if (diff === 0) diff = 7;
+    d.setDate(d.getDate() + diff);
+    d.setHours(10, 0, 0, 0);
+    setNewDueDate(toDateTimeLocalString(d));
+  };
+
+  const setEndOfMonth = () => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 17, 0, 0);
+    setNewDueDate(toDateTimeLocalString(lastDay));
+  };
 
   useEffect(() => {
     if (task && isOpen) {
@@ -484,6 +524,90 @@ export function TaskDetailModal({
                       >
                         <Calendar className="w-3.5 h-3.5 shrink-0" />
                         <span>Calendar</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Date Presets */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuickHours(2)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                        title="2 hours from now"
+                      >
+                        +2 Hours
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(0, 17)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        Today (5 PM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(0, 22)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        Tonight (10 PM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(1, 10)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        Tomorrow (10 AM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(1, 17)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        Tomorrow (5 PM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(3, 17)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        In 3 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={setThisFriday}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                        title="Upcoming Friday at 5:00 PM"
+                      >
+                        This Friday (5 PM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={setNextMonday}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                        title="Next Monday at 10:00 AM"
+                      >
+                        Next Monday (10 AM)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(7, 17)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        In 1 Week
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickDate(14, 17)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        In 2 Weeks
+                      </button>
+                      <button
+                        type="button"
+                        onClick={setEndOfMonth}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                      >
+                        End of Month
                       </button>
                     </div>
                   </div>

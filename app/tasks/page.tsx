@@ -43,6 +43,7 @@ interface TeamMember {
   name: string;
   email: string;
   role: string;
+  order?: number;
   departmentName?: string;
 }
 
@@ -108,7 +109,10 @@ export default function TasksPage() {
 
       if (userRes.ok) {
         const uData = await userRes.json();
-        if (Array.isArray(uData)) setTeamMembers(uData);
+        if (Array.isArray(uData)) {
+          const sorted = [...uData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          setTeamMembers(sorted);
+        }
       }
 
       const data = await loadTasks();
@@ -294,7 +298,7 @@ export default function TasksPage() {
                   <option value="ALL">All Assignees</option>
                   {teamMembers.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name} ({m.role})
+                      #{((m.order ?? 0) + 1)} {m.name} ({m.role})
                     </option>
                   ))}
                 </select>

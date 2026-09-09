@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserPlus, X, Loader2, AlertCircle, Phone } from "lucide-react";
+import { UserPlus, X, Loader2, AlertCircle, Phone, Hash } from "lucide-react";
 
 interface Employee {
   id?: string;
@@ -13,6 +13,7 @@ interface Employee {
   departmentId?: string | null;
   department?: string | null;
   shiftId?: string | null;
+  order?: number | null;
 }
 
 interface Department {
@@ -52,6 +53,7 @@ export function EmployeeModal({
   const [role, setRole] = useState("EMPLOYEE");
   const [departmentId, setDepartmentId] = useState("");
   const [shiftId, setShiftId] = useState("");
+  const [order, setOrder] = useState<number | string>("");
   const [shifts, setShifts] = useState<ShiftOption[]>(propShifts || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +80,11 @@ export function EmployeeModal({
       setRole(employeeToEdit.role);
       setDepartmentId(employeeToEdit.departmentId || "");
       setShiftId(employeeToEdit.shiftId || "");
+      setOrder(
+        employeeToEdit.order !== undefined && employeeToEdit.order !== null
+          ? employeeToEdit.order + 1
+          : ""
+      );
       setPassword("");
     } else {
       setName("");
@@ -88,6 +95,7 @@ export function EmployeeModal({
       setRole("EMPLOYEE");
       setDepartmentId(departments[0]?.id || "");
       setShiftId("");
+      setOrder("");
     }
     setError(null);
   }, [employeeToEdit, isOpen, departments]);
@@ -123,6 +131,10 @@ export function EmployeeModal({
         departmentId: departmentId || null,
         shiftId: shiftId || null,
       };
+
+      if (order !== "" && !isNaN(Number(order))) {
+        payload.order = Math.max(0, parseInt(String(order), 10) - 1);
+      }
 
       if (!isEdit) {
         payload.password = password;
@@ -231,6 +243,26 @@ export function EmployeeModal({
               placeholder="e.g. Senior Software Engineer, UI/UX Designer, Accounts Officer"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">
+              Seniority Order / Rank (#1 is highest rank)
+            </label>
+            <div className="relative">
+              <Hash className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="number"
+                min="1"
+                value={order}
+                onChange={(e) => setOrder(e.target.value)}
+                placeholder="e.g. 1 (Leave blank to auto-assign next rank)"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600 font-mono"
+              />
+            </div>
+            <p className="text-[11px] text-slate-500 mt-1">
+              Order controls employee seniority. Senior members (#1, #2) can assign tasks to junior members.
+            </p>
           </div>
 
           {!employeeToEdit && (

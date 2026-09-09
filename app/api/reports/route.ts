@@ -74,12 +74,14 @@ export async function GET(req: Request) {
             name: true,
             email: true,
             role: true,
+            order: true,
             department: true,
             departmentRel: { select: { name: true } },
             assignedTasks: {
               select: { id: true, status: true, dueDate: true, priority: true },
             },
           },
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
         }),
         prisma.task.findMany({
           where: { companyId },
@@ -120,6 +122,7 @@ export async function GET(req: Request) {
           name: emp.name,
           email: emp.email,
           role: emp.role,
+          order: emp.order,
           department: emp.departmentRel?.name || emp.department || "General",
           totalTasks: total,
           completed,

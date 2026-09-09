@@ -141,7 +141,18 @@ export async function POST(req: Request) {
         orderBy: { order: "desc" },
         select: { order: true },
       });
-      userOrder = (maxOrderUser?.order ?? 0) + 1;
+      userOrder = maxOrderUser ? maxOrderUser.order + 1 : 0;
+    } else {
+      // Shift existing users down so the new user cleanly takes this rank
+      await prisma.user.updateMany({
+        where: {
+          companyId: targetCompanyId,
+          order: { gte: userOrder },
+        },
+        data: {
+          order: { increment: 1 },
+        },
+      });
     }
 
     const newUser = await prisma.user.create({

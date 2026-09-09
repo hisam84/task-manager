@@ -125,6 +125,9 @@ export async function PATCH(
     if (data.dueDate !== undefined) {
       const newDueDate = data.dueDate ? new Date(data.dueDate) : null;
       updateData.dueDate = newDueDate;
+      if (newDueDate && newDueDate.getTime() > Date.now()) {
+        updateData.overdueNotifiedAt = null;
+      }
 
       const formatDT = (d: Date | null | undefined) =>
         d

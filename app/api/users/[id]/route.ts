@@ -35,6 +35,46 @@ export async function PUT(
       if (dept) deptName = dept.name;
     }
 
+    let newOrder: number | undefined = undefined;
+    if (order !== undefined && order !== null && !isNaN(Number(order))) {
+      newOrder = Math.max(0, Number(order));
+      const oldOrder = targetUser.order ?? 0;
+
+      if (newOrder !== oldOrder && targetUser.companyId) {
+        if (newOrder < oldOrder) {
+          // Moving up in seniority (e.g. from #5 to #1): shift members in [newOrder, oldOrder - 1] down (+1)
+          await prisma.user.updateMany({
+            where: {
+              companyId: targetUser.companyId,
+              id: { not: id },
+              order: {
+                gte: newOrder,
+                lt: oldOrder,
+              },
+            },
+            data: {
+              order: { increment: 1 },
+            },
+          });
+        } else {
+          // Moving down in seniority (e.g. from #1 to #5): shift members in [oldOrder + 1, newOrder] up (-1)
+          await prisma.user.updateMany({
+            where: {
+              companyId: targetUser.companyId,
+              id: { not: id },
+              order: {
+                gt: oldOrder,
+                lte: newOrder,
+              },
+            },
+            data: {
+              order: { decrement: 1 },
+            },
+          });
+        }
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
@@ -45,7 +85,7 @@ export async function PUT(
         ...(departmentId !== undefined ? { departmentId: departmentId || null } : {}),
         ...(shiftId !== undefined ? { shiftId: shiftId || null } : {}),
         ...(phone !== undefined ? { phone: phone ? phone.trim() : null } : {}),
-        ...(order !== undefined ? { order: Number(order) } : {}),
+        ...(newOrder !== undefined ? { order: newOrder } : {}),
         department: deptName,
       },
       select: {
@@ -101,11 +141,24 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Delete user's comments and reassign/delete tasks
+    // Delete user's comments and reassign/delete tasks, then close the order gap
     await prisma.$transaction([
       prisma.comment.deleteMany({ where: { authorId: id } }),
       prisma.task.deleteMany({ where: { assigneeId: id } }),
       prisma.user.delete({ where: { id } }),
+      ...(targetUser.companyId
+        ? [
+            prisma.user.updateMany({
+              where: {
+                companyId: targetUser.companyId,
+                order: { gt: targetUser.order },
+              },
+              data: {
+                order: { decrement: 1 },
+              },
+            }),
+          ]
+        : []),
     ]);
 
     return NextResponse.json({ success: true, message: "User deleted successfully." });

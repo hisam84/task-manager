@@ -170,7 +170,12 @@ export default function ReportsPage() {
                     {employeeMatrix.map((emp: any) => (
                       <tr key={emp.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="p-4 font-semibold text-slate-900 dark:text-white">
-                          <div>{emp.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[10px] font-bold border border-slate-200 dark:border-slate-700">
+                              #{(emp.order !== undefined ? emp.order : 0) + 1}
+                            </span>
+                            <span>{emp.name}</span>
+                          </div>
                           <div className="text-[11px] text-slate-400 font-normal">{emp.email}</div>
                         </td>
                         <td className="p-4">

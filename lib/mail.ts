@@ -781,3 +781,219 @@ export async function sendLeaveDecisionEmail({
     html,
   });
 }
+
+export async function sendTaskOverdueEmail({
+  to,
+  cc,
+  assigneeName,
+  taskTitle,
+  taskDescription,
+  priority,
+  status,
+  dueDate,
+  creatorName,
+  companyName,
+  taskUrl,
+}: {
+  to: string;
+  cc?: string | string[];
+  assigneeName: string;
+  taskTitle: string;
+  taskDescription?: string | null;
+  priority: string;
+  status: string;
+  dueDate: Date | string;
+  creatorName?: string;
+  companyName?: string | null;
+  taskUrl?: string;
+}) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.warn("SMTP credentials not set. Overdue notification email skipped.");
+    return null;
+  }
+
+  const priorityColors: Record<string, { bg: string; text: string; border: string }> = {
+    URGENT: { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
+    HIGH: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+    MEDIUM: { bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" },
+    LOW: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+  };
+
+  const priorityStyle = priorityColors[priority] || priorityColors.MEDIUM;
+
+  let formattedDueDate = "Past due";
+  if (dueDate) {
+    const d = new Date(dueDate);
+    if (!isNaN(d.getTime())) {
+      formattedDueDate = d.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  }
+
+  const targetUrl =
+    taskUrl ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://taskmanager-iit.vercel.app/";
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Task Overdue Alert</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
+          <tr>
+            <td align="center">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border: 1px solid #fee2e2; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(220, 38, 38, 0.08);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 22px 28px; border-bottom: 1px solid #fecaca; background-color: #fff1f2;">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td>
+                          <div style="display: inline-block; width: 28px; height: 28px; line-height: 28px; background-color: #e11d48; border-radius: 6px; text-align: center; color: #ffffff; font-weight: bold; font-size: 13px; margin-right: 8px; vertical-align: middle;">
+                            TM
+                          </div>
+                          <span style="font-size: 16px; font-weight: 700; color: #9f1239; vertical-align: middle; letter-spacing: -0.2px;">
+                            ${companyName ? `${companyName} &bull; ` : ""}Task Manager
+                          </span>
+                        </td>
+                        <td align="right">
+                          <span style="display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; background-color: #ffe4e6; color: #be123c; border: 1px solid #fda4af;">
+                            OVERDUE
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 28px;">
+                    <h2 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #9f1239; letter-spacing: -0.3px;">
+                      ⚠️ Task Overdue Reminder
+                    </h2>
+                    <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;">
+                      Hello <strong>${assigneeName}</strong>,<br>
+                      The deadline for the following task has passed and it is currently marked as <strong>${status}</strong>. Please review and update its progress:
+                    </p>
+
+                    <!-- Task Detail Box -->
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+                      <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 22px;">
+                        ${taskTitle}
+                      </h3>
+
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b; width: 100px;">Deadline:</td>
+                          <td style="padding: 5px 0; color: #b91c1c; font-weight: 700;">
+                            ${formattedDueDate} (Overdue)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Priority:</td>
+                          <td style="padding: 5px 0;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; background-color: ${priorityStyle.bg}; color: ${priorityStyle.text}; border: 1px solid ${priorityStyle.border};">
+                              ${priority}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Current Status:</td>
+                          <td style="padding: 5px 0; color: #334155; font-weight: 600;">
+                            ${status}
+                          </td>
+                        </tr>
+                        ${
+                          creatorName
+                            ? `
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Assigned By:</td>
+                          <td style="padding: 5px 0; color: #334155; font-weight: 500;">
+                            ${creatorName}
+                          </td>
+                        </tr>
+                        `
+                            : ""
+                        }
+                      </table>
+
+                      ${
+                        taskDescription
+                          ? `
+                        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                          <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Description
+                          </div>
+                          <div style="font-size: 13px; line-height: 20px; color: #334155; white-space: pre-line;">
+                            ${taskDescription}
+                          </div>
+                        </div>
+                      `
+                          : ""
+                      }
+                    </div>
+
+                    <!-- CTA Button -->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0 8px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${targetUrl}" target="_blank" style="display: inline-block; background-color: #e11d48; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(225, 29, 72, 0.25);">
+                            View & Complete Task
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 16px 28px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                      &copy; ${new Date().getFullYear()} Task Manager. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const cleanTo = to.trim();
+  console.log(`[Task Overdue Email] Sending alert to ${cleanTo} for overdue task: "${taskTitle}"`);
+
+  const mailOptions: any = {
+    from: smtpFrom,
+    to: cleanTo,
+    subject: `⚠️ [Overdue Alert] ${taskTitle} is past deadline`,
+    text: `Hello ${assigneeName},\n\nThe following task has passed its deadline (${formattedDueDate}) and is still ${status}:\n\nTask: ${taskTitle}\nPriority: ${priority}\nStatus: ${status}\nDue Date: ${formattedDueDate}\n\nPlease view and update it: ${targetUrl}`,
+    html,
+  };
+
+  if (cc) {
+    const cleanCc = Array.isArray(cc) ? cc.join(", ") : cc;
+    if (cleanCc.trim()) mailOptions.cc = cleanCc;
+  }
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`[Task Overdue Email] Alert sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
+  return info;
+}

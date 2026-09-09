@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
 import { sendTaskCreatedEmail } from "@/lib/mail";
+import { checkAndNotifyOverdueTasks } from "@/lib/task-overdue";
 
 export const maxDuration = 15;
 export const dynamic = "force-dynamic";
@@ -83,6 +84,12 @@ export async function GET(req: Request) {
     const hasMore = rows.length > take;
     const tasks = hasMore ? rows.slice(0, take) : rows;
     const nextCursor = hasMore ? tasks[tasks.length - 1]?.id ?? null : null;
+
+    if (targetCompanyId) {
+      checkAndNotifyOverdueTasks(targetCompanyId).catch((err) =>
+        console.error("[Tasks Route] Overdue check background error:", err)
+      );
+    }
 
     return NextResponse.json({ tasks, nextCursor });
   } catch (error) {

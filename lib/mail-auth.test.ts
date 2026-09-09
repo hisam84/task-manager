@@ -69,5 +69,24 @@ describe("task notification email", () => {
     // In test environment without SMTP credentials, returns null safely without throwing
     assert.ok(result === null || typeof result === "object");
   });
+
+  it("executes sendTaskOverdueEmail safely and handles parameters gracefully", async () => {
+    const { sendTaskOverdueEmail } = await import("./mail");
+    const result = await sendTaskOverdueEmail({
+      to: "employee@example.com",
+      cc: "manager@example.com",
+      assigneeName: "Rahim Ahmed",
+      taskTitle: "Database Migration to Production",
+      taskDescription: "Execute Prisma schema push and seed verification",
+      priority: "URGENT",
+      status: "IN_PROGRESS",
+      dueDate: new Date(Date.now() - 3600000),
+      creatorName: "Admin User",
+      companyName: "Tech Corp",
+      taskUrl: "https://taskmanager-iit.vercel.app/",
+    });
+    assert.ok(result === null || typeof result === "object");
+  });
 });
+
 
