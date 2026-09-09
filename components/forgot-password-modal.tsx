@@ -7,13 +7,23 @@ interface ForgotPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBackToLogin: () => void;
+  initialEmail?: string;
+  backButtonLabel?: string;
+  successButtonLabel?: string;
 }
 
 type Step = "REQUEST_OTP" | "VERIFY_AND_RESET" | "SUCCESS";
 
-export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPasswordModalProps) {
+export function ForgotPasswordModal({
+  isOpen,
+  onClose,
+  onBackToLogin,
+  initialEmail = "",
+  backButtonLabel = "Sign In",
+  successButtonLabel = "Sign In Now",
+}: ForgotPasswordModalProps) {
   const [step, setStep] = useState<Step>("REQUEST_OTP");
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState(initialEmail);
   const [emailMasked, setEmailMasked] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -26,7 +36,11 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      if (initialEmail) {
+        setUsernameOrEmail(initialEmail);
+      }
+    } else {
       setStep("REQUEST_OTP");
       setUsernameOrEmail("");
       setEmailMasked("");
@@ -37,7 +51,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
       setError(null);
       setResendCooldown(0);
     }
-  }, [isOpen]);
+  }, [isOpen, initialEmail]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -205,10 +219,10 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                 <button
                   type="button"
                   onClick={onBackToLogin}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-transparent rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  Sign In
+                  {backButtonLabel}
                 </button>
 
                 <button
@@ -403,7 +417,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onBackToLogin }: ForgotPa
                 onClick={onBackToLogin}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all shadow-md shadow-blue-600/20 text-xs"
               >
-                Sign In Now
+                {successButtonLabel}
               </button>
             </div>
           </div>

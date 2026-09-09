@@ -466,13 +466,61 @@ html.light .badge-done {
 }
 
 /* Form controls */
-html.light input,
-html.light select,
+html.light input:not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([type="checkbox"]):not([type="radio"]),
+html.light select:not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-purple"]):not([class*="bg-slate-100"]):not([class*="bg-slate-50"]):not([class*="status-select"]):not([data-status]),
 html.light textarea {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
+
+/* Status Select Dropdowns & Badges in Light Mode */
+html.light select.status-select-present,
+html.light select[data-status="PRESENT"],
+html.light select[class*="bg-emerald"] {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-color: #86efac !important;
+}
+
+html.light select.status-select-late,
+html.light select[data-status="LATE"],
+html.light select[class*="bg-rose"] {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fca5a5 !important;
+}
+
+html.light select.status-select-holiday,
+html.light select[data-status="HOLIDAY"],
+html.light select[class*="bg-amber"] {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+html.light select.status-select-leave,
+html.light select[data-status="LEAVE"],
+html.light select[class*="bg-blue"] {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border-color: #93c5fd !important;
+}
+
+html.light select.status-select-weekend,
+html.light select[data-status="WEEKEND"] {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light select.status-select-absent,
+html.light select[data-status="ABSENT"] {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
 
 html.light input::placeholder,
 html.light textarea::placeholder {

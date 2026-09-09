@@ -15,6 +15,7 @@ const createUserSchema = z.object({
   shiftId: z.string().optional().nullable(),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
   companyId: z.string().optional().nullable(),
+  order: z.number().int().min(0).optional(),
 });
 
 export async function GET(req: Request) {
@@ -55,6 +56,7 @@ export async function GET(req: Request) {
         shift: {
           select: { id: true, name: true, startTime: true, endTime: true },
         },
+        order: true,
         createdAt: true,
         company: {
           select: { id: true, name: true, slug: true },
@@ -69,7 +71,7 @@ export async function GET(req: Request) {
           select: { status: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       take: 100,
     });
 
@@ -132,6 +134,16 @@ export async function POST(req: Request) {
       if (dept) deptName = dept.name;
     }
 
+    let userOrder = data.order;
+    if (userOrder === undefined) {
+      const maxOrderUser = await prisma.user.findFirst({
+        where: { companyId: targetCompanyId },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+      userOrder = (maxOrderUser?.order ?? 0) + 1;
+    }
+
     const newUser = await prisma.user.create({
       data: {
         name: data.name,
@@ -144,6 +156,7 @@ export async function POST(req: Request) {
         shiftId: data.shiftId || null,
         phone: data.phone?.trim() || null,
         companyId: targetCompanyId,
+        order: userOrder,
       },
       select: {
         id: true,
@@ -155,6 +168,7 @@ export async function POST(req: Request) {
         department: true,
         departmentId: true,
         shiftId: true,
+        order: true,
         shift: {
           select: { id: true, name: true, startTime: true, endTime: true },
         },

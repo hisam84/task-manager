@@ -378,8 +378,8 @@ export default function TasksPage() {
                                 }}
                                 className={`border rounded-lg px-2.5 py-1.5 text-[11px] font-medium outline-none cursor-pointer transition-colors ${
                                   isDone
-                                    ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
-                                    : "bg-slate-950 border-slate-800 text-slate-200 hover:border-indigo-500"
+                                    ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-500/40 dark:text-emerald-300 hover:border-emerald-400"
+                                    : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-500"
                                 }`}
                               >
                                 <option value="TODO">To Do</option>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { canAccessTask, canDeleteTask, canViewPenaltyAndOvertime } from "./access";
+import { canAccessTask, canDeleteTask, canViewPenaltyAndOvertime, canAssignTaskToUser } from "./access";
 import type { SessionUser } from "./types";
 
 function user(partial: Partial<SessionUser>): SessionUser {
@@ -89,3 +89,51 @@ describe("canViewPenaltyAndOvertime", () => {
     assert.equal(canViewPenaltyAndOvertime(""), false);
   });
 });
+
+describe("canAssignTaskToUser", () => {
+  it("allows admins and managers to assign to any employee or peer", () => {
+    const admin = { id: "a1", role: "ADMIN", order: 0 };
+    const emp = { id: "e1", role: "EMPLOYEE", order: 5 };
+    assert.equal(canAssignTaskToUser(admin, emp).allowed, true);
+
+    const manager = { id: "m1", role: "MANAGER", order: 2 };
+    assert.equal(canAssignTaskToUser(manager, admin).allowed, true);
+  });
+
+  it("allows employees to assign tasks to themselves", () => {
+    const emp = { id: "e1", role: "EMPLOYEE", order: 3 };
+    assert.equal(canAssignTaskToUser(emp, emp).allowed, true);
+  });
+
+  it("strictly blocks employees from assigning tasks to managers or admins", () => {
+    const emp = { id: "e1", role: "EMPLOYEE", order: 0 };
+    const manager = { id: "m1", role: "MANAGER", order: 5 };
+    const res = canAssignTaskToUser(emp, manager);
+    assert.equal(res.allowed, false);
+    assert.match(res.reason || "", /সিনিয়র/);
+  });
+
+  it("allows senior employee (earlier order) to assign to junior employee (later order)", () => {
+    const seniorEmp = { id: "e1", role: "EMPLOYEE", order: 0 };
+    const juniorEmp = { id: "e2", role: "EMPLOYEE", order: 1 };
+    const res = canAssignTaskToUser(seniorEmp, juniorEmp);
+    assert.equal(res.allowed, true);
+  });
+
+  it("strictly blocks junior employee from assigning to senior employee", () => {
+    const juniorEmp = { id: "e2", role: "EMPLOYEE", order: 3 };
+    const seniorEmp = { id: "e1", role: "EMPLOYEE", order: 1 };
+    const res = canAssignTaskToUser(juniorEmp, seniorEmp);
+    assert.equal(res.allowed, false);
+    assert.match(res.reason || "", /সিনিয়র/);
+  });
+
+  it("blocks employee from assigning to peer with the same order", () => {
+    const empA = { id: "e1", role: "EMPLOYEE", order: 2 };
+    const empB = { id: "e2", role: "EMPLOYEE", order: 2 };
+    const res = canAssignTaskToUser(empA, empB);
+    assert.equal(res.allowed, false);
+    assert.match(res.reason || "", /সমমর্যাদার/);
+  });
+});
+

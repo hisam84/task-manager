@@ -262,48 +262,52 @@ export default function DashboardPage() {
       />
 
       <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between">
-        <div className="p-4 sm:p-6 md:p-8 flex-1">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="p-3.5 sm:p-5 md:p-6 lg:p-8 flex-1">
+          <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-                <LayoutDashboard className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                {isSuperAdmin
-                  ? "Platform Global Dashboard"
-                  : isCompanyAdmin
-                  ? `${currentUser.companyName || "Company"} Admin Dashboard`
-                  : "My Task Progression Workspace"}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-slate-200 dark:border-slate-800">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="truncate">
+                  {isSuperAdmin
+                    ? "Platform Global Dashboard"
+                    : isCompanyAdmin
+                    ? `${currentUser.companyName || "Company"} Admin Dashboard`
+                    : "My Task Progression Workspace"}
+                </span>
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Welcome back, <span className="text-slate-900 dark:text-white font-semibold">{currentUser.name}</span>! Role:{" "}
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-1.5">
+                <span>Welcome back, <strong className="text-slate-900 dark:text-white font-semibold">{currentUser.name}</strong>!</span>
+                <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                <span>Role:{" "}</span>
                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">{currentUser.role}</span>
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full sm:w-auto shrink-0">
               {isSuperAdmin && (
                 <button
                   onClick={() => setIsCreateCompanyOpen(true)}
-                  className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 w-full sm:w-auto cursor-pointer"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-600/25 cursor-pointer"
                 >
-                  <Building2 className="w-4 h-4" />
-                  Create Company
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  <span>Create Company</span>
                 </button>
               )}
 
               <button
                 onClick={() => setIsCreateTaskOpen(true)}
-                className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 w-full sm:w-auto cursor-pointer"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                {isEmployee ? "Create Self Task" : "Create Task"}
+                <Plus className="w-4 h-4 shrink-0" />
+                <span>{isEmployee ? "Create Self Task" : "Create Task"}</span>
               </button>
             </div>
           </div>
 
           {/* Metric Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
             <ProgressCard
               title="Task Completion Rate"
               value={`${metrics.overallCompletionRate || metrics.completionRate || 0}%`}
@@ -332,30 +336,30 @@ export default function DashboardPage() {
           </div>
 
           {/* Donut Chart & Filter Controls */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Status Distribution</h3>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6 items-start">
+            <div className="xl:col-span-1 space-y-3 min-w-0">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Status Distribution</h3>
               <DonutChart items={donutItems} totalLabel="Tasks" />
             </div>
 
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
-                <div className="relative flex-1 max-w-sm">
+            <div className="xl:col-span-2 space-y-3.5 sm:space-y-4 min-w-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
+                <div className="relative flex-1 min-w-[180px]">
                   <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search task title..."
-                    className="w-full min-h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2.5 text-base md:text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors"
+                    className="w-full min-h-10 sm:min-h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="min-h-11 flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-base md:text-xs font-mono text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-10 sm:min-h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="TODO">To Do</option>
@@ -367,7 +371,7 @@ export default function DashboardPage() {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="min-h-11 flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-base md:text-xs font-mono text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="min-h-10 sm:min-h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 outline-none cursor-pointer"
                   >
                     <option value="ALL">All Priorities</option>
                     <option value="URGENT">Urgent</option>
@@ -387,16 +391,16 @@ export default function DashboardPage() {
                 ) : (
                   <>
                     {/* Desktop Table View (hidden on mobile, visible on md and up) */}
-                    <div className="hidden md:block overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs">
+                    <div className="hidden md:block overflow-x-auto table-scroll">
+                      <table className="w-full text-left border-collapse text-xs min-w-[620px]">
                         <thead>
                           <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
-                            <th className="py-3 px-4">Task Title</th>
-                            <th className="py-3 px-4">Status Progression</th>
-                            <th className="py-3 px-4">Priority</th>
-                            <th className="py-3 px-4">Deadline</th>
-                            <th className="py-3 px-4">Assignee</th>
-                            <th className="py-3 px-4 text-right">Details</th>
+                            <th className="py-2.5 px-3 min-w-[140px]">Task Title</th>
+                            <th className="py-2.5 px-2.5 min-w-[125px] whitespace-nowrap">Status Progression</th>
+                            <th className="py-2.5 px-2.5 min-w-[85px] whitespace-nowrap">Priority</th>
+                            <th className="py-2.5 px-2.5 min-w-[115px] whitespace-nowrap">Deadline</th>
+                            <th className="py-2.5 px-2.5 min-w-[110px] whitespace-nowrap">Assignee</th>
+                            <th className="py-2.5 px-3 min-w-[85px] text-right whitespace-nowrap">Details</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
@@ -413,15 +417,17 @@ export default function DashboardPage() {
                                 }`}
                               >
                                 <td
-                                  className={`py-3 px-4 font-semibold transition-colors ${
+                                  className={`py-2.5 px-3 font-semibold transition-colors ${
                                     isDone
                                       ? "text-emerald-700 dark:text-emerald-300 group-hover:text-emerald-800 dark:group-hover:text-emerald-200"
                                       : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                   }`}
                                 >
-                                  {t.title}
+                                  <div className="font-medium line-clamp-1" title={t.title}>
+                                    {t.title}
+                                  </div>
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-2.5 px-2.5 whitespace-nowrap">
                                   <select
                                     value={t.status}
                                     onClick={(e) => e.stopPropagation()}
@@ -429,7 +435,7 @@ export default function DashboardPage() {
                                       e.stopPropagation();
                                       handleQuickStatusChange(t.id, e.target.value);
                                     }}
-                                    className={`border rounded-lg px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer transition-colors ${
+                                    className={`border rounded-lg px-2 py-1 text-[11px] font-semibold outline-none cursor-pointer transition-colors ${
                                       isDone
                                         ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-500/40 dark:text-emerald-300 hover:border-emerald-400"
                                         : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-500"
@@ -441,9 +447,9 @@ export default function DashboardPage() {
                                     <option value="DONE">Completed</option>
                                   </select>
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-2.5 px-2.5 whitespace-nowrap">
                                   <span
-                                    className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                                       t.priority === "URGENT"
                                         ? "bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
                                         : t.priority === "HIGH"
@@ -456,9 +462,9 @@ export default function DashboardPage() {
                                     {t.priority}
                                   </span>
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-2.5 px-2.5 whitespace-nowrap">
                                   {t.dueDate ? (
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300 font-mono bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-300 dark:border-amber-500/20">
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-800 dark:text-amber-300 font-mono bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-500/20">
                                       <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                                       <span>
                                         {new Date(t.dueDate).toLocaleString([], {
@@ -474,25 +480,25 @@ export default function DashboardPage() {
                                     <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">—</span>
                                   )}
                                 </td>
-                                <td className="py-3 px-4 text-slate-800 dark:text-slate-300 font-medium">
-                                  <div className="flex items-center gap-2">
+                                <td className="py-2.5 px-2.5 text-slate-800 dark:text-slate-300 font-medium whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5 max-w-[130px]">
                                     {t.assignee?.avatar ? (
                                       <img
                                         src={t.assignee.avatar}
                                         alt={t.assignee.name || "Assignee"}
-                                        className="w-5 h-5 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0"
+                                        className="w-4 h-4 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0"
                                       />
                                     ) : null}
-                                    <span>{t.assignee?.name || "Unassigned"}</span>
+                                    <span className="truncate text-[11px]">{t.assignee?.name || "Unassigned"}</span>
                                   </div>
                                 </td>
-                                <td className="py-3 px-4 text-right">
+                                <td className="py-2.5 px-3 text-right whitespace-nowrap">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setSelectedTask(t);
                                     }}
-                                    className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-transparent transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-transparent transition-colors cursor-pointer"
                                   >
                                     View / Edit
                                   </button>
@@ -953,6 +959,7 @@ export default function DashboardPage() {
       <ChangePasswordModal
         isOpen={changePasswordOpen}
         onClose={() => setChangePasswordOpen(false)}
+        userEmail={currentUser?.email}
       />
 
       <ApplyLeaveModal

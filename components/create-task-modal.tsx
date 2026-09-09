@@ -8,6 +8,7 @@ interface UserOption {
   name: string;
   email: string;
   role: string;
+  order?: number;
   department?: string | null;
 }
 
@@ -79,11 +80,24 @@ export function CreateTaskModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const finalAssigneeId = isEmployee ? currentUserId || assigneeId : assigneeId;
+    const finalAssigneeId = assigneeId || currentUserId;
 
     if (!title.trim() || !finalAssigneeId) {
       setError("Please provide a task title and select an assignee.");
       return;
+    }
+
+    // Client-side seniority check for employees
+    if (isEmployee && finalAssigneeId !== currentUserId) {
+      const currentEmployee = users.find((u) => u.id === currentUserId);
+      const targetUser = users.find((u) => u.id === finalAssigneeId);
+      const currentOrder = currentEmployee?.order ?? 0;
+      const targetOrder = targetUser?.order ?? 0;
+
+      if (targetUser && (targetUser.role !== "EMPLOYEE" || targetOrder <= currentOrder)) {
+        setError("সিনিয়র কর্মকর্তাদের টাস্ক এসাইন করা যাবে না। আপনি শুধুমাত্র আপনার জুনিয়র সহকর্মীদের টাস্ক এসাইন করতে পারবেন।");
+        return;
+      }
     }
 
     setLoading(true);
@@ -177,24 +191,56 @@ export function CreateTaskModal({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {!isEmployee && (
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Assignee *</label>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer"
-                >
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.role}) — {u.department || "General"}
-                    </option>
-                  ))}
-                </select>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-300">Assignee *</label>
+                {isEmployee && (
+                  <span className="text-[10px] text-amber-400/90 font-medium">
+                    জুনিয়র বা নিজের জন্য
+                  </span>
+                )}
               </div>
-            )}
+              <select
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer"
+              >
+                {users.map((u) => {
+                  const isCurrent = u.id === currentUserId;
+                  const currentEmployee = users.find((cur) => cur.id === currentUserId);
+                  const currentOrder = currentEmployee?.order ?? 0;
+                  const uOrder = u.order ?? 0;
 
-            <div className={isEmployee ? "col-span-2 sm:col-span-1" : ""}>
+                  const isSenior = isEmployee && !isCurrent && (u.role !== "EMPLOYEE" || uOrder <= currentOrder);
+
+                  let label = `${u.name} (${u.role}) — ${u.department || "General"}`;
+                  if (isCurrent) {
+                    label = `${u.name} (You / Self-assigned) #${(u.order ?? 0) + 1}`;
+                  } else if (isEmployee) {
+                    if (isSenior) {
+                      label = `🔒 ${u.name} (Senior / #${uOrder + 1} - Cannot Assign)`;
+                    } else {
+                      label = `👤 ${u.name} (Junior / #${uOrder + 1}) — ${u.department || "General"}`;
+                    }
+                  } else {
+                    label = `${u.name} (#${uOrder + 1} - ${u.role}) — ${u.department || "General"}`;
+                  }
+
+                  return (
+                    <option key={u.id} value={u.id} disabled={isSenior}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+              {isEmployee && (
+                <p className="text-[11px] text-slate-400 mt-1">
+                  💡 অর্ডারে আগের ইমপ্লয়ীরা তাদের জুনিয়র ইমপ্লয়ীদের টাস্ক এসাইন করতে পারবে।
+                </p>
+              )}
+            </div>
+
+            <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">Priority Level</label>
               <select
                 value={priority}

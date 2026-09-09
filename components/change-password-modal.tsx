@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { KeyRound, X, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { ForgotPasswordModal } from "./forgot-password-modal";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userEmail?: string;
 }
 
-export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
+export function ChangePasswordModal({ isOpen, onClose, userEmail }: ChangePasswordModalProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,8 +20,52 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [email, setEmail] = useState(userEmail || "");
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setSuccess(null);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowForgotPassword(false);
+
+      if (!userEmail) {
+        fetch("/api/auth/me")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.user?.email) {
+              setEmail(data.user.email);
+            }
+          })
+          .catch(() => {});
+      } else {
+        setEmail(userEmail);
+      }
+    } else {
+      setShowForgotPassword(false);
+    }
+  }, [isOpen, userEmail]);
 
   if (!isOpen) return null;
+
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => {
+          setShowForgotPassword(false);
+          onClose();
+        }}
+        onBackToLogin={() => setShowForgotPassword(false)}
+        initialEmail={email}
+        backButtonLabel="Back to Change Password"
+        successButtonLabel="Done"
+      />
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +132,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -110,9 +156,18 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         {/* Form */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Current Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Current Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer"
+              >
+                Forgot password?
+              </button>
+            </div>
             <div className="relative">
               <input
                 type={showCurrent ? "text" : "password"}
@@ -182,6 +237,18 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          {/* Forgot password helper */}
+          <div className="pt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+            <span>Forgot current password?</span>{" "}
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer"
+            >
+              Reset with OTP
+            </button>
           </div>
 
           <div className="pt-2 flex justify-end gap-3">

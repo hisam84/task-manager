@@ -739,6 +739,7 @@ export default function ProfilePage() {
       <ChangePasswordModal
         isOpen={changePasswordOpen}
         onClose={() => setChangePasswordOpen(false)}
+        userEmail={profileData?.email || currentUser?.email}
       />
     </div>
   );

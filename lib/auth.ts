@@ -6,7 +6,7 @@ import type { SessionUser } from "@/lib/types";
 
 export type { SessionUser };
 export { sessionCookieOptions, SESSION_COOKIE };
-export { isManagerOrAdmin, canCreateCompany, canAccessTask, canDeleteTask } from "@/lib/access";
+export { isManagerOrAdmin, canCreateCompany, canAccessTask, canDeleteTask, canAssignTaskToUser } from "@/lib/access";
 
 const USER_SESSION_SELECT = {
   id: true,
@@ -18,6 +18,7 @@ const USER_SESSION_SELECT = {
   designation: true,
   department: true,
   phone: true,
+  order: true,
   companyId: true,
   company: {
     select: { id: true, name: true, slug: true, isActive: true },
@@ -64,6 +65,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     companyId: user.companyId,
     companyName: user.company?.name ?? null,
     companySlug: user.company?.slug ?? null,
+    order: user.order ?? 0,
   };
 }
 

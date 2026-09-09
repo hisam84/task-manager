@@ -15,6 +15,7 @@ export interface SessionUser {
   companyId?: string | null;
   companyName?: string | null;
   companySlug?: string | null;
+  order?: number;
 }
 
 export const TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];

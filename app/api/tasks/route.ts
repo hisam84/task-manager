@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
+import { getCurrentUser, isManagerOrAdmin, canAssignTaskToUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
@@ -111,12 +111,11 @@ export async function POST(req: Request) {
     }
 
     const isManager = isManagerOrAdmin(user.role);
-    // If not manager, forced self-assignment
-    const finalAssigneeId = isManager ? data.assigneeId || user.id : user.id;
+    const finalAssigneeId = data.assigneeId || user.id;
 
     const assignee = await prisma.user.findUnique({
       where: { id: finalAssigneeId },
-      select: { id: true, name: true, email: true, companyId: true },
+      select: { id: true, name: true, email: true, role: true, order: true, companyId: true },
     });
 
     if (!assignee) {
@@ -125,6 +124,11 @@ export async function POST(req: Request) {
 
     if (assignee.companyId !== targetCompanyId) {
       return jsonError("Assignee must belong to your company", 403);
+    }
+
+    const assignmentCheck = canAssignTaskToUser(user, assignee);
+    if (!assignmentCheck.allowed) {
+      return jsonError(assignmentCheck.reason || "Assignment forbidden", 403);
     }
 
     const task = await prisma.task.create({

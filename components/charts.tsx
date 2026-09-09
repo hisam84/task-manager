@@ -34,16 +34,17 @@ export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProp
     const [endX, endY] = getCoordinatesForPercent(endPercent);
     const largeArcFlag = percent > 0.5 ? 1 : 0;
 
-    const pathData = total > 0 && percent > 0
-      ? `M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`
-      : "";
+    const pathData =
+      total > 0 && percent > 0
+        ? `M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`
+        : "";
 
     return { ...item, percent, pathData };
   });
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-6 p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none">
-      <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
+    <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center justify-center gap-5 sm:gap-6 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none w-full min-w-0">
+      <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
         <svg viewBox="-1.1 -1.1 2.2 2.2" className="w-full h-full -rotate-90 transform">
           {slices.map((slice, i) =>
             slice.pathData ? (
@@ -68,16 +69,16 @@ export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProp
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 flex-1 w-full">
+      <div className="flex flex-col gap-2 flex-1 w-full min-w-0">
         {items.map((item, idx) => {
           const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
           return (
-            <div key={idx} className="flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="text-slate-700 dark:text-slate-300 font-medium">{item.label}</span>
+            <div key={idx} className="flex items-center justify-between gap-2 text-xs py-0.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{item.label}</span>
               </div>
-              <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-200">
+              <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200 shrink-0 text-xs">
                 <span>{item.count}</span>
                 <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">({pct}%)</span>
               </div>
@@ -106,10 +107,10 @@ export function WorkloadBarChart({ data }: WorkloadBarChartProps) {
   const maxVal = Math.max(...data.map((d) => d.total), 1);
 
   return (
-    <div className="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none min-w-0">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Employee Task Distribution</h3>
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-3 text-xs flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
             <span className="text-slate-500 dark:text-slate-400 font-medium">Completed</span>
@@ -193,36 +194,51 @@ export function ProgressCard({
       ? "#f59e0b"
       : color === "rose"
       ? "#f43f5e"
+      : color === "purple"
+      ? "#a855f7"
       : "#6366f1";
 
+  const cleanPercentage =
+    percentage !== undefined ? Math.min(Math.max(Math.round(percentage), 0), 100) : undefined;
+
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none flex items-center justify-between gap-4">
-      <div className="flex flex-col">
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</span>
-        <span className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</span>
-        {subtitle && <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{subtitle}</span>}
+    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none flex items-center justify-between gap-3 min-w-0">
+      <div className="flex flex-col min-w-0">
+        <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" title={title}>
+          {title}
+        </span>
+        <span className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 truncate">
+          {value}
+        </span>
+        {subtitle && (
+          <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+            {subtitle}
+          </span>
+        )}
       </div>
 
-      {percentage !== undefined && (
-        <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
+      {cleanPercentage !== undefined && (
+        <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
             <path
-              className="text-slate-200 dark:text-slate-800"
-              strokeWidth="3.5"
-              stroke="currentColor"
+              className="stroke-slate-200 dark:stroke-slate-800"
+              strokeWidth="3.2"
               fill="none"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              strokeWidth="3.5"
-              strokeDasharray={`${percentage}, 100`}
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              strokeWidth="3.2"
+              strokeDasharray={`${cleanPercentage}, 100`}
               strokeLinecap="round"
               stroke={strokeColor}
               fill="none"
               className="transition-all duration-1000 ease-out"
             />
           </svg>
-          <span className="absolute text-xs font-bold text-slate-900 dark:text-white">{percentage}%</span>
+          <span className="absolute text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white">
+            {cleanPercentage}%
+          </span>
         </div>
       )}
     </div>

@@ -54,4 +54,5 @@ export const USER_PUBLIC_SELECT = {
   department: true,
   createdAt: true,
   companyId: true,
+  order: true,
 } as const;

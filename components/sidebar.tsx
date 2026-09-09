@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   ListTodo,
@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   Briefcase,
   Layers,
@@ -24,6 +25,9 @@ import {
   Edit3,
   Sun,
   Moon,
+  Coffee,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { EditProfileModal } from "@/components/edit-profile-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -64,6 +68,55 @@ export function Sidebar({
   const isCompanyAdmin = user.role === "ADMIN" || user.role === "MANAGER";
   const isEmployee = user.role === "EMPLOYEE";
 
+  const searchParams = useSearchParams();
+  const currentAction = searchParams?.get("action") ?? null;
+  const isAttendanceActive = pathname === "/attendance";
+  const [attendanceOpen, setAttendanceOpen] = useState(isAttendanceActive);
+
+  React.useEffect(() => {
+    if (pathname === "/attendance") {
+      setAttendanceOpen(true);
+    }
+  }, [pathname]);
+
+  const attendanceSubItems = [
+    {
+      label: "Attendance Sheet",
+      href: "/attendance",
+      icon: CalendarCheck2,
+      show: true,
+      action: null,
+    },
+    {
+      label: "Apply Leave",
+      href: "/attendance?action=apply-leave",
+      icon: Coffee,
+      show: true,
+      action: "apply-leave",
+    },
+    {
+      label: isCompanyAdmin ? "Leave Requests" : "My Leaves",
+      href: "/attendance?action=leave-requests",
+      icon: Calendar,
+      show: true,
+      action: "leave-requests",
+    },
+    {
+      label: "Manage Shifts",
+      href: "/attendance?action=shifts",
+      icon: Clock,
+      show: isCompanyAdmin,
+      action: "shifts",
+    },
+    {
+      label: "Holidays",
+      href: "/attendance?action=holidays",
+      icon: Calendar,
+      show: isCompanyAdmin,
+      action: "holidays",
+    },
+  ].filter((item) => item.show);
+
   const navItems = isSuperAdmin
     ? [
         {
@@ -81,7 +134,7 @@ export function Sidebar({
           show: true,
         },
         {
-          label: "Attendance Sheet",
+          label: "Attendance",
           href: "/attendance",
           icon: CalendarCheck2,
           show: true,
@@ -172,6 +225,110 @@ export function Sidebar({
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
         {navItems.map((item) => {
+          if (item.href === "/attendance") {
+            if (!showLabels) {
+              return (
+                <Link
+                  key={item.href}
+                  href="/attendance"
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center justify-center min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                    isAttendanceActive
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                  }`}
+                  title="Attendance Sheet & Leaves"
+                >
+                  <CalendarCheck2 className={`w-5 h-5 shrink-0 ${isAttendanceActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} />
+                </Link>
+              );
+            }
+
+            return (
+              <div key="attendance-dropdown" className="space-y-1">
+                <div
+                  className={`flex items-center justify-between px-3 min-h-11 py-2 rounded-xl font-medium text-sm transition-all duration-150 select-none cursor-pointer group ${
+                    isAttendanceActive && !currentAction
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
+                      : isAttendanceActive
+                      ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800/40"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                  }`}
+                  onClick={() => setAttendanceOpen(!attendanceOpen)}
+                >
+                  <Link
+                    href="/attendance"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAttendanceOpen(true);
+                      setMobileOpen(false);
+                    }}
+                    className="flex items-center gap-3 flex-1 min-w-0 py-0.5"
+                  >
+                    <CalendarCheck2
+                      className={`w-5 h-5 shrink-0 ${
+                        isAttendanceActive
+                          ? isAttendanceActive && !currentAction
+                            ? "text-white"
+                            : "text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                      }`}
+                    />
+                    <span className="truncate">Attendance</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAttendanceOpen(!attendanceOpen);
+                    }}
+                    className="p-1 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors ml-1"
+                    title={attendanceOpen ? "Collapse Attendance menu" : "Expand Attendance menu"}
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        attendanceOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Submenu Items */}
+                {attendanceOpen && (
+                  <div className="ml-3 pl-3.5 border-l-2 border-indigo-500/30 dark:border-indigo-500/25 space-y-1 py-1">
+                    {attendanceSubItems.map((sub) => {
+                      const isSubActive =
+                        isAttendanceActive &&
+                        ((!sub.action && !currentAction) || currentAction === sub.action);
+                      const SubIcon = sub.icon;
+
+                      return (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            isSubActive
+                              ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                          }`}
+                        >
+                          <SubIcon
+                            className={`w-3.5 h-3.5 shrink-0 ${
+                              isSubActive ? "text-white" : "text-slate-400"
+                            }`}
+                          />
+                          <span className="truncate">{sub.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
@@ -186,7 +343,13 @@ export function Sidebar({
               } ${showLabels ? "" : "justify-center px-0"}`}
               title={showLabels ? undefined : item.label}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} />
+              <Icon
+                className={`w-5 h-5 shrink-0 ${
+                  isActive
+                    ? "text-white"
+                    : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                }`}
+              />
               {showLabels && <span>{item.label}</span>}
             </Link>
           );

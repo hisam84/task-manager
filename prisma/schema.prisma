@@ -51,6 +51,7 @@ model User {
   designation  String?
   department   String?
   phone        String?
+  order        Int      @default(0)
   createdAt    DateTime @default(now())
 
   companyId String?
@@ -72,6 +73,7 @@ model User {
   @@index([companyId])
   @@index([departmentId])
   @@index([shiftId])
+  @@index([companyId, order])
 }
 
 model Task {

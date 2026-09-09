@@ -20,12 +20,16 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  ChevronUp,
+  ChevronDown,
   SlidersHorizontal,
   Phone,
+  CheckCircle2,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
 type SortOption =
+  | "order-asc"
   | "newest"
   | "oldest"
   | "name-asc"
@@ -42,7 +46,9 @@ export default function TeamPage() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("order-asc");
+  const [reordering, setReordering] = useState(false);
+  const [reorderSuccess, setReorderSuccess] = useState(false);
 
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
@@ -51,6 +57,8 @@ export default function TeamPage() {
   const [resetTargetUser, setResetTargetUser] = useState<any | null>(null);
 
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+
+  const canManageOrder = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "MANAGER";
 
   useEffect(() => {
     fetchSessionAndTeamData();
@@ -97,6 +105,56 @@ export default function TeamPage() {
     window.location.href = "/";
   };
 
+  const handleMoveEmployee = async (currentIndex: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= filteredAndSortedEmployees.length) return;
+
+    const itemA = filteredAndSortedEmployees[currentIndex];
+    const itemB = filteredAndSortedEmployees[targetIndex];
+    if (!itemA || !itemB) return;
+
+    // Get a sorted copy of all employees by order
+    const sortedList = [...employees].sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+    const idxA = sortedList.findIndex((e) => e.id === itemA.id);
+    const idxB = sortedList.findIndex((e) => e.id === itemB.id);
+    if (idxA === -1 || idxB === -1) return;
+
+    // Swap in array
+    const temp = sortedList[idxA];
+    sortedList[idxA] = sortedList[idxB];
+    sortedList[idxB] = temp;
+
+    // Assign sequential orders
+    const updatedWithOrders = sortedList.map((emp, idx) => ({
+      ...emp,
+      order: idx,
+    }));
+
+    setEmployees(updatedWithOrders);
+    setReordering(true);
+
+    try {
+      const res = await fetch("/api/users/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orders: updatedWithOrders.map((emp) => ({ id: emp.id, order: emp.order })),
+        }),
+      });
+      if (res.ok) {
+        setReorderSuccess(true);
+        setTimeout(() => setReorderSuccess(false), 2000);
+      } else {
+        fetchSessionAndTeamData();
+      }
+    } catch (err) {
+      console.error("Reorder failed:", err);
+      fetchSessionAndTeamData();
+    } finally {
+      setReordering(false);
+    }
+  };
+
   const filteredAndSortedEmployees = useMemo(() => {
     const query = search.toLowerCase().trim();
     const result = employees.filter(
@@ -118,6 +176,11 @@ export default function TeamPage() {
     };
 
     result.sort((a, b) => {
+      if (sortBy === "order-asc") {
+        const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+        if (orderDiff !== 0) return orderDiff;
+        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      }
       if (sortBy === "newest") {
         return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       }
@@ -218,7 +281,19 @@ export default function TeamPage() {
             </div>
 
             {/* Order / Sort Selector */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              {reordering && (
+                <span className="inline-flex items-center gap-1 text-xs text-amber-400 font-medium animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  অর্ডার সেভ হচ্ছে...
+                </span>
+              )}
+              {reorderSuccess && (
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  অর্ডার সেভ হয়েছে!
+                </span>
+              )}
               <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="text-slate-400 font-medium whitespace-nowrap">Order by:</span>
@@ -227,6 +302,7 @@ export default function TeamPage() {
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="bg-transparent border-none text-xs font-semibold text-slate-200 outline-none cursor-pointer focus:ring-0 [&>option]:bg-slate-900 [&>option]:text-slate-200"
                 >
+                  <option value="order-asc">Seniority / Hierarchy Order (#1 First)</option>
                   <option value="newest">Newest Added First</option>
                   <option value="oldest">Oldest First</option>
                   <option value="name-asc">Name (A → Z)</option>
@@ -245,14 +321,14 @@ export default function TeamPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/50 text-slate-700 dark:text-slate-400 font-semibold select-none">
-                  <th className="p-4 w-14 text-center">
+                  <th className="p-4 w-28 text-center">
                     <button
                       type="button"
-                      onClick={() => setSortBy(sortBy === "newest" ? "oldest" : "newest")}
+                      onClick={() => setSortBy(sortBy === "order-asc" ? "newest" : "order-asc")}
                       className="inline-flex items-center justify-center gap-1 text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors font-semibold"
-                      title="Sort by Registration Order"
+                      title="Sort by Seniority / Hierarchy Order"
                     >
-                      <span>#</span>
+                      <span>Seniority (#)</span>
                       <ArrowUpDown className="w-3 h-3 text-slate-500" />
                     </button>
                   </th>
@@ -331,9 +407,40 @@ export default function TeamPage() {
                   filteredAndSortedEmployees.map((emp, index) => (
                     <tr key={emp.id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="p-4 text-center">
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-semibold">
-                          {index + 1}
-                        </span>
+                        <div className="flex items-center justify-center gap-1.5">
+                          {canManageOrder && sortBy === "order-asc" && !search && (
+                            <div className="flex flex-col items-center">
+                              <button
+                                type="button"
+                                disabled={index === 0 || reordering}
+                                onClick={() => handleMoveEmployee(index, "up")}
+                                className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                                title="Move Up (Higher Seniority)"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === filteredAndSortedEmployees.length - 1 || reordering}
+                                onClick={() => handleMoveEmployee(index, "down")}
+                                className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                                title="Move Down (Junior)"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex flex-col items-center">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[11px] font-bold border border-slate-200 dark:border-slate-700">
+                              #{(emp.order !== undefined ? emp.order : index) + 1}
+                            </span>
+                            {index === 0 && sortBy === "order-asc" && (
+                              <span className="text-[9px] text-emerald-400 font-semibold uppercase tracking-wider">
+                                Top
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="p-4 font-medium">
                         <div className="flex items-center gap-3">

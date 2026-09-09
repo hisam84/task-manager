@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canAccessTask, canDeleteTask, getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
+import { canAccessTask, canDeleteTask, getCurrentUser, isManagerOrAdmin, canAssignTaskToUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
@@ -154,10 +154,14 @@ export async function PATCH(
     }
 
     let newlyAssignedUser: { name: string; email: string } | null = null;
-    if (manager && data.assigneeId && data.assigneeId !== existingTask.assigneeId) {
+    if (data.assigneeId && data.assigneeId !== existingTask.assigneeId) {
+      if (!manager && existingTask.creatorId !== user.id) {
+        return jsonError("Forbidden: Only managers or the task creator can reassign this task", 403);
+      }
+
       const assignee = await prisma.user.findUnique({
         where: { id: data.assigneeId },
-        select: { id: true, name: true, email: true, companyId: true },
+        select: { id: true, name: true, email: true, role: true, order: true, companyId: true },
       });
       if (!assignee) {
         return jsonError("Assignee not found", 400);
@@ -165,6 +169,12 @@ export async function PATCH(
       if (user.role !== "SUPER_ADMIN" && assignee.companyId !== existingTask.companyId) {
         return jsonError("Assignee must belong to the same company", 403);
       }
+
+      const assignmentCheck = canAssignTaskToUser(user, assignee);
+      if (!assignmentCheck.allowed) {
+        return jsonError(assignmentCheck.reason || "Assignment forbidden", 403);
+      }
+
       updateData.assignee = { connect: { id: data.assigneeId } };
       newlyAssignedUser = { name: assignee.name, email: assignee.email };
     } else if (manager && data.assigneeId) {
