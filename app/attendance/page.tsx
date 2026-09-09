@@ -757,88 +757,91 @@ export default function AttendancePage() {
           </div>
 
           {/* Summary Metric Cards */}
+          {/* Summary Cards */}
           {liveSummary && (
             <div
               className={`grid gap-3 ${
                 enableLatePenalty && canViewFines
-                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
                   : canViewFines
-                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
-                  : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4"
+                  ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6"
+                  : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
               }`}
             >
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Days in Month</span>
-                <span className="text-xl font-bold text-slate-100 mt-1 block">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Days in Month</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1 block">
                   {liveSummary.totalDays}
                 </span>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
                   {liveSummary.weekendCount} Weekends
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <span className="text-xs text-emerald-400 block font-medium">Present Days</span>
-                <span className="text-xl font-bold text-emerald-400 mt-1 block">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 block font-medium">Present Days</span>
+                <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">
                   {liveSummary.presentCount}
                 </span>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
                   {liveSummary.absentCount} Absent
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <span className="text-xs text-rose-400 block font-medium">Late Days</span>
-                <span className="text-xl font-bold text-rose-400 mt-1 block">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <span className="text-xs text-rose-600 dark:text-rose-400 block font-medium">Late Days</span>
+                <span className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1 block">
                   {liveSummary.lateCount}
                 </span>
-                <span className="text-[11px] text-rose-400/80 mt-0.5 block font-mono">
+                <span className="text-[11px] text-rose-600/80 dark:text-rose-400/80 mt-0.5 block font-mono">
                   {liveSummary.totalLateMinutes} min total
                 </span>
               </div>
 
               {enableLatePenalty && canViewFines && (
-                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-lg shadow-rose-950/20">
-                  <span className="text-xs text-rose-300 block font-medium">Total Late Fine</span>
-                  <span className="text-xl font-bold text-rose-400 mt-1 block">
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 shadow-xs">
+                  <span className="text-xs text-rose-700 dark:text-rose-300 block font-medium">Total Late Fine</span>
+                  <span className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1 block">
                     ৳ {liveSummary.totalLatePenalty}
                   </span>
-                  <span className="text-[10px] text-rose-300/70 mt-0.5 block">
+                  <span className="text-[10px] text-rose-600/70 dark:text-rose-300/70 mt-0.5 block">
                     Calculated penalty
                   </span>
                 </div>
               )}
 
               {canViewFines && (
-                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-                  <span className="text-xs text-indigo-300 block font-medium">Overtime</span>
-                  <span className="text-xl font-bold text-indigo-400 mt-1 block">
+                <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 shadow-xs">
+                  <span className="text-xs text-indigo-700 dark:text-indigo-300 block font-medium">Overtime</span>
+                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-1 block">
                     {formatMinutes(liveSummary.totalOvertimeMinutes)}
                   </span>
-                  <span className="text-[10px] text-indigo-300/70 mt-0.5 block">
+                  <span className="text-[10px] text-indigo-600/70 dark:text-indigo-300/70 mt-0.5 block">
                     Approved extra time
                   </span>
                 </div>
               )}
 
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Holidays & Leaves</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-xl font-bold text-amber-400">
-                    {liveSummary.holidayCount}
-                  </span>
-                  <span className="text-xs text-slate-400">Holidays</span>
-                  {(liveSummary.leaveCount || 0) > 0 && (
-                    <>
-                      <span className="text-slate-600">/</span>
-                      <span className="text-xl font-bold text-blue-400">
-                        {liveSummary.leaveCount}
-                      </span>
-                      <span className="text-xs text-slate-400">Leaves</span>
-                    </>
-                  )}
-                </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">Company Holidays & Leaves</span>
+              {/* SEPARATE HOLIDAYS CARD */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <span className="text-xs text-amber-600 dark:text-amber-400 block font-medium">Holidays</span>
+                <span className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1 block">
+                  {liveSummary.holidayCount}
+                </span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
+                  Company & Public Holidays
+                </span>
+              </div>
+
+              {/* SEPARATE LEAVES CARD */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <span className="text-xs text-blue-600 dark:text-blue-400 block font-medium">Leaves</span>
+                <span className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 block">
+                  {liveSummary.leaveCount || 0}
+                </span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
+                  Approved Employee Leaves
+                </span>
               </div>
             </div>
           )}
@@ -947,32 +950,37 @@ export default function AttendancePage() {
                           key={date}
                           className={`hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors ${
                             isToday
-                              ? "bg-indigo-950/20 ring-1 ring-inset ring-indigo-500/30"
+                              ? "bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-inset ring-indigo-500/30"
                               : isHoliday
-                              ? "bg-amber-950/10"
+                              ? "bg-amber-50/50 dark:bg-amber-950/20"
                               : isLeave
-                              ? "bg-blue-950/10"
+                              ? "bg-blue-50/50 dark:bg-blue-950/20"
                               : isWeekend
-                              ? "bg-slate-950/40"
+                              ? "bg-slate-100/50 dark:bg-slate-950/40"
                               : ""
                           }`}
                         >
                           {/* Date & Day */}
                           <td className="py-2.5 px-4">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-100 font-mono text-sm">
+                              <span className="font-bold text-slate-800 dark:text-slate-100 font-mono text-sm">
                                 {String(record.day).padStart(2, "0")}
                               </span>
                               <div>
-                                <span className="font-medium text-slate-300 block">{dayName}</span>
+                                <span className="font-medium text-slate-700 dark:text-slate-300 block">{dayName}</span>
                                 {record.holidayName && (
-                                  <span className="text-[10px] text-amber-400 block">
+                                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block">
                                     {record.holidayName}
+                                  </span>
+                                )}
+                                {!record.holidayName && isLeave && (
+                                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold block">
+                                    Approved Leave
                                   </span>
                                 )}
                               </div>
                               {isToday && (
-                                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                                   Today
                                 </span>
                               )}
@@ -987,38 +995,38 @@ export default function AttendancePage() {
                                 onChange={(e) => handleStatusChange(date, e.target.value)}
                                 className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border focus:outline-none transition-colors cursor-pointer ${
                                   effectiveStatus === "PRESENT"
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
                                     : effectiveStatus === "LATE" || currentLateMin > 15
-                                    ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30"
                                     : effectiveStatus === "HOLIDAY"
-                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
                                     : effectiveStatus === "LEAVE"
-                                    ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
                                     : effectiveStatus === "WEEKEND"
-                                    ? "bg-slate-800 text-slate-400 border-slate-700"
-                                    : "bg-slate-900 text-slate-400 border-slate-800"
+                                    ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
                                 }`}
                               >
-                                <option value="PRESENT" className="bg-slate-900 text-white">Present</option>
-                                <option value="LATE" className="bg-slate-900 text-white">Late</option>
-                                <option value="ABSENT" className="bg-slate-900 text-white">Absent</option>
-                                <option value="LEAVE" className="bg-slate-900 text-white">Leave</option>
-                                <option value="HOLIDAY" className="bg-slate-900 text-white">Holiday</option>
+                                <option value="PRESENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Present</option>
+                                <option value="LATE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Late</option>
+                                <option value="ABSENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Absent</option>
+                                <option value="LEAVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Leave</option>
+                                <option value="HOLIDAY" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Holiday</option>
                               </select>
                             ) : (
                               <span
                                 className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                                   effectiveStatus === "PRESENT"
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                                     : effectiveStatus === "LATE" || currentLateMin > 15
-                                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
                                     : effectiveStatus === "HOLIDAY"
-                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                                     : effectiveStatus === "LEAVE"
-                                    ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
                                     : effectiveStatus === "WEEKEND"
-                                    ? "bg-slate-800 text-slate-400 border-slate-700"
-                                    : "bg-slate-900 text-slate-500 border-slate-800"
+                                    ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800"
                                 }`}
                               >
                                 {effectiveStatus === "HOLIDAY" || record.isHoliday
@@ -1044,7 +1052,7 @@ export default function AttendancePage() {
                               disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "inTime", e.target.value)}
                               onBlur={() => handleTimeBlur(date)}
-                              className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
+                              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
                           </td>
 
@@ -1056,12 +1064,12 @@ export default function AttendancePage() {
                               disabled={isHoliday || isLeave}
                               onChange={(e) => handleRowTimeChange(date, "outTime", e.target.value)}
                               onBlur={() => handleTimeBlur(date)}
-                              className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
+                              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 disabled:opacity-40"
                             />
                           </td>
 
                           {/* Work Duration */}
-                          <td className="py-2.5 px-3 text-center font-mono text-slate-300">
+                          <td className="py-2.5 px-3 text-center font-mono text-slate-700 dark:text-slate-300">
                             {currentWorkMin > 0 ? formatMinutes(currentWorkMin) : "-"}
                           </td>
 
@@ -1070,13 +1078,13 @@ export default function AttendancePage() {
                             {currentLateMin > 0 ? (
                               <span
                                 className={`font-semibold font-mono ${
-                                  currentLateMin > 15 ? "text-rose-400" : "text-slate-400"
+                                  currentLateMin > 15 ? "text-rose-600 dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
                                 }`}
                               >
                                 +{currentLateMin}m
                               </span>
                             ) : (
-                              <span className="text-slate-600">-</span>
+                              <span className="text-slate-400 dark:text-slate-600">-</span>
                             )}
                           </td>
 
@@ -1084,11 +1092,11 @@ export default function AttendancePage() {
                           {enableLatePenalty && canViewFines && (
                             <td className="py-2.5 px-3 text-center font-bold">
                               {currentPenalty > 0 ? (
-                                <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
+                                <span className="text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
                                   ৳ {currentPenalty}
                                 </span>
                               ) : (
-                                <span className="text-slate-600 font-normal">-</span>
+                                <span className="text-slate-400 dark:text-slate-600 font-normal">-</span>
                               )}
                             </td>
                           )}
@@ -1097,11 +1105,11 @@ export default function AttendancePage() {
                           {canViewFines && (
                             <td className="py-2.5 px-3 text-center font-mono">
                               {currentOvertime > 0 ? (
-                                <span className="text-indigo-400 font-semibold">
+                                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
                                   +{formatMinutes(currentOvertime)}
                                 </span>
                               ) : (
-                                <span className="text-slate-600">-</span>
+                                <span className="text-slate-400 dark:text-slate-600">-</span>
                               )}
                             </td>
                           )}
@@ -1111,34 +1119,57 @@ export default function AttendancePage() {
                             <div className="flex items-center justify-end gap-2">
                               {/* Auto-Save Live Feedback */}
                               {isSaving ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] text-indigo-400 font-medium animate-pulse">
+                                <span className="inline-flex items-center gap-1 text-[11px] text-indigo-500 dark:text-indigo-400 font-medium animate-pulse">
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                   Saving...
                                 </span>
                               ) : isSaved ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-medium animate-fadeIn">
-                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium animate-fadeIn">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                   Saved
                                 </span>
                               ) : null}
 
                               {isCompanyAdminOrManager && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedHolidayDate(date);
-                                    setHolidayModalOpen(true);
-                                  }}
-                                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
-                                    isHoliday
-                                      ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
-                                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
-                                  }`}
-                                  title={isHoliday ? "Manage holiday" : "Add holiday on this date"}
-                                >
-                                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                                  {isHoliday ? "Holiday" : "+ Holiday"}
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                  {/* Dedicated Leave Toggle Action */}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleStatusChange(
+                                        date,
+                                        isLeave ? (rowState.inTime ? "PRESENT" : "ABSENT") : "LEAVE"
+                                      )
+                                    }
+                                    className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                                      isLeave
+                                        ? "bg-blue-500/20 text-blue-600 dark:text-blue-300 hover:bg-blue-500/30 border border-blue-300 dark:border-blue-500/30"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
+                                    }`}
+                                    title={isLeave ? "Remove leave status" : "Mark employee on leave"}
+                                  >
+                                    <Coffee className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+                                    <span>{isLeave ? "Leave" : "+ Leave"}</span>
+                                  </button>
+
+                                  {/* Dedicated Holiday Action */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedHolidayDate(date);
+                                      setHolidayModalOpen(true);
+                                    }}
+                                    className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                                      isHoliday
+                                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 hover:bg-amber-500/30 border border-amber-300 dark:border-amber-500/30"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
+                                    }`}
+                                    title={isHoliday ? "Manage company holiday" : "Add company holiday on this date"}
+                                  >
+                                    <Calendar className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                                    <span>{isHoliday ? "Holiday" : "+ Holiday"}</span>
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </td>

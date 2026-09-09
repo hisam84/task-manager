@@ -317,10 +317,10 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
             <div
               className={`grid gap-1.5 mb-2 print:mb-1.5 text-center ${
                 showPenalty && showOvertime
-                  ? "grid-cols-3 sm:grid-cols-6"
+                  ? "grid-cols-4 sm:grid-cols-8"
                   : showPenalty || showOvertime
-                  ? "grid-cols-2 sm:grid-cols-5"
-                  : "grid-cols-2 sm:grid-cols-4"
+                  ? "grid-cols-3 sm:grid-cols-7"
+                  : "grid-cols-3 sm:grid-cols-6"
               }`}
             >
               <div className="p-1.5 print:p-1 rounded border border-slate-200 bg-slate-50">
@@ -351,6 +351,16 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                   <span className="text-sm print:text-xs font-bold text-indigo-800">{formatMinutes(summary.totalOvertimeMinutes)}</span>
                 </div>
               )}
+              {/* Separate Holidays KPI */}
+              <div className="p-1.5 print:p-1 rounded border border-amber-300 bg-amber-50/60">
+                <span className="block text-[9px] print:text-[8px] uppercase font-bold text-amber-700">Holidays</span>
+                <span className="text-sm print:text-xs font-bold text-amber-800">{summary.holidayCount}</span>
+              </div>
+              {/* Separate Leaves KPI */}
+              <div className="p-1.5 print:p-1 rounded border border-blue-300 bg-blue-50/60">
+                <span className="block text-[9px] print:text-[8px] uppercase font-bold text-blue-700">Leaves</span>
+                <span className="text-sm print:text-xs font-bold text-blue-800">{summary.leaveCount || 0}</span>
+              </div>
             </div>
 
             {/* Attendance & Penalty Table */}
@@ -377,19 +387,34 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                     const dayName = dayNames[r.dayOfWeek];
                     const isLate = r.status === "LATE" || r.lateMinutes > 15;
                     const hasFine = showPenalty && r.latePenalty > 0;
+                    const isHoliday = r.status === "HOLIDAY" || r.isHoliday;
+                    const isLeave = r.status === "LEAVE" || r.isLeave;
 
                     return (
                       <tr
                         key={r.date}
                         className={`hover:bg-slate-50 leading-tight ${
-                          hasFine ? "bg-rose-50/40" : r.isWeekend || r.isHoliday ? "bg-slate-50/60" : ""
+                          hasFine
+                            ? "bg-rose-50/40"
+                            : isHoliday
+                            ? "bg-amber-50/60"
+                            : isLeave
+                            ? "bg-blue-50/60"
+                            : r.isWeekend
+                            ? "bg-slate-50/60"
+                            : ""
                         }`}
                       >
                         <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 border-r border-slate-200 font-medium whitespace-nowrap">
                           {String(r.day).padStart(2, "0")} {monthName.slice(0, 3)}, {dayName}
                           {r.holidayName && (
-                            <span className="text-[9px] print:text-[7.5px] text-amber-700 font-normal ml-1">
+                            <span className="text-[9px] print:text-[7.5px] text-amber-700 font-semibold ml-1">
                               ({r.holidayName})
+                            </span>
+                          )}
+                          {!r.holidayName && isLeave && (
+                            <span className="text-[9px] print:text-[7.5px] text-blue-700 font-semibold ml-1">
+                              (Leave)
                             </span>
                           )}
                         </td>

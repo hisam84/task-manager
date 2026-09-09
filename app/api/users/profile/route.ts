@@ -21,9 +21,20 @@ export async function GET() {
         avatar: true,
         designation: true,
         department: true,
+        createdAt: true,
         companyId: true,
         company: {
           select: { id: true, name: true, slug: true },
+        },
+        departmentRel: {
+          select: { id: true, name: true },
+        },
+        _count: {
+          select: {
+            assignedTasks: true,
+            createdTasks: true,
+            attendances: true,
+          },
         },
       },
     });
