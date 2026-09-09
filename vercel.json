@@ -15,11 +15,5 @@
         }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/tasks/check-overdue",
-      "schedule": "0 * * * *"
-    }
   ]
 }
