@@ -392,7 +392,7 @@ function ProfilePageContent() {
 
   if (loading || !currentUser) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-dvh items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -406,14 +406,14 @@ function ProfilePageContent() {
   const roleInfo = getRoleBadgeInfo(currentUser.role);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
+    <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
       <Sidebar user={currentUser} onOpenChangePassword={() => setChangePasswordOpen(true)} />
 
-      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between">
-        <div className="p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto flex-1 space-y-6">
+      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto flex-1 space-y-6 min-w-0">
           {/* Header Title Section */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 font-semibold tracking-wider uppercase mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{activeTab === "company" ? "Workspace Configuration" : "Account Settings"}</span>
@@ -428,11 +428,11 @@ function ProfilePageContent() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => setChangePasswordOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer w-full sm:w-auto"
               >
                 <KeyRound className="w-4 h-4 text-indigo-500" />
                 <span>Change Password</span>
@@ -442,11 +442,11 @@ function ProfilePageContent() {
 
           {/* Navigation Tabs (Visible for Admin and Super Admin) */}
           {canManageCompany && (
-            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-fit">
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full sm:w-fit overflow-x-auto">
               <button
                 type="button"
                 onClick={() => handleTabSwitch("profile")}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex-1 sm:flex-none whitespace-nowrap ${
                   activeTab === "profile"
                     ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -459,7 +459,7 @@ function ProfilePageContent() {
               <button
                 type="button"
                 onClick={() => handleTabSwitch("company")}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex-1 sm:flex-none whitespace-nowrap ${
                   activeTab === "company"
                     ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -501,7 +501,7 @@ function ProfilePageContent() {
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_60%)]" />
                 </div>
 
-                <div className="px-6 pb-6 pt-0 relative">
+                <div className="px-4 sm:px-6 pb-6 pt-0 relative">
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-14 sm:-mt-16 mb-4">
                     <div className="relative group self-start">
                       <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white dark:bg-slate-900 p-1.5 shadow-xl border-2 border-white dark:border-slate-800 shrink-0 overflow-hidden">
@@ -521,7 +521,7 @@ function ProfilePageContent() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute inset-1.5 rounded-xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium cursor-pointer"
+                        className="absolute inset-1.5 rounded-xl bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium cursor-pointer"
                         title="Upload / Change Photo"
                       >
                         <Camera className="w-6 h-6 mb-1 text-indigo-300" />
@@ -537,11 +537,11 @@ function ProfilePageContent() {
                       />
                     </div>
 
-                    <div className="flex items-center gap-2 self-start sm:self-end">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 self-stretch sm:self-end w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3 py-2.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs cursor-pointer"
                       >
                         <Upload className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                         <span>Upload New Photo</span>
@@ -551,7 +551,7 @@ function ProfilePageContent() {
                         <button
                           type="button"
                           onClick={handleRemoveAvatar}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3 py-2.5 rounded-xl text-xs font-medium bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
                           title="Remove Avatar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -575,8 +575,8 @@ function ProfilePageContent() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                      <span className="flex items-center gap-1.5">
-                        <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="flex items-center gap-1.5 min-w-0 break-all">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         {currentUser.email}
                       </span>
                       {currentUser.companyName && (
@@ -642,7 +642,7 @@ function ProfilePageContent() {
               {/* Profile Details Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left: Edit Personal Details (2 cols wide on desktop) */}
-                <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-6">
+                <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-6">
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                     <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
                       <User className="w-5 h-5" />
@@ -670,7 +670,7 @@ function ProfilePageContent() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Your full name"
-                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
+                          className="w-full min-h-11 pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-base md:text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
                         />
                       </div>
                     </div>
@@ -685,7 +685,7 @@ function ProfilePageContent() {
                           type="email"
                           disabled
                           value={profileData?.email || currentUser.email}
-                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed select-all"
+                          className="w-full min-h-11 pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-base md:text-sm cursor-not-allowed select-all"
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-slate-400">
@@ -704,7 +704,7 @@ function ProfilePageContent() {
                           value={designation}
                           onChange={(e) => setDesignation(e.target.value)}
                           placeholder="e.g. Senior Software Engineer, UI/UX Designer, HR Manager"
-                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder:text-slate-400"
+                          className="w-full min-h-11 pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-base md:text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder:text-slate-400"
                         />
                       </div>
                     </div>
@@ -720,12 +720,12 @@ function ProfilePageContent() {
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="e.g. +880 1712-345678"
-                          className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder:text-slate-400"
+                          className="w-full min-h-11 pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-base md:text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder:text-slate-400"
                         />
                       </div>
                     </div>
 
-                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800/80">
                       <button
                         type="button"
                         onClick={() => {
@@ -737,7 +737,7 @@ function ProfilePageContent() {
                           setError(null);
                         }}
                         disabled={saving}
-                        className="px-4 py-2.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="min-h-11 px-4 py-2.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         Discard Changes
                       </button>
@@ -745,7 +745,7 @@ function ProfilePageContent() {
                       <button
                         type="submit"
                         disabled={saving}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                        className="inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                       >
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                         <span>{saving ? "Saving Changes..." : "Save Changes"}</span>
@@ -756,7 +756,7 @@ function ProfilePageContent() {
 
                 {/* Right: Organization & Security Cards (1 col wide on desktop) */}
                 <div className="space-y-6">
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-4">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-4">
                     <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
                       <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
                         <Building2 className="w-5 h-5" />
@@ -776,7 +776,7 @@ function ProfilePageContent() {
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
                           <Shield className="w-3.5 h-3.5 text-indigo-500" /> Role & Access
                         </span>
-                        <div className="flex items-center justify-between pt-0.5">
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {roleInfo.label}
                           </span>
@@ -827,7 +827,7 @@ function ProfilePageContent() {
                     </div>
                   </div>
 
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-4">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-4">
                     <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
                       <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-600/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20">
                         <KeyRound className="w-5 h-5" />
@@ -843,8 +843,8 @@ function ProfilePageContent() {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between">
-                        <div>
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
                           <div className="text-xs font-semibold text-slate-900 dark:text-white">
                             Account Password
                           </div>
@@ -855,7 +855,7 @@ function ProfilePageContent() {
                         <button
                           type="button"
                           onClick={() => setChangePasswordOpen(true)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-600/10 hover:bg-indigo-100 dark:hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1 min-h-11 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-600/10 hover:bg-indigo-100 dark:hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 transition-colors cursor-pointer shrink-0"
                         >
                           <span>Update</span>
                           <ArrowRight className="w-3 h-3" />
@@ -902,7 +902,7 @@ function ProfilePageContent() {
               ) : (
                 <form onSubmit={handleSaveCompanySettings} className="space-y-6">
                   {/* Card 1: Company Profile & Workspace Info */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-5">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-5">
                     <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                       <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
                         <Building2 className="w-5 h-5" />
@@ -928,7 +928,7 @@ function ProfilePageContent() {
                           value={companyName}
                           onChange={(e) => setCompanyName(e.target.value)}
                           placeholder="Organization name"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
+                          className="w-full min-h-11 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-base md:text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
                         />
                       </div>
 
@@ -941,7 +941,7 @@ function ProfilePageContent() {
                             type="text"
                             disabled
                             value={companySettings?.slug || ""}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-sm font-mono cursor-not-allowed select-all"
+                            className="w-full min-h-11 px-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-base md:text-sm font-mono cursor-not-allowed select-all"
                           />
                         </div>
                         <p className="mt-1 text-[11px] text-slate-400">
@@ -985,9 +985,9 @@ function ProfilePageContent() {
                   </div>
 
                   {/* Card 2: Task Overdue Alert & Email Rules */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-6">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-6">
                     <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
-                      <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                      <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 shrink-0">
                         <ListTodo className="w-5 h-5" />
                       </div>
                       <div>
@@ -1112,7 +1112,7 @@ function ProfilePageContent() {
                         <button
                           type="button"
                           onClick={() => setNotifyAssignerOnTaskComplete(!notifyAssignerOnTaskComplete)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             notifyAssignerOnTaskComplete ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
@@ -1138,7 +1138,7 @@ function ProfilePageContent() {
                         <button
                           type="button"
                           onClick={() => setEnableTaskCreatedEmail(!enableTaskCreatedEmail)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             enableTaskCreatedEmail ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
@@ -1164,7 +1164,7 @@ function ProfilePageContent() {
                         <button
                           type="button"
                           onClick={() => setAllowEmployeeTaskAssignment(!allowEmployeeTaskAssignment)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             allowEmployeeTaskAssignment ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
@@ -1179,7 +1179,7 @@ function ProfilePageContent() {
                   </div>
 
                   {/* Card 3: Attendance & Late Arrival Policy */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-5">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-5">
                     <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                       <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-600/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20">
                         <Clock className="w-5 h-5" />
@@ -1227,7 +1227,7 @@ function ProfilePageContent() {
                       <select
                         value={defaultGraceMinutes}
                         onChange={(e) => setDefaultGraceMinutes(Number(e.target.value))}
-                        className="w-full sm:w-72 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
+                        className="w-full sm:w-72 min-h-11 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-base md:text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
                       >
                         <option value={10}>10 minutes</option>
                         <option value={15}>15 minutes (Standard)</option>
@@ -1243,7 +1243,7 @@ function ProfilePageContent() {
                   </div>
 
                   {/* Card 4: Leave Application Policy */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-4">
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs p-4 sm:p-6 space-y-4">
                     <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                       <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-500/20">
                         <Calendar className="w-5 h-5" />
@@ -1271,7 +1271,7 @@ function ProfilePageContent() {
                       <button
                         type="button"
                         onClick={() => setNotifyAdminsOnLeaveRequest(!notifyAdminsOnLeaveRequest)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                           notifyAdminsOnLeaveRequest ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                         }`}
                       >
@@ -1285,12 +1285,12 @@ function ProfilePageContent() {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="pt-2 flex items-center justify-end gap-3">
+                  <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
                     <button
                       type="button"
                       onClick={() => fetchCompanySettings()}
                       disabled={companySaving}
-                      className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="min-h-11 px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                     >
                       Discard Changes
                     </button>
@@ -1298,7 +1298,7 @@ function ProfilePageContent() {
                     <button
                       type="submit"
                       disabled={companySaving}
-                      className="inline-flex items-center gap-2 px-7 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 min-h-11 px-7 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                     >
                       {companySaving && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>{companySaving ? "Saving Settings..." : "Save Company Settings"}</span>
@@ -1326,14 +1326,14 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Loading workspace...
-            </p>
+          <div className="flex h-dvh items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Loading workspace...
+              </p>
+            </div>
           </div>
-        </div>
       }
     >
       <ProfilePageContent />

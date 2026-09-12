@@ -303,20 +303,20 @@ export default function ActivityLogsPage() {
     <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950">
       <Sidebar user={currentUser} />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full min-w-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 shadow-xs">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 shadow-xs shrink-0">
                 <History className="w-6 h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-words">
                     Activity Logs & Audit Trail
                   </h1>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 shrink-0">
                     Live
                   </span>
                 </div>
@@ -326,12 +326,12 @@ export default function ActivityLogsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => fetchLogs(pagination.page)}
                 disabled={loadingLogs}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer disabled:opacity-50 w-full sm:w-auto"
                 title="Refresh logs"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? "animate-spin text-indigo-500" : ""}`} />
@@ -383,7 +383,7 @@ export default function ActivityLogsPage() {
           {/* Filters Bar */}
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
             {/* Category tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
               {ENTITY_FILTERS.map((f) => {
                 const isActive = entityType === f.value;
                 return (
@@ -394,7 +394,7 @@ export default function ActivityLogsPage() {
                       setEntityType(f.value);
                       setPagination((prev) => ({ ...prev, page: 1 }));
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
                         ? "bg-indigo-600 text-white shadow-xs"
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
@@ -416,7 +416,7 @@ export default function ActivityLogsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search description, actor..."
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
+                  className="w-full min-h-11 pl-9 pr-3 py-2.5 text-base md:text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
                 />
               </div>
 
@@ -428,7 +428,7 @@ export default function ActivityLogsPage() {
                     setSelectedUserId(e.target.value);
                     setPagination((prev) => ({ ...prev, page: 1 }));
                   }}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors cursor-pointer appearance-none"
+                  className="w-full min-h-11 px-3 py-2.5 text-base md:text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors cursor-pointer appearance-none"
                 >
                   <option value="ALL">All Team Members</option>
                   {usersList.map((u) => (
@@ -448,7 +448,7 @@ export default function ActivityLogsPage() {
                     setStartDate(e.target.value);
                     setPagination((prev) => ({ ...prev, page: 1 }));
                   }}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
+                  className="w-full min-h-11 px-3 py-2.5 text-base md:text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
                   title="Filter from start date"
                 />
               </div>
@@ -462,7 +462,7 @@ export default function ActivityLogsPage() {
                     setEndDate(e.target.value);
                     setPagination((prev) => ({ ...prev, page: 1 }));
                   }}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
+                  className="flex-1 min-h-11 min-w-0 px-3 py-2.5 text-base md:text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 outline-none text-slate-900 dark:text-white transition-colors"
                   title="Filter to end date"
                 />
 
@@ -470,7 +470,7 @@ export default function ActivityLogsPage() {
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="px-2.5 py-2 text-xs font-semibold rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition-colors cursor-pointer whitespace-nowrap"
+                    className="min-h-11 px-3 py-2 text-xs font-semibold rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                   >
                     Clear
                   </button>
@@ -481,7 +481,7 @@ export default function ActivityLogsPage() {
 
           {/* Activity Feed Timeline */}
           <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 Activity Stream ({pagination.total} total)
               </span>
@@ -552,7 +552,7 @@ export default function ActivityLogsPage() {
                         </div>
 
                         {/* Actor Info & Content */}
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-xs text-slate-900 dark:text-white">
                               {log.user?.name || "System"}
@@ -579,7 +579,7 @@ export default function ActivityLogsPage() {
                               <button
                                 type="button"
                                 onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
-                                className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                                className="min-h-11 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
                               >
                                 <span>{isExpanded ? "Hide Details" : "View Details / Metadata"}</span>
                               </button>
@@ -617,18 +617,18 @@ export default function ActivityLogsPage() {
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex items-center justify-between">
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-xs text-slate-500">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} events
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button
                     type="button"
                     disabled={pagination.page <= 1}
                     onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 transition-colors cursor-pointer"
+                    className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 transition-colors cursor-pointer"
                     title="Previous page"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -642,7 +642,7 @@ export default function ActivityLogsPage() {
                     type="button"
                     disabled={pagination.page >= pagination.totalPages}
                     onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 transition-colors cursor-pointer"
+                    className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 transition-colors cursor-pointer"
                     title="Next page"
                   >
                     <ChevronRight className="w-4 h-4" />
