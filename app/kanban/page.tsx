@@ -8,6 +8,7 @@ import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { Footer } from "@/components/footer";
 import { Plus, KanbanSquare, Loader2 } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
@@ -22,7 +23,7 @@ interface KanbanTask {
   dueDate?: string | null;
   assignee?: { id?: string; name?: string; email?: string; department?: string | null };
   assignees?: { user?: { id?: string; name?: string; email?: string; department?: string | null } }[];
-  creator: { id: string; name: string };
+  creator: { id: string; name: string; email?: string };
   _count?: { comments: number };
 }
 
@@ -36,6 +37,7 @@ export default function KanbanPage() {
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [completingTask, setCompletingTask] = useState<KanbanTask | null>(null);
 
   const fetchSessionAndTasks = useCallback(async () => {
     setLoading(true);
@@ -63,6 +65,13 @@ export default function KanbanPage() {
   }, [fetchSessionAndTasks]);
 
   async function handleStatusChange(taskId: string, newStatus: TaskStatus) {
+    if (newStatus === "DONE") {
+      const target = tasks.find((t) => t.id === taskId);
+      if (target) {
+        setCompletingTask(target);
+        return;
+      }
+    }
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
@@ -74,6 +83,33 @@ export default function KanbanPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function handleConfirmComplete({
+    notifyCreatorOnComplete,
+    completionNote,
+  }: {
+    notifyCreatorOnComplete: boolean;
+    completionNote?: string;
+  }) {
+    if (!completingTask) return;
+    try {
+      const res = await fetch(`/api/tasks/${completingTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "DONE",
+          ...(notifyCreatorOnComplete ? { notifyCreatorOnComplete: true, completionNote } : {}),
+        }),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === completingTask.id ? { ...t, status: "DONE" } : t))
+        );
+      }
+    } catch (e) {
+      console.error("Failed to complete task:", e);
     }
   }
 
@@ -168,6 +204,13 @@ export default function KanbanPage() {
       <ChangePasswordModal
         isOpen={changePasswordOpen}
         onClose={() => setChangePasswordOpen(false)}
+      />
+
+      <TaskCompleteModal
+        isOpen={Boolean(completingTask)}
+        onClose={() => setCompletingTask(null)}
+        task={completingTask}
+        onConfirm={handleConfirmComplete}
       />
     </div>
   );

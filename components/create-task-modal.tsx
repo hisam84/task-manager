@@ -249,7 +249,7 @@ export function CreateTaskModal({
               <div className="flex items-center gap-2">
                 <Users className="w-3.5 h-3.5 text-indigo-400" />
                 <label className="text-xs font-semibold text-slate-200">
-                  Assignees / কর্মী নির্বাচন *
+                  Assignees *
                 </label>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                   {assigneeIds.length} Selected

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { TaskDetailModal } from "@/components/task-detail-modal";
+import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { Footer } from "@/components/footer";
 import {
@@ -34,7 +35,7 @@ interface TaskItem {
   dueDate?: string | null;
   assignee?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null };
   assignees?: { user?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null } }[];
-  creator?: { id?: string; name?: string; role?: string };
+  creator?: { id?: string; name?: string; email?: string; role?: string };
   company?: { id?: string; name?: string };
   _count?: { comments?: number };
 }
@@ -67,6 +68,7 @@ export default function TasksPage() {
   // Modals
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+  const [completingTask, setCompletingTask] = useState<TaskItem | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
@@ -145,31 +147,20 @@ export default function TasksPage() {
   }
 
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
+    if (newStatus === "DONE") {
+      const target = tasks.find((t) => t.id === taskId);
+      if (target) {
+        setCompletingTask(target);
+        return;
+      }
+    }
+
     try {
       let cancelReason: string | undefined = undefined;
       if (newStatus === "CANCELLED") {
         const reason = window.prompt("Reason for cancellation (optional):", "");
-        if (reason === null) return; // User pressed Cancel on the prompt
+        if (reason === null) return;
         cancelReason = reason.trim() || "Marked as cancelled";
-      }
-
-      let notifyCreatorOnComplete = false;
-      let completionNote: string | undefined = undefined;
-
-      if (newStatus === "DONE") {
-        const wantsNotify = window.confirm(
-          "টাস্কটি সম্পন্ন হয়েছে। টাস্ক এসাইনকারীকে কি কমপ্লিটেশন ইমেইল পাঠাতে চান? (ঐচ্ছিক)\nWould you like to send a completion email to the task assigner? (Optional)"
-        );
-        if (wantsNotify) {
-          notifyCreatorOnComplete = true;
-          const note = window.prompt(
-            "কমপ্লিটেশন সংক্রান্ত কোনো মন্তব্য বা নোট দিতে চান? (ঐচ্ছিক / Optional):",
-            ""
-          );
-          if (note && note.trim()) {
-            completionNote = note.trim();
-          }
-        }
       }
 
       const res = await fetch(`/api/tasks/${taskId}`, {
@@ -178,7 +169,6 @@ export default function TasksPage() {
         body: JSON.stringify({
           status: newStatus,
           ...(cancelReason ? { cancelReason, notifyOnCancel: true } : {}),
-          ...(notifyCreatorOnComplete ? { notifyCreatorOnComplete: true, completionNote } : {}),
         }),
       });
       if (res.ok) {
@@ -187,6 +177,34 @@ export default function TasksPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function handleConfirmComplete({
+    notifyCreatorOnComplete,
+    completionNote,
+  }: {
+    notifyCreatorOnComplete: boolean;
+    completionNote?: string;
+  }) {
+    if (!completingTask) return;
+    try {
+      const res = await fetch(`/api/tasks/${completingTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "DONE",
+          ...(notifyCreatorOnComplete ? { notifyCreatorOnComplete: true, completionNote } : {}),
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTasks((prev) =>
+          prev.map((t) => (t.id === completingTask.id ? { ...t, ...updated, status: "DONE" } : t))
+        );
+      }
+    } catch (e) {
+      console.error("Failed to complete task:", e);
     }
   }
 
@@ -842,6 +860,13 @@ export default function TasksPage() {
       <ChangePasswordModal
         isOpen={changePasswordOpen}
         onClose={() => setChangePasswordOpen(false)}
+      />
+
+      <TaskCompleteModal
+        isOpen={Boolean(completingTask)}
+        onClose={() => setCompletingTask(null)}
+        task={completingTask}
+        onConfirm={handleConfirmComplete}
       />
     </div>
   );

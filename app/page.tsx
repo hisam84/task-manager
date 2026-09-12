@@ -9,6 +9,7 @@ import { CreateCompanyModal } from "@/components/create-company-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ApplyLeaveModal } from "@/components/apply-leave-modal";
 import { LeaveRequestsModal } from "@/components/leave-requests-modal";
+import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { AuthLoginScreen } from "@/components/auth-login-screen";
 import { Footer } from "@/components/footer";
 import { ProgressCard, DonutChart, WorkloadBarChart } from "@/components/charts";
@@ -47,6 +48,7 @@ interface TaskRow {
   dueDate?: string | null;
   assignee?: { name?: string; avatar?: string | null };
   assignees?: { user?: { name?: string; avatar?: string | null } }[];
+  creator?: { name?: string | null; email?: string | null } | null;
 }
 
 export default function DashboardPage() {
@@ -72,6 +74,7 @@ export default function DashboardPage() {
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
+  const [completingTask, setCompletingTask] = useState<TaskRow | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -208,11 +211,19 @@ export default function DashboardPage() {
   }
 
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
+    if (newStatus === "DONE") {
+      const target = tasks.find((t) => t.id === taskId);
+      if (target) {
+        setCompletingTask(target);
+        return;
+      }
+    }
+
     try {
       let cancelReason: string | undefined = undefined;
       if (newStatus === "CANCELLED") {
         const reason = window.prompt("Reason for cancellation (optional):", "");
-        if (reason === null) return; // User pressed Cancel on prompt
+        if (reason === null) return;
         cancelReason = reason.trim() || "Marked as cancelled";
       }
 
@@ -231,6 +242,35 @@ export default function DashboardPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function handleConfirmComplete({
+    notifyCreatorOnComplete,
+    completionNote,
+  }: {
+    notifyCreatorOnComplete: boolean;
+    completionNote?: string;
+  }) {
+    if (!completingTask) return;
+    try {
+      const res = await fetch(`/api/tasks/${completingTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "DONE",
+          ...(notifyCreatorOnComplete ? { notifyCreatorOnComplete: true, completionNote } : {}),
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTasks((prev) =>
+          prev.map((t) => (t.id === completingTask.id ? { ...t, ...updated, status: "DONE" } : t))
+        );
+        fetchSessionAndTasks();
+      }
+    } catch (e) {
+      console.error("Failed to complete task:", e);
     }
   }
 
@@ -1057,6 +1097,13 @@ export default function DashboardPage() {
           onLeaveDecided={fetchLeaves}
         />
       )}
+
+      <TaskCompleteModal
+        isOpen={Boolean(completingTask)}
+        onClose={() => setCompletingTask(null)}
+        task={completingTask}
+        onConfirm={handleConfirmComplete}
+      />
     </div>
   );
 }
