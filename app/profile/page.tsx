@@ -1108,7 +1108,10 @@ function ProfilePageContent() {
                     {/* Feature 2: Additional Task Controls */}
                     <div className="space-y-4">
                       {/* Notify Assigner on Task Complete Toggle */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                      <div
+                        onClick={() => setNotifyAssignerOnTaskComplete(!notifyAssignerOnTaskComplete)}
+                        className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-900 transition-colors"
+                      >
                         <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -1120,13 +1123,19 @@ function ProfilePageContent() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setNotifyAssignerOnTaskComplete(!notifyAssignerOnTaskComplete)}
-                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          role="switch"
+                          aria-checked={notifyAssignerOnTaskComplete}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotifyAssignerOnTaskComplete(!notifyAssignerOnTaskComplete);
+                          }}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             notifyAssignerOnTaskComplete ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                               notifyAssignerOnTaskComplete ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
@@ -1134,7 +1143,10 @@ function ProfilePageContent() {
                       </div>
 
                       {/* New Task Assignment Email Toggle */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                      <div
+                        onClick={() => setEnableTaskCreatedEmail(!enableTaskCreatedEmail)}
+                        className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-900 transition-colors"
+                      >
                         <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                             <Send className="w-4 h-4 text-blue-500 shrink-0" />
@@ -1146,13 +1158,19 @@ function ProfilePageContent() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setEnableTaskCreatedEmail(!enableTaskCreatedEmail)}
-                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          role="switch"
+                          aria-checked={enableTaskCreatedEmail}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEnableTaskCreatedEmail(!enableTaskCreatedEmail);
+                          }}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             enableTaskCreatedEmail ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                               enableTaskCreatedEmail ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
@@ -1160,7 +1178,10 @@ function ProfilePageContent() {
                       </div>
 
                       {/* Employee Task Assignment Permission Toggle */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                      <div
+                        onClick={() => setAllowEmployeeTaskAssignment(!allowEmployeeTaskAssignment)}
+                        className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-900 transition-colors"
+                      >
                         <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                             <Shield className="w-4 h-4 text-purple-500 shrink-0" />
@@ -1172,13 +1193,19 @@ function ProfilePageContent() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setAllowEmployeeTaskAssignment(!allowEmployeeTaskAssignment)}
-                          className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          role="switch"
+                          aria-checked={allowEmployeeTaskAssignment}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAllowEmployeeTaskAssignment(!allowEmployeeTaskAssignment);
+                          }}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             allowEmployeeTaskAssignment ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                               allowEmployeeTaskAssignment ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
@@ -1267,7 +1294,10 @@ function ProfilePageContent() {
                       </div>
                     </div>
 
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                    <div
+                      onClick={() => setNotifyAdminsOnLeaveRequest(!notifyAdminsOnLeaveRequest)}
+                      className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-900 transition-colors"
+                    >
                       <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                         <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                           <Bell className="w-4 h-4 text-purple-500 shrink-0" />
@@ -1279,13 +1309,19 @@ function ProfilePageContent() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setNotifyAdminsOnLeaveRequest(!notifyAdminsOnLeaveRequest)}
-                        className={`relative inline-flex h-6 w-11 min-h-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        role="switch"
+                        aria-checked={notifyAdminsOnLeaveRequest}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotifyAdminsOnLeaveRequest(!notifyAdminsOnLeaveRequest);
+                        }}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                           notifyAdminsOnLeaveRequest ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
                         }`}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          aria-hidden="true"
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                             notifyAdminsOnLeaveRequest ? "translate-x-5" : "translate-x-0"
                           }`}
                         />
