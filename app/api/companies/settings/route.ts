@@ -9,6 +9,7 @@ const updateCompanySettingsSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   overdueAlertRecipient: z.enum(["BOTH", "ASSIGNEE_ONLY"]).optional(),
   notifyAssignerOnTaskComplete: z.boolean().optional(),
+  taskCompletionNotifyMode: z.enum(["AUTOMATIC", "MANUAL"]).optional(),
   enableTaskCreatedEmail: z.boolean().optional(),
   allowEmployeeTaskAssignment: z.boolean().optional(),
   defaultGraceMinutes: z.number().int().min(0).max(120).optional(),
@@ -21,6 +22,7 @@ async function ensureCompanySettingsColumns() {
     await prisma.$executeRawUnsafe(`
       ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "overdueAlertRecipient" TEXT NOT NULL DEFAULT 'BOTH';
       ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "notifyAssignerOnTaskComplete" BOOLEAN NOT NULL DEFAULT true;
+      ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "taskCompletionNotifyMode" TEXT NOT NULL DEFAULT 'AUTOMATIC';
       ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "enableTaskCreatedEmail" BOOLEAN NOT NULL DEFAULT true;
       ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "allowEmployeeTaskAssignment" BOOLEAN NOT NULL DEFAULT true;
       ALTER TABLE "Company" ADD COLUMN IF NOT EXISTS "defaultGraceMinutes" INTEGER NOT NULL DEFAULT 15;
@@ -70,6 +72,7 @@ export async function GET(req: Request) {
         subscriptionEndsAt: true,
         overdueAlertRecipient: true,
         notifyAssignerOnTaskComplete: true,
+        taskCompletionNotifyMode: true,
         enableTaskCreatedEmail: true,
         allowEmployeeTaskAssignment: true,
         defaultGraceMinutes: true,
@@ -139,6 +142,9 @@ export async function PATCH(req: Request) {
     if (typeof data.notifyAssignerOnTaskComplete === "boolean") {
       updateData.notifyAssignerOnTaskComplete = data.notifyAssignerOnTaskComplete;
     }
+    if (data.taskCompletionNotifyMode) {
+      updateData.taskCompletionNotifyMode = data.taskCompletionNotifyMode;
+    }
     if (typeof data.enableTaskCreatedEmail === "boolean") {
       updateData.enableTaskCreatedEmail = data.enableTaskCreatedEmail;
     }
@@ -164,6 +170,7 @@ export async function PATCH(req: Request) {
         subscriptionEndsAt: true,
         overdueAlertRecipient: true,
         notifyAssignerOnTaskComplete: true,
+        taskCompletionNotifyMode: true,
         enableTaskCreatedEmail: true,
         allowEmployeeTaskAssignment: true,
         defaultGraceMinutes: true,

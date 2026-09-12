@@ -19,6 +19,7 @@ model Company {
   // Company Settings
   overdueAlertRecipient       String   @default("BOTH") // "BOTH" (Assignee & Assigner) or "ASSIGNEE_ONLY"
   notifyAssignerOnTaskComplete Boolean  @default(true)
+  taskCompletionNotifyMode    String   @default("AUTOMATIC") // "AUTOMATIC" or "MANUAL"
   enableTaskCreatedEmail       Boolean  @default(true)
   allowEmployeeTaskAssignment  Boolean  @default(true)
   defaultGraceMinutes         Int      @default(15)

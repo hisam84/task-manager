@@ -54,7 +54,7 @@ export async function GET(
           select: { id: true, name: true, email: true, role: true },
         },
         company: {
-          select: { id: true, name: true, slug: true },
+          select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true, taskCompletionNotifyMode: true },
         },
         comments: {
           include: {
@@ -314,7 +314,15 @@ export async function PATCH(
     }
 
     const canNotifyCreator = (updatedTask.company as any)?.notifyAssignerOnTaskComplete !== false;
-    if (updatedTask.status === "DONE" && data.notifyCreatorOnComplete && canNotifyCreator && updatedTask.creator?.email) {
+    const isManualMode = (updatedTask.company as any)?.taskCompletionNotifyMode === "MANUAL";
+    const shouldNotify =
+      canNotifyCreator &&
+      Boolean(updatedTask.creator?.email) &&
+      (isManualMode
+        ? data.notifyCreatorOnComplete === true
+        : data.notifyCreatorOnComplete !== false && existingTask.status !== "DONE");
+
+    if (updatedTask.status === "DONE" && shouldNotify) {
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.APP_URL ||

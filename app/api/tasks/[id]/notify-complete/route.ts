@@ -36,7 +36,7 @@ export async function POST(
           select: { id: true, name: true, email: true },
         },
         company: {
-          select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true },
+          select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true, taskCompletionNotifyMode: true },
         },
       },
     });

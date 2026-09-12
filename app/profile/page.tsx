@@ -32,6 +32,8 @@ import {
   Check,
   Lock,
   Send,
+  Zap,
+  MessageSquare,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 
@@ -65,6 +67,7 @@ interface CompanySettingsData {
   subscriptionEndsAt?: string | null;
   overdueAlertRecipient: "BOTH" | "ASSIGNEE_ONLY";
   notifyAssignerOnTaskComplete: boolean;
+  taskCompletionNotifyMode?: "AUTOMATIC" | "MANUAL";
   enableTaskCreatedEmail: boolean;
   allowEmployeeTaskAssignment: boolean;
   defaultGraceMinutes: number;
@@ -108,6 +111,7 @@ function ProfilePageContent() {
   const [companyName, setCompanyName] = useState("");
   const [overdueAlertRecipient, setOverdueAlertRecipient] = useState<"BOTH" | "ASSIGNEE_ONLY">("BOTH");
   const [notifyAssignerOnTaskComplete, setNotifyAssignerOnTaskComplete] = useState(true);
+  const [taskCompletionNotifyMode, setTaskCompletionNotifyMode] = useState<"AUTOMATIC" | "MANUAL">("AUTOMATIC");
   const [enableTaskCreatedEmail, setEnableTaskCreatedEmail] = useState(true);
   const [allowEmployeeTaskAssignment, setAllowEmployeeTaskAssignment] = useState(true);
   const [defaultGraceMinutes, setDefaultGraceMinutes] = useState(15);
@@ -162,6 +166,7 @@ function ProfilePageContent() {
         setCompanyName(data.name || "");
         setOverdueAlertRecipient(data.overdueAlertRecipient || "BOTH");
         setNotifyAssignerOnTaskComplete(data.notifyAssignerOnTaskComplete ?? true);
+        setTaskCompletionNotifyMode(data.taskCompletionNotifyMode || "AUTOMATIC");
         setEnableTaskCreatedEmail(data.enableTaskCreatedEmail ?? true);
         setAllowEmployeeTaskAssignment(data.allowEmployeeTaskAssignment ?? true);
         setDefaultGraceMinutes(data.defaultGraceMinutes ?? 15);
@@ -334,6 +339,7 @@ function ProfilePageContent() {
         name: companyName.trim(),
         overdueAlertRecipient,
         notifyAssignerOnTaskComplete,
+        taskCompletionNotifyMode,
         enableTaskCreatedEmail,
         allowEmployeeTaskAssignment,
         defaultGraceMinutes: Number(defaultGraceMinutes),
@@ -1141,6 +1147,111 @@ function ProfilePageContent() {
                           />
                         </button>
                       </div>
+
+                      {/* Task Completion Notification Dispatch Mode (Automatic vs Manual) */}
+                      {notifyAssignerOnTaskComplete ? (
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100/80 dark:border-indigo-900/30 space-y-3 animate-fadeIn">
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                              <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                              <span>Task Completion Email Dispatch Mode</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">
+                                স্বয়ংক্রিয় / ম্যানুয়াল
+                              </span>
+                            </span>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                              Configure whether completion notification emails are dispatched automatically upon marking as Done, or via manual confirmation popup with optional handover notes.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            {/* Option 1: Automatic */}
+                            <div
+                              onClick={() => setTaskCompletionNotifyMode("AUTOMATIC")}
+                              className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none relative ${
+                                taskCompletionNotifyMode === "AUTOMATIC"
+                                  ? "bg-white dark:bg-slate-900 border-indigo-600 dark:border-indigo-500 shadow-sm ring-2 ring-indigo-600/20"
+                                  : "bg-white/60 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <div className={`p-1.5 rounded-lg ${
+                                    taskCompletionNotifyMode === "AUTOMATIC"
+                                      ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                  }`}>
+                                    <Zap className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                                      Automatic (স্বয়ংক্রিয়)
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
+                                      Instant Email Dispatch
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                  taskCompletionNotifyMode === "AUTOMATIC"
+                                    ? "border-indigo-600 bg-indigo-600 text-white"
+                                    : "border-slate-300 dark:border-slate-700"
+                                }`}>
+                                  {taskCompletionNotifyMode === "AUTOMATIC" && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                </div>
+                              </div>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                                Marking as Done immediately sends the email notice to the assigner in the background without prompting any modal.
+                              </p>
+                            </div>
+
+                            {/* Option 2: Manual */}
+                            <div
+                              onClick={() => setTaskCompletionNotifyMode("MANUAL")}
+                              className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none relative ${
+                                taskCompletionNotifyMode === "MANUAL"
+                                  ? "bg-white dark:bg-slate-900 border-indigo-600 dark:border-indigo-500 shadow-sm ring-2 ring-indigo-600/20"
+                                  : "bg-white/60 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <div className={`p-1.5 rounded-lg ${
+                                    taskCompletionNotifyMode === "MANUAL"
+                                      ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                  }`}>
+                                    <MessageSquare className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                                      Manual (ম্যানুয়াল)
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                                      Confirmation Dialog
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                  taskCompletionNotifyMode === "MANUAL"
+                                    ? "border-indigo-600 bg-indigo-600 text-white"
+                                    : "border-slate-300 dark:border-slate-700"
+                                }`}>
+                                  {taskCompletionNotifyMode === "MANUAL" && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                </div>
+                              </div>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                                Shows a confirmation dialog where the employee can write remarks/notes and choose whether to dispatch the email.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>Completion email mode is disabled because assigner completion notifications are toggled off.</span>
+                        </div>
+                      )}
 
                       {/* New Task Assignment Email Toggle */}
                       <div

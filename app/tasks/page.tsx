@@ -36,7 +36,7 @@ interface TaskItem {
   assignee?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null };
   assignees?: { user?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null } }[];
   creator?: { id?: string; name?: string; email?: string; role?: string };
-  company?: { id?: string; name?: string };
+  company?: { id?: string; name?: string; notifyAssignerOnTaskComplete?: boolean; taskCompletionNotifyMode?: string };
   _count?: { comments?: number };
 }
 
@@ -149,8 +149,29 @@ export default function TasksPage() {
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
     if (newStatus === "DONE") {
       const target = tasks.find((t) => t.id === taskId);
-      if (target) {
-        setCompletingTask(target);
+      const isManual = target?.company?.taskCompletionNotifyMode === "MANUAL";
+      if (isManual) {
+        if (target) {
+          setCompletingTask(target);
+          return;
+        }
+      } else {
+        try {
+          const res = await fetch(`/api/tasks/${taskId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              status: "DONE",
+              notifyCreatorOnComplete: target?.company?.notifyAssignerOnTaskComplete !== false,
+            }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated, status: "DONE" } : t)));
+          }
+        } catch (e) {
+          console.error("Failed to complete task:", e);
+        }
         return;
       }
     }

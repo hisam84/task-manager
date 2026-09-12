@@ -49,6 +49,7 @@ interface TaskRow {
   assignee?: { name?: string; avatar?: string | null };
   assignees?: { user?: { name?: string; avatar?: string | null } }[];
   creator?: { name?: string | null; email?: string | null } | null;
+  company?: { id?: string; name?: string; notifyAssignerOnTaskComplete?: boolean; taskCompletionNotifyMode?: string } | null;
 }
 
 export default function DashboardPage() {
@@ -213,8 +214,30 @@ export default function DashboardPage() {
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
     if (newStatus === "DONE") {
       const target = tasks.find((t) => t.id === taskId);
-      if (target) {
-        setCompletingTask(target);
+      const isManual = target?.company?.taskCompletionNotifyMode === "MANUAL";
+      if (isManual) {
+        if (target) {
+          setCompletingTask(target);
+          return;
+        }
+      } else {
+        try {
+          const res = await fetch(`/api/tasks/${taskId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              status: "DONE",
+              notifyCreatorOnComplete: target?.company?.notifyAssignerOnTaskComplete !== false,
+            }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)));
+            fetchSessionAndTasks();
+          }
+        } catch (e) {
+          console.error("Failed to complete task:", e);
+        }
         return;
       }
     }

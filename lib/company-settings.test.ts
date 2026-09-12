@@ -6,6 +6,7 @@ const updateCompanySettingsSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   overdueAlertRecipient: z.enum(["BOTH", "ASSIGNEE_ONLY"]).optional(),
   notifyAssignerOnTaskComplete: z.boolean().optional(),
+  taskCompletionNotifyMode: z.enum(["AUTOMATIC", "MANUAL"]).optional(),
   enableTaskCreatedEmail: z.boolean().optional(),
   allowEmployeeTaskAssignment: z.boolean().optional(),
   defaultGraceMinutes: z.number().int().min(0).max(120).optional(),
@@ -22,6 +23,17 @@ describe("Company Settings Schema Validation", () => {
     assert.equal(valid2.success, true);
 
     const invalid = updateCompanySettingsSchema.safeParse({ overdueAlertRecipient: "ALL_USERS" });
+    assert.equal(invalid.success, false);
+  });
+
+  it("validates valid taskCompletionNotifyMode values", () => {
+    const valid1 = updateCompanySettingsSchema.safeParse({ taskCompletionNotifyMode: "AUTOMATIC" });
+    assert.equal(valid1.success, true);
+
+    const valid2 = updateCompanySettingsSchema.safeParse({ taskCompletionNotifyMode: "MANUAL" });
+    assert.equal(valid2.success, true);
+
+    const invalid = updateCompanySettingsSchema.safeParse({ taskCompletionNotifyMode: "INSTANT" });
     assert.equal(invalid.success, false);
   });
 

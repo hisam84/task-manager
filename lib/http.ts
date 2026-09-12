@@ -43,7 +43,7 @@ export const TASK_LIST_SELECT = {
     select: { id: true, name: true, email: true, role: true, avatar: true, designation: true },
   },
   company: {
-    select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true, enableTaskCreatedEmail: true },
+    select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true, enableTaskCreatedEmail: true, taskCompletionNotifyMode: true },
   },
   _count: {
     select: { comments: true },

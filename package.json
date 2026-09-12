@@ -10,7 +10,7 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node --import tsx/esm prisma/seed.ts",
-    "test": "node --import tsx --test lib/session.test.ts lib/auth-access.test.ts lib/mail-auth.test.ts lib/attendance.test.ts"
+    "test": "node --import tsx --test lib/session.test.ts lib/auth-access.test.ts lib/mail-auth.test.ts lib/attendance.test.ts lib/company-settings.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

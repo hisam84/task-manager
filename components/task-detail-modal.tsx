@@ -100,7 +100,7 @@ export function TaskDetailModal({
       user?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null; role?: string };
     }[];
     creator?: { id?: string; name?: string; email?: string; role?: string };
-    company?: { name?: string };
+    company?: { id?: string; name?: string; notifyAssignerOnTaskComplete?: boolean; taskCompletionNotifyMode?: string };
     comments?: Comment[];
   } | null>(null);
 
@@ -286,10 +286,20 @@ export function TaskDetailModal({
       setIsRescheduling(false);
       setShowNotifyPanel(false);
     } else if (val === "DONE") {
-      setIsCancelling(false);
-      setIsEditing(false);
-      setIsRescheduling(false);
-      setIsCompleteModalOpen(true);
+      const isManual = (taskDetail?.company as any)?.taskCompletionNotifyMode === "MANUAL";
+      if (isManual) {
+        setIsCancelling(false);
+        setIsEditing(false);
+        setIsRescheduling(false);
+        setIsCompleteModalOpen(true);
+      } else {
+        setIsCancelling(false);
+        setIsEditing(false);
+        setIsRescheduling(false);
+        handleConfirmComplete({
+          notifyCreatorOnComplete: (taskDetail?.company as any)?.notifyAssignerOnTaskComplete !== false,
+        });
+      }
     } else {
       setIsCancelling(false);
       handleStatusChange(val);
