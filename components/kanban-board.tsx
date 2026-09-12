@@ -10,7 +10,8 @@ interface Task {
   status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string | null;
-  assignee: { id: string; name: string; email: string; department?: string | null };
+  assignee?: { id?: string; name?: string; email?: string; department?: string | null };
+  assignees?: { user?: { id?: string; name?: string; email?: string; department?: string | null } }[];
   creator: { id: string; name: string };
   _count?: { comments: number };
 }
@@ -166,14 +167,55 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
 
                         {/* Footer Info & Quick Status Move */}
                         <div className="flex items-center justify-between pt-2 border-t border-[#1a1a1a] text-[11px] text-[#777777]">
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333333] flex items-center justify-center text-[10px] font-mono font-medium text-white">
-                              {task.assignee?.name?.[0] || "U"}
-                            </div>
-                            <span className="font-mono text-[#aaaaaa] truncate max-w-[90px]">
-                              {task.assignee?.name?.split(" ")[0]}
-                            </span>
-                          </div>
+                          {(() => {
+                            const allAssignees =
+                              task.assignees && task.assignees.length > 0
+                                ? task.assignees.map((a) => a.user).filter(Boolean)
+                                : task.assignee
+                                ? [task.assignee]
+                                : [];
+
+                            if (allAssignees.length === 0) {
+                              return <span className="font-mono text-[#666666]">Unassigned</span>;
+                            }
+
+                            if (allAssignees.length === 1) {
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-[#222222] border border-[#333333] flex items-center justify-center text-[10px] font-mono font-medium text-white">
+                                    {allAssignees[0]?.name?.[0]?.toUpperCase() || "U"}
+                                  </div>
+                                  <span className="font-mono text-[#aaaaaa] truncate max-w-[90px]">
+                                    {allAssignees[0]?.name?.split(" ")[0]}
+                                  </span>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div
+                                className="flex items-center gap-1.5"
+                                title={allAssignees.map((a) => a?.name).filter(Boolean).join(", ")}
+                              >
+                                <div className="flex -space-x-1.5 overflow-hidden">
+                                  {allAssignees.slice(0, 3).map((a, idx) => (
+                                    <div
+                                      key={a?.id || idx}
+                                      className="w-5 h-5 rounded-full bg-[#222222] border border-[#111111] flex items-center justify-center text-[9px] font-mono font-semibold text-white shrink-0"
+                                    >
+                                      {a?.name?.[0]?.toUpperCase() || "U"}
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="font-mono text-[#aaaaaa] text-[10px] truncate max-w-[70px]">
+                                  {allAssignees[0]?.name?.split(" ")[0]}
+                                </span>
+                                <span className="text-[9px] font-mono font-semibold text-indigo-400 bg-indigo-500/20 px-1 rounded">
+                                  +{allAssignees.length - 1}
+                                </span>
+                              </div>
+                            );
+                          })()}
 
                           <div className="flex items-center gap-3">
                             {task._count && task._count.comments > 0 && (

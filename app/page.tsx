@@ -46,6 +46,7 @@ interface TaskRow {
   priority: string;
   dueDate?: string | null;
   assignee?: { name?: string; avatar?: string | null };
+  assignees?: { user?: { name?: string; avatar?: string | null } }[];
 }
 
 export default function DashboardPage() {
@@ -510,16 +511,42 @@ export default function DashboardPage() {
                                   )}
                                 </td>
                                 <td className="py-2.5 px-2.5 text-slate-800 dark:text-slate-300 font-medium whitespace-nowrap">
-                                  <div className="flex items-center gap-1.5 max-w-[130px]">
-                                    {t.assignee?.avatar ? (
-                                      <img
-                                        src={t.assignee.avatar}
-                                        alt={t.assignee.name || "Assignee"}
-                                        className="w-4 h-4 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0"
-                                      />
-                                    ) : null}
-                                    <span className="truncate text-[11px]">{t.assignee?.name || "Unassigned"}</span>
-                                  </div>
+                                  {(() => {
+                                    const all =
+                                      t.assignees && t.assignees.length > 0
+                                        ? t.assignees.map((a) => a.user).filter(Boolean)
+                                        : t.assignee
+                                        ? [t.assignee]
+                                        : [];
+                                    if (all.length === 0) {
+                                      return <span className="text-[11px] text-slate-400">Unassigned</span>;
+                                    }
+                                    if (all.length === 1) {
+                                      return (
+                                        <div className="flex items-center gap-1.5 max-w-[130px]">
+                                          {all[0]?.avatar && (
+                                            <img
+                                              src={all[0].avatar}
+                                              alt={all[0].name || "Assignee"}
+                                              className="w-4 h-4 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0"
+                                            />
+                                          )}
+                                          <span className="truncate text-[11px]">{all[0]?.name}</span>
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <div
+                                        className="flex items-center gap-1 max-w-[140px]"
+                                        title={all.map((a) => a?.name).filter(Boolean).join(", ")}
+                                      >
+                                        <span className="truncate text-[11px]">{all[0]?.name}</span>
+                                        <span className="text-[9px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 px-1 rounded">
+                                          +{all.length - 1}
+                                        </span>
+                                      </div>
+                                    );
+                                  })()}
                                 </td>
                                 <td className="py-2.5 px-3 text-right whitespace-nowrap">
                                   <button
@@ -692,9 +719,11 @@ export default function DashboardPage() {
                                   </div>
 
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">Assignee</span>
-                                    <span className="text-slate-800 dark:text-slate-200 font-medium block mt-2 truncate">
-                                      {t.assignee?.name || "Unassigned"}
+                                    <span className="text-[10px] text-slate-500 block">Assignees</span>
+                                    <span className="text-slate-800 dark:text-slate-200 font-medium block mt-2 truncate text-xs">
+                                      {t.assignees && t.assignees.length > 0
+                                        ? t.assignees.map((a) => a.user?.name).filter(Boolean).join(", ")
+                                        : t.assignee?.name || "Unassigned"}
                                     </span>
                                   </div>
 

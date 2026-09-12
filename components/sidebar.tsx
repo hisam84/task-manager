@@ -417,15 +417,32 @@ export function Sidebar({
             href="/profile"
             onClick={() => setMobileOpen(false)}
             className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
-              pathname === "/profile"
+              pathname === "/profile" && searchParams?.get("tab") !== "company"
                 ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
             } ${showLabels ? "" : "justify-center px-0"}`}
             title={showLabels ? undefined : "Profile Settings"}
           >
-            <User className={`w-5 h-5 shrink-0 ${pathname === "/profile" ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"}`} />
+            <User className={`w-5 h-5 shrink-0 ${pathname === "/profile" && searchParams?.get("tab") !== "company" ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"}`} />
             {showLabels && <span>Profile</span>}
           </Link>
+
+          {/* Company Settings Menu Item */}
+          {(isCompanyAdmin || isSuperAdmin) && (
+            <Link
+              href="/profile?tab=company"
+              onClick={() => setMobileOpen(false)}
+              className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                pathname === "/profile" && searchParams?.get("tab") === "company"
+                  ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              } ${showLabels ? "" : "justify-center px-0"}`}
+              title={showLabels ? undefined : "Company Settings"}
+            >
+              <Building2 className={`w-5 h-5 shrink-0 ${pathname === "/profile" && searchParams?.get("tab") === "company" ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"}`} />
+              {showLabels && <span>Company Settings</span>}
+            </Link>
+          )}
 
           {/* Password Menu Item */}
           {onOpenChangePassword && (

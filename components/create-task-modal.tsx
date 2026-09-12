@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Plus, AlertCircle, Calendar } from "lucide-react";
+import { X, Plus, AlertCircle, Calendar, Check, Users, Search, Lock } from "lucide-react";
 
 interface UserOption {
   id: string;
@@ -10,6 +10,7 @@ interface UserOption {
   role: string;
   order?: number;
   department?: string | null;
+  avatar?: string | null;
 }
 
 interface CreateTaskModalProps {
@@ -32,7 +33,8 @@ export function CreateTaskModal({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
   const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED">("TODO");
-  const [assigneeId, setAssigneeId] = useState("");
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
   const [dueDate, setDueDate] = useState("");
 
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -108,7 +110,7 @@ export function CreateTaskModal({
           const defaultUser = currentUserId
             ? sorted.find((u) => u.id === currentUserId)?.id || sorted[0].id
             : sorted[0].id;
-          setAssigneeId(defaultUser);
+          setAssigneeIds([defaultUser]);
         }
       }
     } catch (e) {
@@ -116,25 +118,37 @@ export function CreateTaskModal({
     }
   }
 
+  const toggleAssignee = (uid: string) => {
+    setAssigneeIds((prev) =>
+      prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+    );
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const finalAssigneeId = assigneeId || currentUserId;
+    const finalAssigneeIds =
+      assigneeIds.length > 0 ? assigneeIds : currentUserId ? [currentUserId] : [];
 
-    if (!title.trim() || !finalAssigneeId) {
-      setError("Please provide a task title and select an assignee.");
+    if (!title.trim() || finalAssigneeIds.length === 0) {
+      setError("Please provide a task title and select at least one assignee.");
       return;
     }
 
     // Client-side seniority check for employees
-    if (isEmployee && finalAssigneeId !== currentUserId) {
+    if (isEmployee) {
       const currentEmployee = users.find((u) => u.id === currentUserId);
-      const targetUser = users.find((u) => u.id === finalAssigneeId);
       const currentOrder = currentEmployee?.order ?? 0;
-      const targetOrder = targetUser?.order ?? 0;
-
-      if (targetUser && (targetUser.role !== "EMPLOYEE" || targetOrder <= currentOrder)) {
-        setError("Cannot assign tasks to senior members. You can only assign tasks to junior colleagues or yourself.");
-        return;
+      for (const uid of finalAssigneeIds) {
+        if (uid !== currentUserId) {
+          const targetUser = users.find((u) => u.id === uid);
+          const targetOrder = targetUser?.order ?? 0;
+          if (targetUser && (targetUser.role !== "EMPLOYEE" || targetOrder <= currentOrder)) {
+            setError(
+              `Cannot assign tasks to senior members (${targetUser.name}). You can only assign tasks to junior colleagues or yourself.`
+            );
+            return;
+          }
+        }
       }
     }
 
@@ -150,7 +164,8 @@ export function CreateTaskModal({
           description: description.trim() || null,
           priority,
           status,
-          assigneeId: finalAssigneeId,
+          assigneeIds: finalAssigneeIds,
+          assigneeId: finalAssigneeIds[0],
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         }),
       });
@@ -228,55 +243,171 @@ export function CreateTaskModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-medium text-slate-300">Assignee *</label>
-                {isEmployee && (
-                  <span className="text-[10px] text-amber-400/90 font-medium">
-                    Self or Junior Colleagues
-                  </span>
+          {/* Multi-Assignee Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-indigo-400" />
+                <label className="text-xs font-semibold text-slate-200">
+                  Assignees / কর্মী নির্বাচন *
+                </label>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  {assigneeIds.length} Selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {currentUserId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!assigneeIds.includes(currentUserId)) {
+                        setAssigneeIds((prev) => [...prev, currentUserId]);
+                      }
+                    }}
+                    className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium hover:underline cursor-pointer"
+                  >
+                    + Assign Myself
+                  </button>
+                )}
+                {assigneeIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAssigneeIds([])}
+                    className="text-[11px] text-slate-400 hover:text-slate-300 hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
                 )}
               </div>
-              <select
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer"
-              >
-                {users.map((u) => {
-                  const isCurrent = u.id === currentUserId;
-                  const currentEmployee = users.find((cur) => cur.id === currentUserId);
-                  const currentOrder = currentEmployee?.order ?? 0;
-                  const uOrder = u.order ?? 0;
+            </div>
 
-                  const isSenior = isEmployee && !isCurrent && (u.role !== "EMPLOYEE" || uOrder <= currentOrder);
-
-                  let label = `${u.name} (${u.role}) — ${u.department || "General"}`;
-                  if (isCurrent) {
-                    label = `${u.name} (You / Self-assigned) #${(u.order ?? 0) + 1}`;
-                  } else if (isEmployee) {
-                    if (isSenior) {
-                      label = `🔒 ${u.name} (Senior / #${uOrder + 1} - Cannot Assign)`;
-                    } else {
-                      label = `👤 ${u.name} (Junior / #${uOrder + 1}) — ${u.department || "General"}`;
-                    }
-                  } else {
-                    label = `${u.name} (#${uOrder + 1} - ${u.role}) — ${u.department || "General"}`;
-                  }
-
+            {/* Selected Chips */}
+            {assigneeIds.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800">
+                {assigneeIds.map((uid) => {
+                  const u = users.find((user) => user.id === uid);
+                  if (!u) return null;
                   return (
-                    <option key={u.id} value={u.id} disabled={isSenior}>
-                      {label}
-                    </option>
+                    <span
+                      key={u.id}
+                      className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-lg text-[11px] font-medium bg-indigo-950/70 border border-indigo-500/40 text-indigo-200 shadow-sm animate-fadeIn"
+                    >
+                      <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold">
+                        {u.name[0]?.toUpperCase()}
+                      </span>
+                      <span>{u.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleAssignee(u.id)}
+                        className="hover:text-rose-300 p-0.5 rounded-full hover:bg-rose-500/20 transition-colors cursor-pointer"
+                        title="Remove"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
                   );
                 })}
-              </select>
-              {isEmployee && (
-                <p className="text-[11px] text-slate-400 mt-1">
-                  💡 Employees can assign tasks to junior team members or themselves based on company seniority order.
-                </p>
-              )}
+              </div>
+            )}
+
+            {/* Search & Team member multi-select checklist */}
+            <div className="border border-slate-800 rounded-xl bg-slate-950 overflow-hidden">
+              <div className="p-2 border-b border-slate-800/80 flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <input
+                  type="text"
+                  value={assigneeSearch}
+                  onChange={(e) => setAssigneeSearch(e.target.value)}
+                  placeholder="Search team members by name or department..."
+                  className="w-full bg-transparent text-xs text-slate-200 placeholder:text-slate-500 outline-none"
+                />
+              </div>
+
+              <div className="max-h-36 overflow-y-auto divide-y divide-slate-800/50 p-1">
+                {users
+                  .filter((u) =>
+                    !assigneeSearch.trim() ||
+                    u.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                    u.department?.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                    u.role.toLowerCase().includes(assigneeSearch.toLowerCase())
+                  )
+                  .map((u) => {
+                    const isSelected = assigneeIds.includes(u.id);
+                    const isCurrent = u.id === currentUserId;
+                    const currentEmployee = users.find((cur) => cur.id === currentUserId);
+                    const currentOrder = currentEmployee?.order ?? 0;
+                    const uOrder = u.order ?? 0;
+                    const isSenior = isEmployee && !isCurrent && (u.role !== "EMPLOYEE" || uOrder <= currentOrder);
+
+                    return (
+                      <button
+                        key={u.id}
+                        type="button"
+                        disabled={isSenior}
+                        onClick={() => toggleAssignee(u.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all cursor-pointer ${
+                          isSenior
+                            ? "opacity-40 cursor-not-allowed bg-slate-950"
+                            : isSelected
+                            ? "bg-indigo-600/15 text-white hover:bg-indigo-600/25"
+                            : "hover:bg-slate-900 text-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                              isSelected
+                                ? "bg-indigo-600 text-white"
+                                : "bg-slate-800 text-slate-400"
+                            }`}
+                          >
+                            {u.name[0]?.toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-medium truncate flex items-center gap-1.5">
+                              <span>{u.name}</span>
+                              {isCurrent && (
+                                <span className="text-[10px] text-indigo-400 font-mono">(You)</span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 truncate">
+                              {u.department || "General"} • {u.role}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          {isSenior ? (
+                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                              <Lock className="w-3 h-3" />
+                              <span>Senior</span>
+                            </span>
+                          ) : (
+                            <div
+                              className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                                isSelected
+                                  ? "bg-indigo-600 border-indigo-500 text-white"
+                                  : "border-slate-700 bg-slate-900"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
+
+            {isEmployee && (
+              <p className="text-[11px] text-slate-400 mt-1">
+                💡 Employees can assign tasks to junior team members or themselves based on company seniority order.
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">Priority Level</label>

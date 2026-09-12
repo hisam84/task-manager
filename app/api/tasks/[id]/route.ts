@@ -16,6 +16,7 @@ const patchTaskSchema = z.object({
   status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   assigneeId: z.string().min(1).optional().nullable(),
+  assigneeIds: z.array(z.string()).optional().nullable(),
   dueDate: z.string().optional().nullable(),
   rescheduleReason: z.string().max(1000).optional().nullable(),
   notifyCreatorOnComplete: z.boolean().optional(),
@@ -40,7 +41,14 @@ export async function GET(
       where: { id },
       include: {
         assignee: {
-          select: { id: true, name: true, email: true, role: true, department: true },
+          select: { id: true, name: true, email: true, role: true, department: true, avatar: true },
+        },
+        assignees: {
+          select: {
+            user: {
+              select: { id: true, name: true, email: true, role: true, department: true, avatar: true },
+            },
+          },
         },
         creator: {
           select: { id: true, name: true, email: true, role: true },
@@ -98,6 +106,7 @@ export async function PATCH(
         dueDate: true,
         title: true,
         status: true,
+        assignees: { select: { userId: true } },
       },
     });
 
@@ -181,8 +190,63 @@ export async function PATCH(
       }
     }
 
-    let newlyAssignedUser: { name: string; email: string } | null = null;
-    if (data.assigneeId && data.assigneeId !== existingTask.assigneeId) {
+    let newlyAssignedUsers: { name: string; email: string }[] = [];
+
+    if (Array.isArray(data.assigneeIds)) {
+      if (!manager && existingTask.creatorId !== user.id) {
+        return jsonError("Forbidden: Only managers or the task creator can reassign this task", 403);
+      }
+
+      const targetIds = Array.from(
+        new Set(
+          data.assigneeIds.filter(
+            (uid): uid is string => typeof uid === "string" && uid.trim().length > 0
+          )
+        )
+      );
+
+      const finalIds = targetIds.length > 0 ? targetIds : [existingTask.assigneeId || user.id];
+
+      const targetUsers = await prisma.user.findMany({
+        where: { id: { in: finalIds } },
+        select: { id: true, name: true, email: true, role: true, order: true, companyId: true },
+      });
+
+      if (targetUsers.length !== finalIds.length) {
+        return jsonError("One or more assignees not found", 400);
+      }
+
+      for (const tUser of targetUsers) {
+        if (user.role !== "SUPER_ADMIN" && tUser.companyId !== existingTask.companyId) {
+          return jsonError(`Assignee ${tUser.name} must belong to the same company`, 403);
+        }
+        const assignmentCheck = canAssignTaskToUser(user, tUser);
+        if (!assignmentCheck.allowed) {
+          return jsonError(assignmentCheck.reason || `Assignment to ${tUser.name} forbidden`, 403);
+        }
+      }
+
+      const existingUserIds = existingTask.assignees?.map((a) => a.userId) || [existingTask.assigneeId];
+      const newlyAdded = targetUsers.filter((u) => !existingUserIds.includes(u.id));
+      newlyAssignedUsers = newlyAdded.map((u) => ({ name: u.name, email: u.email }));
+
+      await prisma.taskAssignee.deleteMany({
+        where: {
+          taskId: id,
+          userId: { notIn: finalIds },
+        },
+      });
+
+      for (const uid of finalIds) {
+        await prisma.taskAssignee.upsert({
+          where: { taskId_userId: { taskId: id, userId: uid } },
+          create: { taskId: id, userId: uid },
+          update: {},
+        });
+      }
+
+      updateData.assignee = { connect: { id: finalIds[0] } };
+    } else if (data.assigneeId && data.assigneeId !== existingTask.assigneeId) {
       if (!manager && existingTask.creatorId !== user.id) {
         return jsonError("Forbidden: Only managers or the task creator can reassign this task", 403);
       }
@@ -204,7 +268,12 @@ export async function PATCH(
       }
 
       updateData.assignee = { connect: { id: data.assigneeId } };
-      newlyAssignedUser = { name: assignee.name, email: assignee.email };
+      newlyAssignedUsers = [{ name: assignee.name, email: assignee.email }];
+
+      await prisma.taskAssignee.deleteMany({ where: { taskId: id } });
+      await prisma.taskAssignee.create({
+        data: { taskId: id, userId: data.assigneeId },
+      });
     } else if (manager && data.assigneeId) {
       updateData.assignee = { connect: { id: data.assigneeId } };
     }
@@ -215,32 +284,37 @@ export async function PATCH(
       select: TASK_LIST_SELECT,
     });
 
-    if (newlyAssignedUser?.email) {
+    if (newlyAssignedUsers.length > 0) {
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.APP_URL ||
         "https://taskmanager-iit.vercel.app/";
       const taskUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
 
-      try {
-        await sendTaskCreatedEmail({
-          to: newlyAssignedUser.email,
-          assigneeName: newlyAssignedUser.name || "Team Member",
-          taskTitle: updatedTask.title,
-          taskDescription: updatedTask.description,
-          priority: updatedTask.priority,
-          status: updatedTask.status,
-          dueDate: updatedTask.dueDate,
-          creatorName: user.name || "Manager",
-          companyName: user.companyName,
-          taskUrl,
-        });
-      } catch (err) {
-        console.error("Failed to send task reassignment notification email:", err);
+      for (const newlyAssignedUser of newlyAssignedUsers) {
+        if (newlyAssignedUser.email) {
+          try {
+            await sendTaskCreatedEmail({
+              to: newlyAssignedUser.email,
+              assigneeName: newlyAssignedUser.name || "Team Member",
+              taskTitle: updatedTask.title,
+              taskDescription: updatedTask.description,
+              priority: updatedTask.priority,
+              status: updatedTask.status,
+              dueDate: updatedTask.dueDate,
+              creatorName: user.name || "Manager",
+              companyName: user.companyName,
+              taskUrl,
+            });
+          } catch (err) {
+            console.error("Failed to send task reassignment notification email:", err);
+          }
+        }
       }
     }
 
-    if (updatedTask.status === "DONE" && data.notifyCreatorOnComplete && updatedTask.creator?.email) {
+    const canNotifyCreator = (updatedTask.company as any)?.notifyAssignerOnTaskComplete !== false;
+    if (updatedTask.status === "DONE" && data.notifyCreatorOnComplete && canNotifyCreator && updatedTask.creator?.email) {
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.APP_URL ||

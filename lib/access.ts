@@ -20,12 +20,22 @@ export function canDeleteTask(role?: string | null): boolean {
 
 export function canAccessTask(
   user: SessionUser,
-  task: { companyId: string; assigneeId: string; creatorId?: string | null }
+  task: {
+    companyId: string;
+    assigneeId?: string | null;
+    creatorId?: string | null;
+    assignees?: { userId?: string; user?: { id: string } }[];
+  }
 ): boolean {
   if (user.role === "SUPER_ADMIN") return true;
   if (!user.companyId || task.companyId !== user.companyId) return false;
   if (isManagerOrAdmin(user.role)) return true;
-  return task.assigneeId === user.id || (!!task.creatorId && task.creatorId === user.id);
+  if (task.assigneeId === user.id) return true;
+  if (task.creatorId && task.creatorId === user.id) return true;
+  if (task.assignees && task.assignees.some((a) => a.userId === user.id || a.user?.id === user.id)) {
+    return true;
+  }
+  return false;
 }
 
 export function canAssignTaskToUser(

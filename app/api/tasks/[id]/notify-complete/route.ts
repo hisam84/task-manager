@@ -36,7 +36,7 @@ export async function POST(
           select: { id: true, name: true, email: true },
         },
         company: {
-          select: { id: true, name: true, slug: true },
+          select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true },
         },
       },
     });
@@ -47,6 +47,10 @@ export async function POST(
 
     if (!canAccessTask(user, task)) {
       return jsonError("Forbidden", 403);
+    }
+
+    if ((task.company as any)?.notifyAssignerOnTaskComplete === false) {
+      return jsonError("Completion notification emails are disabled in company settings.", 400);
     }
 
     if (!task.creator?.email) {

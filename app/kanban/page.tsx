@@ -20,7 +20,8 @@ interface KanbanTask {
   status: TaskStatus;
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string | null;
-  assignee: { id: string; name: string; email: string; department?: string | null };
+  assignee?: { id?: string; name?: string; email?: string; department?: string | null };
+  assignees?: { user?: { id?: string; name?: string; email?: string; department?: string | null } }[];
   creator: { id: string; name: string };
   _count?: { comments: number };
 }

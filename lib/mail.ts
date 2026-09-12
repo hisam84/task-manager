@@ -283,11 +283,14 @@ export async function sendTaskCreatedEmail({
   if (dueDate) {
     const d = new Date(dueDate);
     if (!isNaN(d.getTime())) {
-      formattedDueDate = d.toLocaleDateString("en-US", {
+      formattedDueDate = d.toLocaleString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
         day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       });
     }
   }
@@ -368,7 +371,7 @@ export async function sendTaskCreatedEmail({
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding: 5px 0; color: #64748b;">Due Date:</td>
+                          <td style="padding: 5px 0; color: #64748b;">Due Date &amp; Time:</td>
                           <td style="padding: 5px 0; color: #334155; font-weight: 500;">
                             ${formattedDueDate}
                           </td>
@@ -433,7 +436,7 @@ export async function sendTaskCreatedEmail({
     from: smtpFrom,
     to: cleanTo,
     subject: `[Task] ${taskTitle} (${priority})`,
-    text: `Hello ${assigneeName},\n\n${creatorName} assigned a new task to you:\n\nTask: ${taskTitle}\nPriority: ${priority}\nStatus: ${status}\nDue Date: ${formattedDueDate}\n\nView task: ${targetUrl}`,
+    text: `Hello ${assigneeName},\n\n${creatorName} assigned a new task to you:\n\nTask: ${taskTitle}\nPriority: ${priority}\nStatus: ${status}\nDue Date & Time: ${formattedDueDate}\n\nView task: ${targetUrl}`,
     html,
   });
 

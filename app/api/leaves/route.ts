@@ -151,6 +151,7 @@ export async function POST(req: Request) {
         company: {
           select: {
             name: true,
+            notifyAdminsOnLeaveRequest: true,
           },
         },
       },
@@ -180,16 +181,17 @@ export async function POST(req: Request) {
     const origin = req.headers.get("origin");
     const computedAppUrl = origin || (host ? `${proto}://${host}` : undefined);
 
-    // Fetch all Admins, Managers, and Super Admins to notify via email
-    try {
-      const companyAdminsAndManagers = await prisma.user.findMany({
-        where: {
-          companyId,
-          role: { in: ["ADMIN", "MANAGER", "Admin", "Manager", "admin", "manager"] },
-          NOT: { id: sessionUser.id }, // Don't email oneself if admin applied
-        },
-        select: { id: true, email: true, name: true, role: true },
-      });
+    // Fetch all Admins, Managers, and Super Admins to notify via email if enabled in company settings
+    if ((leaveRequest.company as any)?.notifyAdminsOnLeaveRequest !== false) {
+      try {
+        const companyAdminsAndManagers = await prisma.user.findMany({
+          where: {
+            companyId,
+            role: { in: ["ADMIN", "MANAGER", "Admin", "Manager", "admin", "manager"] },
+            NOT: { id: sessionUser.id }, // Don't email oneself if admin applied
+          },
+          select: { id: true, email: true, name: true, role: true },
+        });
 
       const superAdmins = await prisma.user.findMany({
         where: {
@@ -252,8 +254,9 @@ export async function POST(req: Request) {
       } else {
         console.warn(`[Leave Email] No admin, manager, or super-admin recipients found to notify for companyId: ${companyId}`);
       }
-    } catch (mailErr) {
-      console.error("Failed to query admins for leave notification:", mailErr);
+      } catch (mailErr) {
+        console.error("Failed to query admins for leave notification:", mailErr);
+      }
     }
 
     return NextResponse.json({

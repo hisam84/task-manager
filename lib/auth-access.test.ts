@@ -46,6 +46,15 @@ describe("canAccessTask", () => {
     });
     assert.equal(ok, false);
   });
+
+  it("allows employees to access task if listed in assignees array", () => {
+    const ok = canAccessTask(user({ id: "emp3", role: "EMPLOYEE" }), {
+      companyId: "c1",
+      assigneeId: "emp1",
+      assignees: [{ userId: "emp1" }, { userId: "emp3" }],
+    });
+    assert.equal(ok, true);
+  });
 });
 
 describe("canDeleteTask", () => {

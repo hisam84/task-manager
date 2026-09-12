@@ -16,6 +16,7 @@ const createTaskSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"]).default("TODO"),
   assigneeId: z.string().optional().nullable(),
+  assigneeIds: z.array(z.string()).optional().nullable(),
   dueDate: z.string().optional().nullable(),
   companyId: z.string().optional().nullable(),
   departmentId: z.string().optional().nullable(),
@@ -57,9 +58,20 @@ export async function GET(req: Request) {
       ...(priorityParam ? { priority: priorityParam } : {}),
       ...(manager
         ? assigneeParam
-          ? { assigneeId: assigneeParam }
+          ? {
+              OR: [
+                { assigneeId: assigneeParam },
+                { assignees: { some: { userId: assigneeParam } } },
+              ],
+            }
           : {}
-        : { OR: [{ assigneeId: user.id }, { creatorId: user.id }] }),
+        : {
+            OR: [
+              { assigneeId: user.id },
+              { assignees: { some: { userId: user.id } } },
+              { creatorId: user.id },
+            ],
+          }),
       ...(q
         ? {
             AND: [
@@ -118,25 +130,54 @@ export async function POST(req: Request) {
       return jsonError("Target company required", 400);
     }
 
-    const isManager = isManagerOrAdmin(user.role);
-    const finalAssigneeId = data.assigneeId || user.id;
+    // Collect all unique assignee IDs
+    let allAssigneeIds: string[] = [];
+    if (Array.isArray(data.assigneeIds) && data.assigneeIds.length > 0) {
+      allAssigneeIds = Array.from(new Set(data.assigneeIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0)));
+    } else if (data.assigneeId) {
+      allAssigneeIds = [data.assigneeId];
+    } else {
+      allAssigneeIds = [user.id];
+    }
 
-    const assignee = await prisma.user.findUnique({
-      where: { id: finalAssigneeId },
+    if (allAssigneeIds.length === 0) {
+      allAssigneeIds = [user.id];
+    }
+
+    const finalAssigneeId = allAssigneeIds[0];
+
+    const assignees = await prisma.user.findMany({
+      where: { id: { in: allAssigneeIds } },
       select: { id: true, name: true, email: true, role: true, order: true, companyId: true },
     });
 
-    if (!assignee) {
-      return jsonError("Assignee not found", 400);
+    if (assignees.length !== allAssigneeIds.length) {
+      return jsonError("One or more assignees not found", 400);
     }
 
-    if (assignee.companyId !== targetCompanyId) {
-      return jsonError("Assignee must belong to your company", 403);
-    }
+    const company = await prisma.company.findUnique({
+      where: { id: targetCompanyId },
+      select: {
+        id: true,
+        allowEmployeeTaskAssignment: true,
+        enableTaskCreatedEmail: true,
+      },
+    });
 
-    const assignmentCheck = canAssignTaskToUser(user, assignee);
-    if (!assignmentCheck.allowed) {
-      return jsonError(assignmentCheck.reason || "Assignment forbidden", 403);
+    for (const assignee of assignees) {
+      if (assignee.companyId !== targetCompanyId) {
+        return jsonError(`Assignee ${assignee.name} must belong to your company`, 403);
+      }
+
+      // Check if employee assignment is disabled in company settings
+      if (company && company.allowEmployeeTaskAssignment === false && user.role === "EMPLOYEE" && assignee.id !== user.id) {
+        return jsonError("Task assignment by employees is disabled in company settings. Only managers and admins can assign tasks.", 403);
+      }
+
+      const assignmentCheck = canAssignTaskToUser(user, assignee);
+      if (!assignmentCheck.allowed) {
+        return jsonError(assignmentCheck.reason || `Assignment to ${assignee.name} forbidden`, 403);
+      }
     }
 
     const task = await prisma.task.create({
@@ -150,9 +191,14 @@ export async function POST(req: Request) {
         companyId: targetCompanyId,
         departmentId: data.departmentId || null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        assignees: {
+          create: allAssigneeIds.map((uid) => ({ userId: uid })),
+        },
       },
       select: TASK_LIST_SELECT,
     });
+
+    const assigneeNames = assignees.map((a) => a.name || "Employee").join(", ");
 
     // Record Activity Log
     await logActivity({
@@ -161,39 +207,44 @@ export async function POST(req: Request) {
       action: "TASK_CREATED",
       entityType: "TASK",
       entityId: task.id,
-      description: `${user.name} created task "${task.title}" (Assigned to ${assignee.name || "Employee"})`,
+      description: `${user.name} created task "${task.title}" (Assigned to: ${assigneeNames})`,
       details: {
         title: task.title,
         priority: task.priority,
         status: task.status,
-        assigneeName: assignee.name,
+        assigneeNames,
+        assigneeCount: assignees.length,
         dueDate: task.dueDate,
       },
     });
 
-    // Send email notification to assignee in Gmail
-    if (assignee?.email) {
+    // Send email notification to all assignees if enabled in company settings
+    if (company?.enableTaskCreatedEmail !== false) {
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
         process.env.APP_URL ||
         "https://taskmanager-iit.vercel.app/";
       const taskUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
 
-      try {
-        await sendTaskCreatedEmail({
-          to: assignee.email,
-          assigneeName: assignee.name || "Team Member",
-          taskTitle: task.title,
-          taskDescription: task.description,
-          priority: task.priority,
-          status: task.status,
-          dueDate: task.dueDate,
-          creatorName: user.name || "Manager",
-          companyName: user.companyName,
-          taskUrl,
-        });
-      } catch (err) {
-        console.error("Failed to send task notification email to Gmail:", err);
+      for (const assignee of assignees) {
+        if (assignee?.email) {
+          try {
+            await sendTaskCreatedEmail({
+              to: assignee.email,
+              assigneeName: assignee.name || "Team Member",
+              taskTitle: task.title,
+              taskDescription: task.description,
+              priority: task.priority,
+              status: task.status,
+              dueDate: task.dueDate,
+              creatorName: user.name || "Manager",
+              companyName: user.companyName,
+              taskUrl,
+            });
+          } catch (err) {
+            console.error(`Failed to send task notification email to ${assignee.email}:`, err);
+          }
+        }
       }
     }
 

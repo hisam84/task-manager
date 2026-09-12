@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Ban,
   RotateCcw,
+  Users,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 import { canDeleteTask } from "@/lib/access";
@@ -93,7 +94,10 @@ export function TaskDetailModal({
     status: string;
     priority: string;
     dueDate?: string | null;
-    assignee?: { id?: string; name?: string; email?: string };
+    assignee?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null };
+    assignees?: {
+      user?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null; role?: string };
+    }[];
     creator?: { id?: string; name?: string; email?: string; role?: string };
     company?: { name?: string };
     comments?: Comment[];
@@ -128,6 +132,10 @@ export function TaskDetailModal({
   const [editDescription, setEditDescription] = useState("");
   const [editPriority, setEditPriority] = useState("MEDIUM");
   const [editDueDate, setEditDueDate] = useState("");
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<
+    { id: string; name: string; email: string; role: string; order?: number; department?: string | null }[]
+  >([]);
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Reschedule state
@@ -206,9 +214,31 @@ export function TaskDetailModal({
         setEditDueDate(toDateTimeLocalString(data.dueDate));
         setNewDueDate(toDateTimeLocalString(data.dueDate));
         setComments(data.comments || []);
+
+        const initialIds: string[] = [];
+        if (data.assignees && Array.isArray(data.assignees) && data.assignees.length > 0) {
+          initialIds.push(...data.assignees.map((a: any) => a.user?.id || a.userId).filter(Boolean));
+        } else if (data.assignee?.id) {
+          initialIds.push(data.assignee.id);
+        }
+        setEditAssigneeIds(initialIds);
+
         setError(null);
       } else {
         setError(data.error || "Unable to load task");
+      }
+
+      // Fetch users for edit list
+      try {
+        const uRes = await fetch("/api/users");
+        if (uRes.ok) {
+          const uData = await uRes.json();
+          if (Array.isArray(uData)) {
+            setAvailableUsers(uData);
+          }
+        }
+      } catch (uErr) {
+        console.error(uErr);
       }
     } catch (e) {
       console.error(e);
@@ -382,6 +412,7 @@ export function TaskDetailModal({
           description: editDescription.trim() || null,
           priority: editPriority,
           dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
+          assigneeIds: editAssigneeIds.length > 0 ? editAssigneeIds : undefined,
         }),
       });
       if (res.ok) {
@@ -1234,6 +1265,41 @@ export function TaskDetailModal({
                 </div>
               </div>
 
+              {/* Assignees Selector */}
+              {availableUsers.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      Assignees ({editAssigneeIds.length} Selected)
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 max-h-32 overflow-y-auto p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-lg">
+                    {availableUsers.map((u) => {
+                      const isSelected = editAssigneeIds.includes(u.id);
+                      return (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => {
+                            setEditAssigneeIds((prev) =>
+                              prev.includes(u.id) ? prev.filter((id) => id !== u.id) : [...prev, u.id]
+                            );
+                          }}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer border ${
+                            isSelected
+                              ? "bg-indigo-600 text-white border-indigo-500"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                          }`}
+                        >
+                          <span>{u.name}</span>
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
@@ -1263,13 +1329,33 @@ export function TaskDetailModal({
 
           {/* Metadata Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
-                Assignee
+                Assignees
               </span>
-              <span className="text-slate-100 font-medium block mt-1 truncate">
-                {taskDetail.assignee?.name || "Unassigned"}
-              </span>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {taskDetail.assignees && taskDetail.assignees.length > 0 ? (
+                  taskDetail.assignees.map((a, idx) => {
+                    const u = a.user;
+                    return (
+                      <span
+                        key={u?.id || idx}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-medium"
+                        title={`${u?.name || "Employee"} (${u?.department || u?.role || ""})`}
+                      >
+                        <span className="w-3.5 h-3.5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[8px] font-bold shrink-0">
+                          {u?.name?.[0]?.toUpperCase() || "U"}
+                        </span>
+                        <span className="truncate max-w-[110px]">{u?.name || "Employee"}</span>
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="text-slate-100 font-medium truncate">
+                    {taskDetail.assignee?.name || "Unassigned"}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div>

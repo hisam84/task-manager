@@ -33,6 +33,7 @@ interface TaskItem {
   priority: string;
   dueDate?: string | null;
   assignee?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null };
+  assignees?: { user?: { id?: string; name?: string; email?: string; avatar?: string | null; department?: string | null } }[];
   creator?: { id?: string; name?: string; role?: string };
   company?: { id?: string; name?: string };
   _count?: { comments?: number };
@@ -483,22 +484,75 @@ export default function TasksPage() {
 
                             {/* Assignee Info */}
                             <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2">
-                                {t.assignee?.avatar ? (
-                                  <img
-                                    src={t.assignee.avatar}
-                                    alt={t.assignee.name || "Assignee"}
-                                    className="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
-                                  />
-                                ) : (
-                                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold text-[10px] border border-slate-700 shrink-0">
-                                    {t.assignee?.name?.[0]?.toUpperCase() || "U"}
+                              {(() => {
+                                const allAssignees =
+                                  t.assignees && t.assignees.length > 0
+                                    ? t.assignees.map((a) => a.user).filter(Boolean)
+                                    : t.assignee
+                                    ? [t.assignee]
+                                    : [];
+
+                                if (allAssignees.length === 0) {
+                                  return (
+                                    <span className="text-slate-500 text-xs font-medium">Unassigned</span>
+                                  );
+                                }
+
+                                if (allAssignees.length === 1) {
+                                  const single = allAssignees[0]!;
+                                  return (
+                                    <div className="flex items-center gap-2">
+                                      {single.avatar ? (
+                                        <img
+                                          src={single.avatar}
+                                          alt={single.name || "Assignee"}
+                                          className="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
+                                        />
+                                      ) : (
+                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold text-[10px] border border-slate-700 shrink-0">
+                                          {single.name?.[0]?.toUpperCase() || "U"}
+                                        </div>
+                                      )}
+                                      <span className="text-slate-300 font-medium truncate max-w-[120px]">
+                                        {single.name}
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    className="flex items-center gap-1.5"
+                                    title={allAssignees.map((a) => a?.name).filter(Boolean).join(", ")}
+                                  >
+                                    <div className="flex -space-x-2 overflow-hidden">
+                                      {allAssignees.slice(0, 3).map((a, idx) =>
+                                        a?.avatar ? (
+                                          <img
+                                            key={a.id || idx}
+                                            src={a.avatar}
+                                            alt={a.name || "Assignee"}
+                                            className="w-6 h-6 rounded-full object-cover border-2 border-slate-900 shrink-0"
+                                          />
+                                        ) : (
+                                          <div
+                                            key={a?.id || idx}
+                                            className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-900 border-2 border-slate-900 text-indigo-200 font-bold text-[9px] shrink-0"
+                                          >
+                                            {a?.name?.[0]?.toUpperCase() || "U"}
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-slate-300 font-medium truncate max-w-[110px]">
+                                      {allAssignees[0]?.name}
+                                      <span className="ml-1 text-[10px] font-semibold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded-full">
+                                        +{allAssignees.length - 1}
+                                      </span>
+                                    </span>
                                   </div>
-                                )}
-                                <span className="text-slate-300 font-medium truncate max-w-[120px]">
-                                  {t.assignee?.name || "Unassigned"}
-                                </span>
-                              </div>
+                                );
+                              })()}
                             </td>
 
                             {/* Action Buttons */}
@@ -627,11 +681,20 @@ export default function TasksPage() {
                               </span>
                             )}
 
-                            {t.assignee?.name && (
-                              <span className="text-slate-400 text-[10px] truncate max-w-[130px]">
-                                👤 {t.assignee.name}
-                              </span>
-                            )}
+                            {(() => {
+                              const allAssignees =
+                                t.assignees && t.assignees.length > 0
+                                  ? t.assignees.map((a) => a.user).filter(Boolean)
+                                  : t.assignee
+                                  ? [t.assignee]
+                                  : [];
+                              if (allAssignees.length === 0) return null;
+                              return (
+                                <span className="text-slate-400 text-[10px] truncate max-w-[150px]" title={allAssignees.map((a) => a?.name).filter(Boolean).join(", ")}>
+                                  👤 {allAssignees[0]?.name}{allAssignees.length > 1 ? ` (+${allAssignees.length - 1})` : ""}
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           {!isExpanded && t.description && (
@@ -673,10 +736,28 @@ export default function TasksPage() {
                               </div>
 
                               <div>
-                                <span className="text-[10px] text-slate-500 block">Assignee</span>
-                                <span className="text-slate-200 font-medium block mt-2 truncate">
-                                  {t.assignee?.name || "Unassigned"}
-                                </span>
+                                <span className="text-[10px] text-slate-500 block">Assignees</span>
+                                <div className="mt-1 flex flex-wrap items-center gap-1">
+                                  {(() => {
+                                    const allAssignees =
+                                      t.assignees && t.assignees.length > 0
+                                        ? t.assignees.map((a) => a.user).filter(Boolean)
+                                        : t.assignee
+                                        ? [t.assignee]
+                                        : [];
+                                    if (allAssignees.length === 0) {
+                                      return <span className="text-slate-400">Unassigned</span>;
+                                    }
+                                    return allAssignees.map((a, idx) => (
+                                      <span
+                                        key={a?.id || idx}
+                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-200"
+                                      >
+                                        {a?.name}
+                                      </span>
+                                    ));
+                                  })()}
+                                </div>
                               </div>
 
                               <div className="col-span-2 pt-1 border-t border-slate-800/60 flex items-center justify-between">

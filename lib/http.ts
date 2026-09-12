@@ -32,11 +32,18 @@ export const TASK_LIST_SELECT = {
   assignee: {
     select: { id: true, name: true, email: true, avatar: true, designation: true, department: true },
   },
+  assignees: {
+    select: {
+      user: {
+        select: { id: true, name: true, email: true, avatar: true, designation: true, department: true },
+      },
+    },
+  },
   creator: {
     select: { id: true, name: true, email: true, role: true, avatar: true, designation: true },
   },
   company: {
-    select: { id: true, name: true, slug: true },
+    select: { id: true, name: true, slug: true, notifyAssignerOnTaskComplete: true, enableTaskCreatedEmail: true },
   },
   _count: {
     select: { comments: true },
