@@ -390,6 +390,11 @@ function ProfilePageContent() {
     }
   };
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
+
   if (loading || !currentUser) {
     return (
       <div className="flex h-dvh items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -406,13 +411,17 @@ function ProfilePageContent() {
   const roleInfo = getRoleBadgeInfo(currentUser.role);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
-      <Sidebar user={currentUser} onOpenChangePassword={() => setChangePasswordOpen(true)} />
+    <div className="flex flex-col lg:flex-row h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
+      <Sidebar
+        user={currentUser}
+        onOpenChangePassword={() => setChangePasswordOpen(true)}
+        onLogout={handleLogout}
+      />
 
       <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="p-4 sm:p-6 md:p-8 max-w-6xl w-full mx-auto flex-1 space-y-6 min-w-0">
+        <div className="p-3.5 sm:p-6 md:p-8 max-w-6xl w-full mx-auto flex-1 space-y-4 sm:space-y-6 min-w-0">
           {/* Header Title Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-1">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 font-semibold tracking-wider uppercase mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -497,14 +506,14 @@ function ProfilePageContent() {
 
               {/* Profile Hero Card */}
               <div className="relative rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-                <div className="h-28 sm:h-36 w-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 relative overflow-hidden">
+                <div className="h-24 sm:h-36 w-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_60%)]" />
                 </div>
 
-                <div className="px-4 sm:px-6 pb-6 pt-0 relative">
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-14 sm:-mt-16 mb-4">
+                <div className="px-3.5 sm:px-6 pb-5 sm:pb-6 pt-0 relative">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 -mt-12 sm:-mt-16 mb-4">
                     <div className="relative group self-start">
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white dark:bg-slate-900 p-1.5 shadow-xl border-2 border-white dark:border-slate-800 shrink-0 overflow-hidden">
+                      <div className="w-22 h-22 sm:w-28 sm:h-28 rounded-2xl bg-white dark:bg-slate-900 p-1.5 shadow-xl border-2 border-white dark:border-slate-800 shrink-0 overflow-hidden">
                         {avatarPreview ? (
                           <img
                             src={avatarPreview}
@@ -512,7 +521,7 @@ function ProfilePageContent() {
                             className="w-full h-full rounded-xl object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold text-3xl flex items-center justify-center border border-indigo-100 dark:border-slate-700">
+                          <div className="w-full h-full rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold text-2xl sm:text-3xl flex items-center justify-center border border-indigo-100 dark:border-slate-700">
                             {name ? name.slice(0, 2).toUpperCase() : "U"}
                           </div>
                         )}
@@ -524,8 +533,8 @@ function ProfilePageContent() {
                         className="absolute inset-1.5 rounded-xl bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium cursor-pointer"
                         title="Upload / Change Photo"
                       >
-                        <Camera className="w-6 h-6 mb-1 text-indigo-300" />
-                        <span>Change</span>
+                        <Camera className="w-5 h-5 sm:w-6 sm:h-6 mb-1 text-indigo-300" />
+                        <span className="text-[10px] sm:text-xs">Change</span>
                       </button>
 
                       <input
@@ -537,21 +546,21 @@ function ProfilePageContent() {
                       />
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 self-stretch sm:self-end w-full sm:w-auto">
+                    <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3 py-2.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs cursor-pointer"
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 min-h-11 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs cursor-pointer"
                       >
                         <Upload className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                        <span>Upload New Photo</span>
+                        <span>Upload Photo</span>
                       </button>
 
                       {avatarPreview && (
                         <button
                           type="button"
                           onClick={handleRemoveAvatar}
-                          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3 py-2.5 rounded-xl text-xs font-medium bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer shrink-0"
                           title="Remove Avatar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -562,7 +571,7 @@ function ProfilePageContent() {
                   </div>
 
                   <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
                         {currentUser.name}
                       </h2>
@@ -594,37 +603,37 @@ function ProfilePageContent() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80">
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <ListTodo className="w-3.5 h-3.5 text-indigo-500" /> Assigned Tasks
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-5 pt-4 sm:pt-5 border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                        <ListTodo className="w-3.5 h-3.5 text-indigo-500 shrink-0" /> <span className="truncate">Assigned Tasks</span>
                       </div>
-                      <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                      <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1">
                         {profileData?._count?.assignedTasks ?? 0}
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <ListTodo className="w-3.5 h-3.5 text-blue-500" /> Tasks Created
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                        <ListTodo className="w-3.5 h-3.5 text-blue-500 shrink-0" /> <span className="truncate">Tasks Created</span>
                       </div>
-                      <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                      <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1">
                         {profileData?._count?.createdTasks ?? 0}
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-emerald-500" /> Attendance Days
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                        <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> <span className="truncate">Attendance Days</span>
                       </div>
-                      <div className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                      <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1">
                         {profileData?._count?.attendances ?? 0}
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-purple-500" /> Member Since
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70">
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                        <Calendar className="w-3.5 h-3.5 text-purple-500 shrink-0" /> <span className="truncate">Member Since</span>
                       </div>
                       <div className="text-xs font-semibold text-slate-900 dark:text-white mt-1.5 truncate">
                         {profileData?.createdAt
@@ -1099,13 +1108,13 @@ function ProfilePageContent() {
                     {/* Feature 2: Additional Task Controls */}
                     <div className="space-y-4">
                       {/* Notify Assigner on Task Complete Toggle */}
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="space-y-0.5">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                        <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                            Notify Assigner on Task Completion
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span className="truncate">Notify Assigner on Task Completion</span>
                           </span>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Send an automatic completion email to the task creator whenever an employee marks their task as Completed.
                           </p>
                         </div>
@@ -1125,13 +1134,13 @@ function ProfilePageContent() {
                       </div>
 
                       {/* New Task Assignment Email Toggle */}
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="space-y-0.5">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                        <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <Send className="w-4 h-4 text-blue-500" />
-                            New Task Assignment Email Notification
+                            <Send className="w-4 h-4 text-blue-500 shrink-0" />
+                            <span className="truncate">New Task Assignment Email Notification</span>
                           </span>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Dispatch instant email notifications to team members when a new task is created and assigned to them.
                           </p>
                         </div>
@@ -1151,13 +1160,13 @@ function ProfilePageContent() {
                       </div>
 
                       {/* Employee Task Assignment Permission Toggle */}
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="space-y-0.5">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                        <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                           <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <Shield className="w-4 h-4 text-purple-500" />
-                            Allow Employees to Assign Tasks
+                            <Shield className="w-4 h-4 text-purple-500 shrink-0" />
+                            <span className="truncate">Allow Employees to Assign Tasks</span>
                           </span>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Allow regular employees to assign tasks to junior colleagues or self. When disabled, only Admins and Managers can assign tasks.
                           </p>
                         </div>
@@ -1258,13 +1267,13 @@ function ProfilePageContent() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-0.5">
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3">
+                      <div className="space-y-0.5 min-w-0 flex-1 pr-2">
                         <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <Bell className="w-4 h-4 text-purple-500" />
-                          Notify Admins on Leave Applications
+                          <Bell className="w-4 h-4 text-purple-500 shrink-0" />
+                          <span className="truncate">Notify Admins on Leave Applications</span>
                         </span>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                           Send instant email alerts to company administrators and managers whenever an employee submits a new leave application.
                         </p>
                       </div>

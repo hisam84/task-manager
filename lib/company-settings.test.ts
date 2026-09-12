@@ -56,8 +56,8 @@ describe("Company Settings Schema Validation", () => {
 describe("Overdue Alert Recipient logic", () => {
   it("includes CC when overdueAlertRecipient is BOTH", () => {
     const company = { overdueAlertRecipient: "BOTH" };
-    const creatorEmail = "manager@company.com";
-    const recipientEmail = "employee@company.com";
+    const creatorEmail: string = "manager@company.com";
+    const recipientEmail: string = "employee@company.com";
 
     const notifyAssigner = company.overdueAlertRecipient !== "ASSIGNEE_ONLY";
     let ccEmail: string | undefined = undefined;
@@ -70,8 +70,8 @@ describe("Overdue Alert Recipient logic", () => {
 
   it("omits CC when overdueAlertRecipient is ASSIGNEE_ONLY", () => {
     const company = { overdueAlertRecipient: "ASSIGNEE_ONLY" };
-    const creatorEmail = "manager@company.com";
-    const recipientEmail = "employee@company.com";
+    const creatorEmail: string = "manager@company.com";
+    const recipientEmail: string = "employee@company.com";
 
     const notifyAssigner = company.overdueAlertRecipient !== "ASSIGNEE_ONLY";
     let ccEmail: string | undefined = undefined;

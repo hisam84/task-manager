@@ -291,6 +291,11 @@ export default function ActivityLogsPage() {
     Boolean(startDate) ||
     Boolean(endDate);
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
+
   if (loadingUser || !currentUser) {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-slate-950 text-white">
@@ -300,16 +305,16 @@ export default function ActivityLogsPage() {
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <Sidebar user={currentUser} />
+    <div className="flex flex-col lg:flex-row h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950">
+      <Sidebar user={currentUser} onLogout={handleLogout} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full min-w-0">
+        <div className="p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full min-w-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-start gap-3 min-w-0">
               <div className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 shadow-xs shrink-0">
-                <History className="w-6 h-6" />
+                <History className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -341,40 +346,40 @@ export default function ActivityLogsPage() {
           </div>
 
           {/* Metric Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Total Logs</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block truncate">Total Logs</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 block">
                 {metrics.totalCount}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-900/40 shadow-xs">
-              <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 block">Today's Events</span>
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-1 block">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-900/40 shadow-xs">
+              <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 block truncate">Today's Events</span>
+              <span className="text-lg sm:text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-1 block">
                 {metrics.todayCount}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 block">Task Actions</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 block truncate">Task Actions</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 block">
                 {metrics.taskCount}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 block">Leave Events</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 block truncate">Leave Events</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 block">
                 {metrics.leaveCount}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 block">Attendance</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 block truncate">Attendance</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 block">
                 {metrics.attendanceCount}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 block">User / Team</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 block truncate">User / Team</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 block">
                 {metrics.userCount}
               </span>
             </div>
@@ -539,7 +544,7 @@ export default function ActivityLogsPage() {
                   return (
                     <div
                       key={log.id}
-                      className="p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-start justify-between gap-3"
+                      className="p-3.5 sm:p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3"
                     >
                       {/* Left: Icon, User Avatar, Description */}
                       <div className="flex items-start gap-3 min-w-0">
@@ -601,11 +606,12 @@ export default function ActivityLogsPage() {
                       </div>
 
                       {/* Right: Timestamp */}
-                      <div className="text-left sm:text-right shrink-0">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                      <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-0 shrink-0 text-slate-400 pl-11 sm:pl-0 pt-0.5 sm:pt-0">
+                        <Clock className="w-3 h-3 sm:hidden text-slate-400 shrink-0" />
+                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                           {formattedTime}
                         </span>
-                        <span className="text-[11px] text-slate-400 block mt-0.5 font-mono">
+                        <span className="text-[11px] text-slate-400 font-mono">
                           {formattedDate}
                         </span>
                       </div>
@@ -617,13 +623,13 @@ export default function ActivityLogsPage() {
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-3.5 sm:p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                 <span className="text-xs text-slate-500">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} events
                 </span>
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="flex items-center gap-2 self-center sm:self-auto">
                   <button
                     type="button"
                     disabled={pagination.page <= 1}
