@@ -277,13 +277,19 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Role Badge */}
-      {showLabels && (
-        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800/50">
+      {/* Role Badge & Theme Toggle */}
+      {showLabels ? (
+        <div className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-800/50 flex items-center justify-between gap-2">
           <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${roleBadge.bg}`}>
             <Briefcase className="w-3.5 h-3.5" />
-            {roleBadge.label}
+            <span className="truncate">{roleBadge.label}</span>
           </div>
+
+          <ThemeToggle variant="switch" />
+        </div>
+      ) : (
+        <div className="py-2 border-b border-slate-200 dark:border-slate-800/50 flex justify-center">
+          <ThemeToggle className="min-w-9 min-h-9 h-9 w-9 p-0" />
         </div>
       )}
 
@@ -461,30 +467,6 @@ export function Sidebar({
               {showLabels && <span>Password</span>}
             </button>
           )}
-
-          {/* Theme Toggle Menu Item */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className={`w-full flex items-center gap-3 px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-150 text-left group cursor-pointer ${
-              showLabels ? "" : "justify-center px-0"
-            }`}
-            title={showLabels ? undefined : isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {isDark ? (
-              <Sun className="w-5 h-5 shrink-0 text-amber-400 transition-transform group-hover:rotate-45" />
-            ) : (
-              <Moon className="w-5 h-5 shrink-0 text-indigo-500 transition-transform group-hover:-rotate-12" />
-            )}
-            {showLabels && (
-              <div className="flex items-center justify-between flex-1 min-w-0">
-                <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60 font-mono">
-                  {isDark ? "DARK" : "LIGHT"}
-                </span>
-              </div>
-            )}
-          </button>
         </div>
       </nav>
 
