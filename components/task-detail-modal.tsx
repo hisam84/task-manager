@@ -596,10 +596,14 @@ export function TaskDetailModal({
   if (!isOpen) return null;
   if (!taskDetail) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-6 text-xs font-mono text-slate-400">
-          {error || "Loading task details..."}
-          <button onClick={onClose} className="mt-4 block text-white hover:underline">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 text-xs text-slate-600 dark:text-slate-400 shadow-2xl">
+          <p>{error || "Loading task details..."}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-4 inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 cursor-pointer transition-colors"
+          >
             Close
           </button>
         </div>
@@ -608,151 +612,188 @@ export function TaskDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
         {/* Modal Top Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-slate-800 bg-slate-950/70">
-          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-            {/* Status Dropdown */}
-            <select
-              value={status}
-              onChange={(e) => onStatusDropdownChange(e.target.value)}
-              disabled={updatingStatus}
-              className={`min-h-11 border text-base md:text-xs font-medium rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors ${
-                status === "CANCELLED"
-                  ? "bg-rose-950/60 border-rose-500/40 text-rose-300 hover:border-rose-400"
-                  : status === "DONE"
-                  ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
-                  : "bg-slate-900 border-slate-700 hover:border-indigo-500 text-slate-100"
-              }`}
-            >
-              <option value="TODO">To Do</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="IN_REVIEW">In Review</option>
-              <option value="DONE">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/70 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            {/* Left: Status & Priority */}
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                {/* Status Dropdown */}
+                <select
+                  value={status}
+                  onChange={(e) => onStatusDropdownChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className={`h-9 border text-xs font-semibold rounded-xl px-2.5 sm:px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
+                    status === "CANCELLED"
+                      ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 hover:border-rose-300"
+                      : status === "DONE"
+                      ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:border-emerald-300"
+                      : status === "IN_PROGRESS"
+                      ? "bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300 hover:border-blue-300"
+                      : status === "IN_REVIEW"
+                      ? "bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 hover:border-purple-300"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-300 dark:hover:border-slate-600"
+                  }`}
+                >
+                  <option value="TODO">To Do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="IN_REVIEW">In Review</option>
+                  <option value="DONE">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
 
-            {/* Priority Selector */}
-            <select
-              value={priority}
-              onChange={(e) => handlePriorityChange(e.target.value)}
-              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
-            >
-              <option value="LOW">Low Priority</option>
-              <option value="MEDIUM">Medium Priority</option>
-              <option value="HIGH">High Priority</option>
-              <option value="URGENT">Urgent Priority</option>
-            </select>
-          </div>
+                {/* Priority Selector */}
+                <select
+                  value={priority}
+                  onChange={(e) => handlePriorityChange(e.target.value)}
+                  className={`h-9 border text-xs font-semibold rounded-xl px-2.5 sm:px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
+                    priority === "URGENT"
+                      ? "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+                      : priority === "HIGH"
+                      ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                      : priority === "LOW"
+                      ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  <option value="LOW">Low Priority</option>
+                  <option value="MEDIUM">Medium Priority</option>
+                  <option value="HIGH">High Priority</option>
+                  <option value="URGENT">Urgent Priority</option>
+                </select>
+              </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Edit Task Button */}
-            <button
-              onClick={() => {
-                setIsEditing(!isEditing);
-                setIsRescheduling(false);
-                setIsCancelling(false);
-              }}
-              title="Edit Task"
-              className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                isEditing
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
-              }`}
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>{isEditing ? "Cancel Edit" : "Edit Task"}</span>
-            </button>
+              {/* Close button on mobile - placed in Row 1 on the far right so it's always accessible */}
+              <div className="sm:hidden flex items-center">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  title="Close"
+                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-            {/* Reschedule Button */}
-            <button
-              onClick={() => {
-                setIsRescheduling(!isRescheduling);
-                setIsEditing(false);
-                setIsCancelling(false);
-                setShowNotifyPanel(false);
-              }}
-              title="Reschedule Due Date & Time"
-              className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                isRescheduling
-                  ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
-                  : "text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30"
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{isRescheduling ? "Close" : "Reschedule"}</span>
-            </button>
-
-            {/* Cancel Task or Reopen Button */}
-            {status === "CANCELLED" || taskDetail?.status === "CANCELLED" ? (
-              <button
-                type="button"
-                onClick={handleReopenTask}
-                disabled={reopeningTask}
-                title="Reopen this task"
-                className="flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-200 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-all cursor-pointer"
-              >
-                {reopeningTask ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <RotateCcw className="w-3.5 h-3.5" />
-                )}
-                <span>Reopen Task</span>
-              </button>
-            ) : (
+            {/* Right: Actions & Desktop Close */}
+            <div className="flex items-center justify-end gap-1.5 flex-wrap">
+              {/* Edit Task Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setIsCancelling(!isCancelling);
-                  setIsEditing(false);
+                  setIsEditing(!isEditing);
                   setIsRescheduling(false);
-                  setShowNotifyPanel(false);
-                  setCancelError(null);
+                  setIsCancelling(false);
                 }}
-                title="Cancel this task"
-                className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  isCancelling
-                    ? "bg-rose-600 text-white shadow-md shadow-rose-600/30"
-                    : "text-rose-700 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30"
+                title="Edit Task"
+                className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
+                  isEditing
+                    ? "bg-indigo-600 text-white shadow-indigo-600/20"
+                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700"
                 }`}
               >
-                <Ban className="w-3.5 h-3.5" />
-                <span>{isCancelling ? "Dismiss Cancel" : "Cancel Task"}</span>
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>{isEditing ? "Cancel Edit" : "Edit Task"}</span>
               </button>
-            )}
 
-            {/* Email Assigner Button (when status is DONE or taskDetail is DONE) */}
-            {(status === "DONE" || taskDetail?.status === "DONE") && (
+              {/* Reschedule Button */}
               <button
                 type="button"
-                onClick={() => setIsCompleteModalOpen(true)}
-                title="Send completion email to the person who assigned this task"
-                className="flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 cursor-pointer"
+                onClick={() => {
+                  setIsRescheduling(!isRescheduling);
+                  setIsEditing(false);
+                  setIsCancelling(false);
+                  setShowNotifyPanel(false);
+                }}
+                title="Reschedule Due Date & Time"
+                className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
+                  isRescheduling
+                    ? "bg-amber-600 text-white shadow-amber-600/20"
+                    : "text-amber-700 dark:text-amber-400 hover:bg-amber-100/70 dark:hover:bg-amber-500/20 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30"
+                }`}
               >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Email Assigner</span>
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{isRescheduling ? "Close" : "Reschedule"}</span>
               </button>
-            )}
 
-            {/* Delete button (Super Admin / Admin / Manager only - Regular employees cannot delete) */}
-            {hasDeletePermission && (
-              <button
-                type="button"
-                onClick={handleDeleteTask}
-                title="Delete Task"
-                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
+              {/* Cancel Task or Reopen Button */}
+              {status === "CANCELLED" || taskDetail?.status === "CANCELLED" ? (
+                <button
+                  type="button"
+                  onClick={handleReopenTask}
+                  disabled={reopeningTask}
+                  title="Reopen this task"
+                  className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-500/10 dark:hover:bg-sky-500/20 border border-sky-200 dark:border-sky-500/30 transition-all cursor-pointer shadow-xs"
+                >
+                  {reopeningTask ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  )}
+                  <span>Reopen</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCancelling(!isCancelling);
+                    setIsEditing(false);
+                    setIsRescheduling(false);
+                    setShowNotifyPanel(false);
+                    setCancelError(null);
+                  }}
+                  title="Cancel this task"
+                  className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
+                    isCancelling
+                      ? "bg-rose-600 text-white shadow-rose-600/20"
+                      : "text-rose-700 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30"
+                  }`}
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  <span>{isCancelling ? "Dismiss" : "Cancel Task"}</span>
+                </button>
+              )}
 
-            <button
-              onClick={onClose}
-              className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
+              {/* Email Assigner Button */}
+              {(status === "DONE" || taskDetail?.status === "DONE") && (
+                <button
+                  type="button"
+                  onClick={() => setIsCompleteModalOpen(true)}
+                  title="Send completion email to the person who assigned this task"
+                  className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 cursor-pointer shadow-xs"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email Assigner</span>
+                </button>
+              )}
+
+              {/* Delete button */}
+              {hasDeletePermission && (
+                <button
+                  type="button"
+                  onClick={handleDeleteTask}
+                  title="Delete Task"
+                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Desktop Close button */}
+              <div className="hidden sm:flex items-center pl-1 border-l border-slate-200 dark:border-slate-800 ml-1">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  title="Close (Esc)"
+                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -767,17 +808,17 @@ export function TaskDetailModal({
 
           {/* Cancelled Task Banner */}
           {(status === "CANCELLED" || taskDetail.status === "CANCELLED") && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/30 space-y-3 animate-fadeIn shadow-lg shadow-rose-950/20">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-500/30 space-y-3 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                  <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 shrink-0">
                     <Ban className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-rose-300 block">
+                    <span className="text-xs font-bold text-rose-800 dark:text-rose-300 block">
                       Task Cancelled
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400">
                       This task has been marked as cancelled. Work is discontinued.
                     </span>
                   </div>
@@ -787,7 +828,7 @@ export function TaskDetailModal({
                   type="button"
                   onClick={handleReopenTask}
                   disabled={reopeningTask}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-rose-100 hover:bg-rose-200 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 transition-all cursor-pointer shadow-xs"
                 >
                   {reopeningTask ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -856,7 +897,7 @@ export function TaskDetailModal({
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
                     placeholder="e.g. Project deprioritized, client cancelled, duplicate request..."
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 focus:border-rose-500 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors resize-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors resize-none"
                   />
                 </div>
 
@@ -866,7 +907,7 @@ export function TaskDetailModal({
                     id="notifyOnCancelCheck"
                     checked={notifyOnCancel}
                     onChange={(e) => setNotifyOnCancel(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded border-slate-700 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                    className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-rose-600 focus:ring-rose-500 cursor-pointer"
                   />
                   <label
                     htmlFor="notifyOnCancelCheck"
@@ -883,14 +924,14 @@ export function TaskDetailModal({
                       setIsCancelling(false);
                       setCancelError(null);
                     }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     Keep Task
                   </button>
                   <button
                     type="submit"
                     disabled={savingCancel}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 transition-all shadow-md shadow-rose-600/20 disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-all shadow-sm shadow-rose-600/20 disabled:opacity-50 cursor-pointer"
                   >
                     {savingCancel ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -906,19 +947,19 @@ export function TaskDetailModal({
 
           {/* Completed Task Notification Banner / Panel */}
           {(status === "DONE" || taskDetail.status === "DONE") && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 space-y-3 animate-fadeIn shadow-lg shadow-emerald-950/20">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-500/30 space-y-3 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shrink-0">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-emerald-300 block">
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">
                       Task Completed
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400">
                       Assigned by:{" "}
-                      <strong className="text-slate-200">
+                      <strong className="text-slate-800 dark:text-slate-200">
                         {taskDetail.creator?.name || "Assigner"}
                       </strong>
                       {taskDetail.creator?.email ? ` (${taskDetail.creator.email})` : ""}
@@ -929,7 +970,7 @@ export function TaskDetailModal({
                 <button
                   type="button"
                   onClick={() => setIsCompleteModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-all cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>Email Assigner</span>
@@ -937,15 +978,15 @@ export function TaskDetailModal({
               </div>
 
               {notifySuccessMessage && (
-                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="p-2.5 rounded-xl bg-emerald-100/80 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>{notifySuccessMessage}</span>
                 </div>
               )}
 
               {notifyErrorMessage && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-2.5 rounded-xl bg-rose-100/80 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                   <span>{notifyErrorMessage}</span>
                 </div>
               )}
@@ -1101,14 +1142,14 @@ export function TaskDetailModal({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Quick Reason Preset
                     </label>
                     <select
                       onChange={(e) => {
                         if (e.target.value) setRescheduleReason(e.target.value);
                       }}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none transition-colors"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-300 outline-none transition-colors"
                     >
                       <option value="">Select a common reason...</option>
                       {COMMON_REASONS.map((r) => (
@@ -1121,7 +1162,7 @@ export function TaskDetailModal({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Reason for Rescheduling *
                   </label>
                   <input
@@ -1130,24 +1171,24 @@ export function TaskDetailModal({
                     value={rescheduleReason}
                     onChange={(e) => setRescheduleReason(e.target.value)}
                     placeholder="e.g. Waiting for client response, extra testing required..."
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 outline-none transition-colors"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-1">
+                <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
                   <button
                     type="button"
                     onClick={() => setIsRescheduling(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={savingReschedule}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 transition-all shadow-md shadow-amber-600/20 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-500 transition-all shadow-sm shadow-amber-600/20 disabled:opacity-50 cursor-pointer"
                   >
-                    {savingReschedule && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {savingReschedule && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     <span>Confirm Reschedule</span>
                   </button>
                 </div>
@@ -1285,106 +1326,118 @@ export function TaskDetailModal({
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-1">
+              <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-md shadow-indigo-600/25 disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-sm shadow-indigo-600/25 disabled:opacity-50 cursor-pointer"
                 >
-                  {savingEdit && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {savingEdit && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Changes</span>
                 </button>
               </div>
             </form>
           ) : (
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">{taskDetail.title}</h2>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed whitespace-pre-wrap">
-                {taskDetail.description || "No description provided."}
-              </p>
+            <div className="space-y-1.5">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
+                {taskDetail.title}
+              </h2>
+              {taskDetail.description ? (
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  {taskDetail.description}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+                  No description provided.
+                </p>
+              )}
             </div>
           )}
 
           {/* Metadata Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
-            <div className="col-span-2 sm:col-span-1">
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 text-xs">
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Assignees
               </span>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {taskDetail.assignees && taskDetail.assignees.length > 0 ? (
                   taskDetail.assignees.map((a, idx) => {
                     const u = a.user;
                     return (
                       <span
                         key={u?.id || idx}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-medium"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-[11px] font-medium max-w-full"
                         title={`${u?.name || "Employee"} (${u?.department || u?.role || ""})`}
                       >
-                        <span className="w-3.5 h-3.5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[8px] font-bold shrink-0">
+                        <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                           {u?.name?.[0]?.toUpperCase() || "U"}
                         </span>
-                        <span className="truncate max-w-[110px]">{u?.name || "Employee"}</span>
+                        <span className="truncate">{u?.name || "Employee"}</span>
                       </span>
                     );
                   })
                 ) : (
-                  <span className="text-slate-100 font-medium truncate">
+                  <span className="text-slate-700 dark:text-slate-200 font-medium truncate">
                     {taskDetail.assignee?.name || "Unassigned"}
                   </span>
                 )}
               </div>
             </div>
 
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Assigned By
               </span>
               <span
-                className="text-slate-100 font-medium block mt-1 truncate"
+                className="text-slate-800 dark:text-slate-100 font-semibold block truncate"
                 title={taskDetail.creator?.email || ""}
               >
                 {taskDetail.creator?.name || "Assigner"}
               </span>
             </div>
 
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Deadline
               </span>
-              <span className="text-slate-100 font-medium block mt-1 flex items-center gap-1.5 font-mono text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">{formatDateTime(taskDetail.dueDate)}</span>
-              </span>
+              <div className="text-slate-800 dark:text-slate-100 font-medium flex items-start gap-1.5 text-[11px] leading-snug">
+                <Clock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span className="break-words">
+                  {taskDetail.dueDate ? formatDateTime(taskDetail.dueDate) : "Not set"}
+                </span>
+              </div>
             </div>
 
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Workspace
               </span>
-              <span className="text-indigo-400 font-medium block mt-1 truncate">
+              <span className="text-indigo-600 dark:text-indigo-400 font-semibold block truncate">
                 {taskDetail.company?.name || "Standard"}
               </span>
             </div>
           </div>
 
           {/* Comments and Activity Stream */}
-          <div className="border-t border-slate-800 pt-4 space-y-3">
-            <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-              <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Activity & Comments ({comments.length})</span>
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
+            <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Activity &amp; Comments ({comments.length})</span>
             </h4>
 
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {comments.length === 0 ? (
-                <p className="text-xs text-slate-500 py-1">No updates or comments yet.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                  No updates or comments yet.
+                </p>
               ) : (
                 comments.map((c) => {
                   const isRescheduleEvent = c.body.includes("[Task Rescheduled]");
@@ -1393,42 +1446,42 @@ export function TaskDetailModal({
                   return (
                     <div
                       key={c.id}
-                      className={`p-3 rounded-xl border text-xs transition-colors ${
+                      className={`p-3 rounded-2xl border text-xs transition-colors ${
                         isCancelEvent
-                          ? "bg-rose-500/10 border-rose-500/30 text-rose-200"
+                          ? "bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200"
                           : isReopenEvent
-                          ? "bg-sky-500/10 border-sky-500/30 text-sky-200"
+                          ? "bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/30 text-sky-800 dark:text-sky-200"
                           : isRescheduleEvent
-                          ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
-                          : "bg-slate-950/50 border-slate-800/80 text-slate-200"
+                          ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-200"
+                          : "bg-slate-50 dark:bg-slate-950/50 border-slate-200/80 dark:border-slate-800/80 text-slate-800 dark:text-slate-200"
                       }`}
                     >
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-                        <span className="font-semibold text-white flex items-center gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1.5">
+                        <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
                           {c.author?.avatar ? (
                             <img
                               src={c.author.avatar}
                               alt={c.author.name}
-                              className="w-4 h-4 rounded-full object-cover shrink-0 border border-slate-700 inline"
+                              className="w-4 h-4 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 inline"
                             />
                           ) : null}
                           {isCancelEvent && (
-                            <Ban className="w-3.5 h-3.5 text-rose-400 inline" />
+                            <Ban className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 inline" />
                           )}
                           {isReopenEvent && (
-                            <RotateCcw className="w-3.5 h-3.5 text-sky-400 inline" />
+                            <RotateCcw className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 inline" />
                           )}
                           {isRescheduleEvent && (
-                            <Calendar className="w-3.5 h-3.5 text-amber-400 inline" />
+                            <Calendar className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 inline" />
                           )}
                           {c.author?.name}
                           {c.author?.role && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-normal">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-normal">
                               {c.author.role}
                             </span>
                           )}
                         </span>
-                        <span className="font-mono text-[10px]">
+                        <span className="font-mono text-[10px] text-slate-400">
                           {new Date(c.createdAt).toLocaleDateString()}{" "}
                           {new Date(c.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -1450,12 +1503,12 @@ export function TaskDetailModal({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Write an update or comment..."
-                className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 outline-none transition-colors"
+                className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors shadow-xs"
               />
               <button
                 type="submit"
                 disabled={loadingComment || !newComment.trim()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all disabled:opacity-40 flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 cursor-pointer shrink-0"
               >
                 {loadingComment ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
