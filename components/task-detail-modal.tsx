@@ -615,185 +615,170 @@ export function TaskDetailModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
         {/* Modal Top Bar */}
-        <div className="px-4 sm:px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/70 backdrop-blur-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            {/* Left: Status & Priority */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Status Dropdown */}
-                <select
-                  value={status}
-                  onChange={(e) => onStatusDropdownChange(e.target.value)}
-                  disabled={updatingStatus}
-                  className={`h-9 border text-xs font-semibold rounded-xl px-2.5 sm:px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
-                    status === "CANCELLED"
-                      ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 hover:border-rose-300"
-                      : status === "DONE"
-                      ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:border-emerald-300"
-                      : status === "IN_PROGRESS"
-                      ? "bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300 hover:border-blue-300"
-                      : status === "IN_REVIEW"
-                      ? "bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 hover:border-purple-300"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-300 dark:hover:border-slate-600"
-                  }`}
-                >
-                  <option value="TODO">To Do</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="IN_REVIEW">In Review</option>
-                  <option value="DONE">Completed</option>
-                  <option value="CANCELLED">Cancelled</option>
-                </select>
-
-                {/* Priority Selector */}
-                <select
-                  value={priority}
-                  onChange={(e) => handlePriorityChange(e.target.value)}
-                  className={`h-9 border text-xs font-semibold rounded-xl px-2.5 sm:px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
-                    priority === "URGENT"
-                      ? "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
-                      : priority === "HIGH"
-                      ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300"
-                      : priority === "LOW"
-                      ? "bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  <option value="LOW">Low Priority</option>
-                  <option value="MEDIUM">Medium Priority</option>
-                  <option value="HIGH">High Priority</option>
-                  <option value="URGENT">Urgent Priority</option>
-                </select>
-              </div>
-
-              {/* Close button on mobile - placed in Row 1 on the far right so it's always accessible */}
-              <div className="sm:hidden flex items-center">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  title="Close"
-                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Actions & Desktop Close */}
-            <div className="flex items-center justify-end gap-1.5 flex-wrap">
-              {/* Edit Task Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEditing(!isEditing);
-                  setIsRescheduling(false);
-                  setIsCancelling(false);
-                }}
-                title="Edit Task"
-                className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
-                  isEditing
-                    ? "bg-indigo-600 text-white shadow-indigo-600/20"
-                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700"
+        <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80">
+          {/* Row 1: Status & Priority on Left, Dedicated Close Button on Far Right */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Status & Priority Badges */}
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              {/* Status Dropdown */}
+              <select
+                value={status}
+                onChange={(e) => onStatusDropdownChange(e.target.value)}
+                disabled={updatingStatus}
+                className={`h-9 border text-xs font-semibold rounded-xl px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
+                  status === "CANCELLED"
+                    ? "bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 hover:border-rose-400"
+                    : status === "DONE"
+                    ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:border-emerald-400"
+                    : status === "IN_PROGRESS"
+                    ? "bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-500/40 text-blue-700 dark:text-blue-300 hover:border-blue-400"
+                    : status === "IN_REVIEW"
+                    ? "bg-purple-50 dark:bg-purple-950/60 border-purple-300 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 hover:border-purple-400"
+                    : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-400"
                 }`}
               >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>{isEditing ? "Cancel Edit" : "Edit Task"}</span>
-              </button>
+                <option value="TODO" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">To Do</option>
+                <option value="IN_PROGRESS" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">In Progress</option>
+                <option value="IN_REVIEW" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">In Review</option>
+                <option value="DONE" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Completed</option>
+                <option value="CANCELLED" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Cancelled</option>
+              </select>
 
-              {/* Reschedule Button */}
+              {/* Priority Selector */}
+              <select
+                value={priority}
+                onChange={(e) => handlePriorityChange(e.target.value)}
+                className={`h-9 border text-xs font-semibold rounded-xl px-3 py-1 outline-none cursor-pointer transition-colors shadow-xs ${
+                  priority === "URGENT"
+                    ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+                    : priority === "HIGH"
+                    ? "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                    : priority === "LOW"
+                    ? "bg-slate-100 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                    : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                }`}
+              >
+                <option value="LOW" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">Low Priority</option>
+                <option value="MEDIUM" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">Medium Priority</option>
+                <option value="HIGH" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">High Priority</option>
+                <option value="URGENT" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">Urgent Priority</option>
+              </select>
+            </div>
+
+            {/* Permanent Top-Right Close Button */}
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close (Esc)"
+              className="h-9 w-9 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Row 2: Dedicated Action Toolbar */}
+          <div className="flex items-center justify-between sm:justify-start gap-1.5 mt-2.5 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex-wrap">
+            {/* Edit Task Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditing(!isEditing);
+                setIsRescheduling(false);
+                setIsCancelling(false);
+              }}
+              title="Edit Task"
+              className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
+                isEditing
+                  ? "bg-indigo-600 text-white shadow-indigo-600/20"
+                  : "text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700"
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{isEditing ? "Cancel Edit" : "Edit Task"}</span>
+            </button>
+
+            {/* Reschedule Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsRescheduling(!isRescheduling);
+                setIsEditing(false);
+                setIsCancelling(false);
+                setShowNotifyPanel(false);
+              }}
+              title="Reschedule Due Date & Time"
+              className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
+                isRescheduling
+                  ? "bg-amber-600 text-white shadow-amber-600/20"
+                  : "text-amber-800 dark:text-amber-300 hover:bg-amber-100/80 dark:hover:bg-amber-900/40 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60"
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{isRescheduling ? "Close" : "Reschedule"}</span>
+            </button>
+
+            {/* Cancel Task or Reopen Button */}
+            {status === "CANCELLED" || taskDetail?.status === "CANCELLED" ? (
+              <button
+                type="button"
+                onClick={handleReopenTask}
+                disabled={reopeningTask}
+                title="Reopen this task"
+                className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium text-sky-800 dark:text-sky-300 bg-sky-50 hover:bg-sky-100/80 dark:bg-sky-950/40 dark:hover:bg-sky-900/40 border border-sky-300 dark:border-sky-700/60 transition-all cursor-pointer shadow-xs"
+              >
+                {reopeningTask ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5" />
+                )}
+                <span>Reopen</span>
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={() => {
-                  setIsRescheduling(!isRescheduling);
+                  setIsCancelling(!isCancelling);
                   setIsEditing(false);
-                  setIsCancelling(false);
+                  setIsRescheduling(false);
                   setShowNotifyPanel(false);
+                  setCancelError(null);
                 }}
-                title="Reschedule Due Date & Time"
+                title="Cancel this task"
                 className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
-                  isRescheduling
-                    ? "bg-amber-600 text-white shadow-amber-600/20"
-                    : "text-amber-700 dark:text-amber-400 hover:bg-amber-100/70 dark:hover:bg-amber-500/20 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30"
+                  isCancelling
+                    ? "bg-rose-600 text-white shadow-rose-600/20"
+                    : "text-rose-800 dark:text-rose-300 bg-rose-50 hover:bg-rose-100/80 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 border border-rose-300 dark:border-rose-700/60"
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>{isRescheduling ? "Close" : "Reschedule"}</span>
+                <Ban className="w-3.5 h-3.5" />
+                <span>{isCancelling ? "Dismiss" : "Cancel Task"}</span>
               </button>
+            )}
 
-              {/* Cancel Task or Reopen Button */}
-              {status === "CANCELLED" || taskDetail?.status === "CANCELLED" ? (
-                <button
-                  type="button"
-                  onClick={handleReopenTask}
-                  disabled={reopeningTask}
-                  title="Reopen this task"
-                  className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-50 hover:bg-sky-100 dark:bg-sky-500/10 dark:hover:bg-sky-500/20 border border-sky-200 dark:border-sky-500/30 transition-all cursor-pointer shadow-xs"
-                >
-                  {reopeningTask ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  )}
-                  <span>Reopen</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCancelling(!isCancelling);
-                    setIsEditing(false);
-                    setIsRescheduling(false);
-                    setShowNotifyPanel(false);
-                    setCancelError(null);
-                  }}
-                  title="Cancel this task"
-                  className={`flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-xs ${
-                    isCancelling
-                      ? "bg-rose-600 text-white shadow-rose-600/20"
-                      : "text-rose-700 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30"
-                  }`}
-                >
-                  <Ban className="w-3.5 h-3.5" />
-                  <span>{isCancelling ? "Dismiss" : "Cancel Task"}</span>
-                </button>
-              )}
+            {/* Email Assigner Button */}
+            {(status === "DONE" || taskDetail?.status === "DONE") && (
+              <button
+                type="button"
+                onClick={() => setIsCompleteModalOpen(true)}
+                title="Send completion email to the person who assigned this task"
+                className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700/60 cursor-pointer shadow-xs"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Email Assigner</span>
+              </button>
+            )}
 
-              {/* Email Assigner Button */}
-              {(status === "DONE" || taskDetail?.status === "DONE") && (
-                <button
-                  type="button"
-                  onClick={() => setIsCompleteModalOpen(true)}
-                  title="Send completion email to the person who assigned this task"
-                  className="flex items-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-medium transition-all text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 cursor-pointer shadow-xs"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Email Assigner</span>
-                </button>
-              )}
-
-              {/* Delete button */}
-              {hasDeletePermission && (
-                <button
-                  type="button"
-                  onClick={handleDeleteTask}
-                  title="Delete Task"
-                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-
-              {/* Desktop Close button */}
-              <div className="hidden sm:flex items-center pl-1 border-l border-slate-200 dark:border-slate-800 ml-1">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  title="Close (Esc)"
-                  className="h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            {/* Delete button (aligned right) */}
+            {hasDeletePermission && (
+              <button
+                type="button"
+                onClick={handleDeleteTask}
+                title="Delete Task"
+                className="sm:ml-auto h-8.5 w-8.5 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -808,17 +793,17 @@ export function TaskDetailModal({
 
           {/* Cancelled Task Banner */}
           {(status === "CANCELLED" || taskDetail.status === "CANCELLED") && (
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-500/30 space-y-3 animate-fadeIn">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 space-y-3 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 shrink-0">
+                  <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 shrink-0">
                     <Ban className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-rose-800 dark:text-rose-300 block">
+                    <span className="text-xs font-bold text-rose-900 dark:text-rose-200 block">
                       Task Cancelled
                     </span>
-                    <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                    <span className="text-[11px] text-slate-700 dark:text-slate-300">
                       This task has been marked as cancelled. Work is discontinued.
                     </span>
                   </div>
@@ -947,19 +932,19 @@ export function TaskDetailModal({
 
           {/* Completed Task Notification Banner / Panel */}
           {(status === "DONE" || taskDetail.status === "DONE") && (
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-500/30 space-y-3 animate-fadeIn">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 space-y-3 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shrink-0">
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 shrink-0">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 block">
                       Task Completed
                     </span>
-                    <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                    <span className="text-[11px] text-slate-700 dark:text-slate-300">
                       Assigned by:{" "}
-                      <strong className="text-slate-800 dark:text-slate-200">
+                      <strong className="text-slate-950 dark:text-white font-semibold">
                         {taskDetail.creator?.name || "Assigner"}
                       </strong>
                       {taskDetail.creator?.email ? ` (${taskDetail.creator.email})` : ""}
@@ -1362,7 +1347,7 @@ export function TaskDetailModal({
           )}
 
           {/* Metadata Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs">
             <div className="min-w-0">
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Assignees
@@ -1397,7 +1382,7 @@ export function TaskDetailModal({
                 Assigned By
               </span>
               <span
-                className="text-slate-800 dark:text-slate-100 font-semibold block truncate"
+                className="text-slate-900 dark:text-slate-100 font-semibold block truncate"
                 title={taskDetail.creator?.email || ""}
               >
                 {taskDetail.creator?.name || "Assigner"}
@@ -1408,7 +1393,7 @@ export function TaskDetailModal({
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider mb-1.5">
                 Deadline
               </span>
-              <div className="text-slate-800 dark:text-slate-100 font-medium flex items-start gap-1.5 text-[11px] leading-snug">
+              <div className="text-slate-900 dark:text-slate-100 font-medium flex items-start gap-1.5 text-[11px] leading-snug">
                 <Clock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
                 <span className="break-words">
                   {taskDetail.dueDate ? formatDateTime(taskDetail.dueDate) : "Not set"}
@@ -1435,7 +1420,7 @@ export function TaskDetailModal({
 
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {comments.length === 0 ? (
-                <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
                   No updates or comments yet.
                 </p>
               ) : (
@@ -1443,17 +1428,20 @@ export function TaskDetailModal({
                   const isRescheduleEvent = c.body.includes("[Task Rescheduled]");
                   const isCancelEvent = c.body.includes("[Task Cancelled]");
                   const isReopenEvent = c.body.includes("[Task Reopened]");
+                  const isCompleteEvent = c.body.includes("[Task Completed");
                   return (
                     <div
                       key={c.id}
                       className={`p-3 rounded-2xl border text-xs transition-colors ${
                         isCancelEvent
-                          ? "bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200"
+                          ? "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200"
                           : isReopenEvent
-                          ? "bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/30 text-sky-800 dark:text-sky-200"
+                          ? "bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-500/30 text-sky-900 dark:text-sky-200"
                           : isRescheduleEvent
-                          ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-200"
-                          : "bg-slate-50 dark:bg-slate-950/50 border-slate-200/80 dark:border-slate-800/80 text-slate-800 dark:text-slate-200"
+                          ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200"
+                          : isCompleteEvent
+                          ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200"
+                          : "bg-slate-100/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200"
                       }`}
                     >
                       <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1.5">
@@ -1466,22 +1454,25 @@ export function TaskDetailModal({
                             />
                           ) : null}
                           {isCancelEvent && (
-                            <Ban className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 inline" />
+                            <Ban className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 inline shrink-0" />
                           )}
                           {isReopenEvent && (
-                            <RotateCcw className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 inline" />
+                            <RotateCcw className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 inline shrink-0" />
                           )}
                           {isRescheduleEvent && (
-                            <Calendar className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 inline" />
+                            <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 inline shrink-0" />
                           )}
-                          {c.author?.name}
+                          {isCompleteEvent && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline shrink-0" />
+                          )}
+                          <span>{c.author?.name}</span>
                           {c.author?.role && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-normal">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-normal">
                               {c.author.role}
                             </span>
                           )}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400">
+                        <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
                           {new Date(c.createdAt).toLocaleDateString()}{" "}
                           {new Date(c.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -1489,7 +1480,9 @@ export function TaskDetailModal({
                           })}
                         </span>
                       </div>
-                      <p className="text-xs leading-relaxed whitespace-pre-wrap">{c.body}</p>
+                      <p className="text-xs leading-relaxed whitespace-pre-wrap font-normal text-slate-800 dark:text-slate-200">
+                        {c.body}
+                      </p>
                     </div>
                   );
                 })
@@ -1503,7 +1496,7 @@ export function TaskDetailModal({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Write an update or comment..."
-                className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors shadow-xs"
+                className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors shadow-xs"
               />
               <button
                 type="submit"
