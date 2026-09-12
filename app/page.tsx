@@ -192,10 +192,20 @@ export default function DashboardPage() {
 
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
     try {
+      let cancelReason: string | undefined = undefined;
+      if (newStatus === "CANCELLED") {
+        const reason = window.prompt("Reason for cancellation (optional):", "");
+        if (reason === null) return; // User pressed Cancel on prompt
+        cancelReason = reason.trim() || "Marked as cancelled";
+      }
+
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          ...(cancelReason ? { cancelReason, notifyOnCancel: true } : {}),
+        }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -243,6 +253,7 @@ export default function DashboardPage() {
     IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS").length,
     IN_REVIEW: tasks.filter((t) => t.status === "IN_REVIEW").length,
     DONE: tasks.filter((t) => t.status === "DONE").length,
+    CANCELLED: tasks.filter((t) => t.status === "CANCELLED").length,
   };
 
   const donutItems = [
@@ -250,6 +261,7 @@ export default function DashboardPage() {
     { label: "In Progress", count: statusBreakdown.IN_PROGRESS || 0, color: "#3b82f6" },
     { label: "In Review", count: statusBreakdown.IN_REVIEW || 0, color: "#8b5cf6" },
     { label: "To Do", count: statusBreakdown.TODO || 0, color: "#f59e0b" },
+    ...(statusBreakdown.CANCELLED ? [{ label: "Cancelled", count: statusBreakdown.CANCELLED, color: "#f43f5e" }] : []),
   ];
 
   return (
@@ -366,6 +378,7 @@ export default function DashboardPage() {
                     <option value="IN_PROGRESS">In Progress</option>
                     <option value="IN_REVIEW">In Review</option>
                     <option value="DONE">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
                   </select>
 
                   <select
@@ -515,9 +528,11 @@ export default function DashboardPage() {
                       {tasks.map((t) => {
                         const isExpanded = expandedTaskId === t.id;
                         const isDone = t.status === "DONE";
+                        const isCancelled = t.status === "CANCELLED";
                         const isOverdue =
                           t.dueDate &&
                           !isDone &&
+                          !isCancelled &&
                           new Date(t.dueDate).getTime() < Date.now();
 
                         return (
@@ -526,6 +541,8 @@ export default function DashboardPage() {
                             className={`p-3.5 transition-all ${
                               isDone
                                 ? "bg-emerald-50/60 dark:bg-emerald-950/25 border-l-4 border-l-emerald-500 opacity-90 hover:opacity-100"
+                                : isCancelled
+                                ? "bg-rose-50/60 dark:bg-rose-950/20 border-l-4 border-l-rose-500/70 opacity-80 hover:opacity-100"
                                 : "transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/20"
                             }`}
                           >
@@ -537,7 +554,11 @@ export default function DashboardPage() {
                               <div className="flex items-start justify-between gap-2.5">
                                 <h4
                                   className={`text-sm font-semibold leading-snug break-words flex-1 transition-colors ${
-                                    isDone ? "text-emerald-700 dark:text-emerald-300" : "text-slate-900 dark:text-white"
+                                    isDone
+                                      ? "text-emerald-700 dark:text-emerald-300 line-through"
+                                      : isCancelled
+                                      ? "text-slate-400 dark:text-slate-400 line-through"
+                                      : "text-slate-900 dark:text-white"
                                   }`}
                                 >
                                   {t.title}
@@ -576,6 +597,8 @@ export default function DashboardPage() {
                                       ? "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-400"
                                       : t.status === "IN_REVIEW"
                                       ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400"
+                                      : t.status === "CANCELLED"
+                                      ? "bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30"
                                       : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
                                   }`}
                                 >
@@ -585,6 +608,8 @@ export default function DashboardPage() {
                                     ? "In Progress"
                                     : t.status === "IN_REVIEW"
                                     ? "In Review"
+                                    : t.status === "CANCELLED"
+                                    ? "Cancelled"
                                     : "To Do"}
                                 </span>
 
@@ -646,6 +671,7 @@ export default function DashboardPage() {
                                       <option value="IN_PROGRESS">In Progress</option>
                                       <option value="IN_REVIEW">In Review</option>
                                       <option value="DONE">Completed</option>
+                                      <option value="CANCELLED">Cancelled</option>
                                     </select>
                                   </div>
 

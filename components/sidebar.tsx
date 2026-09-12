@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ListTodo,
@@ -68,6 +68,7 @@ export function Sidebar({
   const isCompanyAdmin = user.role === "ADMIN" || user.role === "MANAGER";
   const isEmployee = user.role === "EMPLOYEE";
 
+  const router = useRouter();
   const searchParams = useSearchParams();
   const currentAction = searchParams?.get("action") ?? null;
   const isAttendanceActive = pathname === "/attendance";
@@ -78,6 +79,18 @@ export function Sidebar({
       setAttendanceOpen(true);
     }
   }, [pathname]);
+
+  const handleAttendanceToggle = () => {
+    if (!attendanceOpen) {
+      setAttendanceOpen(true);
+      if (pathname !== "/attendance") {
+        router.push("/attendance");
+        setMobileOpen(false);
+      }
+    } else {
+      setAttendanceOpen(false);
+    }
+  };
 
   const attendanceSubItems = [
     {
@@ -246,57 +259,39 @@ export function Sidebar({
 
             return (
               <div key="attendance-dropdown" className="space-y-1">
-                <div
-                  className={`flex items-center justify-between px-3 min-h-11 py-2 rounded-xl font-medium text-sm transition-all duration-150 select-none cursor-pointer group ${
-                    isAttendanceActive && !currentAction
-                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
-                      : isAttendanceActive
-                      ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800/40"
+                <button
+                  type="button"
+                  onClick={handleAttendanceToggle}
+                  className={`w-full flex items-center justify-between px-3 min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 select-none cursor-pointer group ${
+                    isAttendanceActive
+                      ? "bg-indigo-50/90 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/70 dark:border-indigo-800/50 shadow-xs"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
                   }`}
-                  onClick={() => setAttendanceOpen(!attendanceOpen)}
+                  title={attendanceOpen ? "Collapse Attendance menu" : "Expand Attendance menu"}
                 >
-                  <Link
-                    href="/attendance"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAttendanceOpen(true);
-                      setMobileOpen(false);
-                    }}
-                    className="flex items-center gap-3 flex-1 min-w-0 py-0.5"
-                  >
+                  <div className="flex items-center gap-3 min-w-0">
                     <CalendarCheck2
                       className={`w-5 h-5 shrink-0 ${
                         isAttendanceActive
-                          ? isAttendanceActive && !currentAction
-                            ? "text-white"
-                            : "text-indigo-600 dark:text-indigo-400"
-                          : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                          ? "text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
                       }`}
                     />
                     <span className="truncate">Attendance</span>
-                  </Link>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAttendanceOpen(!attendanceOpen);
-                    }}
-                    className="p-1 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors ml-1"
-                    title={attendanceOpen ? "Collapse Attendance menu" : "Expand Attendance menu"}
-                  >
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        attendanceOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                </div>
+                  <ChevronDown
+                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                      isAttendanceActive
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                    } ${attendanceOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
 
                 {/* Submenu Items */}
                 {attendanceOpen && (
-                  <div className="ml-3 pl-3.5 border-l-2 border-indigo-500/30 dark:border-indigo-500/25 space-y-1 py-1">
+                  <div className="ml-3.5 pl-3 border-l-2 border-indigo-200 dark:border-indigo-800/60 space-y-1 py-1">
                     {attendanceSubItems.map((sub) => {
                       const isSubActive =
                         isAttendanceActive &&
@@ -308,15 +303,17 @@ export function Sidebar({
                           key={sub.href}
                           href={sub.href}
                           onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 ${
                             isSubActive
-                              ? "bg-indigo-600 text-white shadow-xs font-semibold"
-                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                              ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold shadow-xs shadow-indigo-600/20"
+                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium"
                           }`}
                         >
                           <SubIcon
                             className={`w-3.5 h-3.5 shrink-0 ${
-                              isSubActive ? "text-white" : "text-slate-400"
+                              isSubActive
+                                ? "text-white"
+                                : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                             }`}
                           />
                           <span className="truncate">{sub.label}</span>

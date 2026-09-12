@@ -167,6 +167,12 @@ input.hide-native-picker::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.badge-cancelled {
+  background: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
 /* Donut chart center hole */
 .donut-inner-cutout {
   fill: #0f172a;
@@ -463,6 +469,12 @@ html.light .badge-done {
   background: #ecfdf5 !important;
   color: #047857 !important;
   border-color: #a7f3d0 !important;
+}
+
+html.light .badge-cancelled {
+  background: #ffe4e6 !important;
+  color: #e11d48 !important;
+  border-color: #fecdd3 !important;
 }
 
 /* Form controls */

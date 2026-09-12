@@ -102,7 +102,7 @@ export async function PATCH(
           timeZone: "UTC",
         });
 
-        sendLeaveDecisionEmail({
+        await sendLeaveDecisionEmail({
           to: leaveRequest.user.email,
           employeeName: leaveRequest.user.name,
           status,
@@ -112,7 +112,7 @@ export async function PATCH(
           daysCount: leaveRequest.daysCount,
           leaveType: leaveRequest.leaveType,
           reviewNotes: reviewNotes?.trim() || null,
-        }).catch((e) => console.error("Leave decision email failed:", e));
+        });
       }
     } catch (err) {
       console.error("Error dispatching leave decision email:", err);

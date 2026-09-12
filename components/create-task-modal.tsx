@@ -31,7 +31,7 @@ export function CreateTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
-  const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE">("TODO");
+  const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED">("TODO");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
 
@@ -298,13 +298,14 @@ export function CreateTaskModal({
               <label className="block text-xs font-medium text-slate-300 mb-1">Initial Status</label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE")}
+                onChange={(e) => setStatus(e.target.value as "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED")}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="IN_REVIEW">In Review</option>
                 <option value="DONE">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
 

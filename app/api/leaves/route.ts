@@ -162,31 +162,39 @@ export async function POST(req: Request) {
     const origin = req.headers.get("origin");
     const computedAppUrl = origin || (host ? `${proto}://${host}` : undefined);
 
-    // Fetch all Admins and Managers in the company to notify via email
+    // Fetch all Admins, Managers, and Super Admins to notify via email
     try {
-      let adminsAndManagers = await prisma.user.findMany({
+      const companyAdminsAndManagers = await prisma.user.findMany({
         where: {
           companyId,
-          role: { in: ["ADMIN", "MANAGER"] },
+          role: { in: ["ADMIN", "MANAGER", "Admin", "Manager", "admin", "manager"] },
           NOT: { id: sessionUser.id }, // Don't email oneself if admin applied
         },
-        select: { email: true, name: true, role: true },
+        select: { id: true, email: true, name: true, role: true },
       });
 
-      // If no company manager or admin exists, fall back to super admins
-      if (adminsAndManagers.length === 0) {
-        adminsAndManagers = await prisma.user.findMany({
-          where: {
-            role: "SUPER_ADMIN",
-            NOT: { id: sessionUser.id },
-          },
-          select: { email: true, name: true, role: true },
-        });
-      }
+      const superAdmins = await prisma.user.findMany({
+        where: {
+          role: { in: ["SUPER_ADMIN", "super_admin", "Super_Admin"] },
+          NOT: { id: sessionUser.id },
+        },
+        select: { id: true, email: true, name: true, role: true },
+      });
 
-      const recipientEmails = adminsAndManagers
-        .map((u) => u.email)
-        .filter((e) => Boolean(e) && e.includes("@"));
+      const combinedUsers = [...companyAdminsAndManagers, ...superAdmins];
+      const seenEmails = new Set<string>();
+      const recipientEmails: string[] = [];
+
+      for (const u of combinedUsers) {
+        const clean = u.email?.trim();
+        if (clean && clean.includes("@")) {
+          const lower = clean.toLowerCase();
+          if (!seenEmails.has(lower)) {
+            seenEmails.add(lower);
+            recipientEmails.push(clean);
+          }
+        }
+      }
 
       if (recipientEmails.length > 0) {
         const startDateFormatted = startObj.toLocaleDateString("en-US", {
@@ -203,23 +211,28 @@ export async function POST(req: Request) {
         });
 
         // Send email with direct 1-click Approve / Reject links
-        sendLeaveApplicationEmail({
-          to: recipientEmails,
-          applicantName: leaveRequest.user.name,
-          applicantDesignation: leaveRequest.user.designation,
-          applicantDepartment:
-            leaveRequest.user.departmentRel?.name || leaveRequest.user.department,
-          companyName: leaveRequest.company?.name || "Task Manager",
-          startDate: startDateFormatted,
-          endDate: endDateFormatted,
-          daysCount,
-          leaveType: leaveRequest.leaveType,
-          reason: trimmedReason,
-          actionToken,
-          appUrl: computedAppUrl,
-        }).catch((err) => {
-          console.error("Background leave notification email error:", err);
-        });
+        // Await to ensure serverless runtime (e.g. Vercel) does not terminate mid-send
+        try {
+          await sendLeaveApplicationEmail({
+            to: recipientEmails,
+            applicantName: leaveRequest.user.name,
+            applicantDesignation: leaveRequest.user.designation,
+            applicantDepartment:
+              leaveRequest.user.departmentRel?.name || leaveRequest.user.department,
+            companyName: leaveRequest.company?.name || "Task Manager",
+            startDate: startDateFormatted,
+            endDate: endDateFormatted,
+            daysCount,
+            leaveType: leaveRequest.leaveType,
+            reason: trimmedReason,
+            actionToken,
+            appUrl: computedAppUrl,
+          });
+        } catch (emailErr) {
+          console.error("Failed to send leave notification email:", emailErr);
+        }
+      } else {
+        console.warn(`[Leave Email] No admin, manager, or super-admin recipients found to notify for companyId: ${companyId}`);
       }
     } catch (mailErr) {
       console.error("Failed to query admins for leave notification:", mailErr);

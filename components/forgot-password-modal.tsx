@@ -85,6 +85,9 @@ export function ForgotPasswordModal({
       }
 
       setEmailMasked(data.emailMasked || "your registered email");
+      setOtp("");
+      setNewPassword("");
+      setConfirmPassword("");
       setStep("VERIFY_AND_RESET");
       setResendCooldown(30);
     } catch (err) {
@@ -290,11 +293,18 @@ export function ForgotPasswordModal({
               </div>
             )}
 
-            <form onSubmit={handleResetPassword} className="space-y-3.5 text-xs">
+            <form onSubmit={handleResetPassword} className="space-y-3.5 text-xs" autoComplete="off">
+              {/* Chrome / Edge password manager autofill trap */}
+              <input type="text" name="fakeusernameremembered" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+              <input type="password" name="fakepasswordremembered" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+
               {/* 3. Compact prominent 6-Digit OTP input */}
               <div>
                 <input
                   type="text"
+                  id="reset-otp-input"
+                  name="otp-code"
+                  autoComplete="one-time-code"
                   inputMode="numeric"
                   maxLength={6}
                   required
@@ -310,6 +320,9 @@ export function ForgotPasswordModal({
               <div className="space-y-2.5">
                 <div className="relative">
                   <input
+                    id="new-password-input"
+                    name="new-password"
+                    autoComplete="new-password"
                     type={showPassword ? "text" : "password"}
                     required
                     minLength={6}
@@ -330,6 +343,9 @@ export function ForgotPasswordModal({
 
                 <div className="relative">
                   <input
+                    id="confirm-password-input"
+                    name="confirm-new-password"
+                    autoComplete="new-password"
                     type={showPassword ? "text" : "password"}
                     required
                     minLength={6}

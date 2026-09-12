@@ -12,7 +12,7 @@ export async function checkAndNotifyOverdueTasks(companyId?: string | null) {
 
     const overdueTasks = await prisma.task.findMany({
       where: {
-        status: { not: "DONE" },
+        status: { notIn: ["DONE", "CANCELLED"] },
         dueDate: {
           not: null,
           lte: now,
@@ -44,8 +44,26 @@ export async function checkAndNotifyOverdueTasks(companyId?: string | null) {
     const notifiedTaskIds: string[] = [];
 
     for (const task of overdueTasks) {
-      const recipientEmail = task.assignee?.email;
-      if (!recipientEmail || !recipientEmail.includes("@")) {
+      const assigneeEmail = task.assignee?.email?.trim();
+      const creatorEmail = task.creator?.email?.trim();
+
+      let recipientEmail: string | undefined = undefined;
+      let recipientName = task.assignee?.name || "Team Member";
+      let ccEmail: string | undefined = undefined;
+
+      if (assigneeEmail && assigneeEmail.includes("@")) {
+        recipientEmail = assigneeEmail;
+        recipientName = task.assignee?.name || "Team Member";
+        if (creatorEmail && creatorEmail.includes("@") && task.creator?.id !== task.assignee?.id) {
+          ccEmail = creatorEmail;
+        }
+      } else if (creatorEmail && creatorEmail.includes("@")) {
+        // Fallback: notify creator if assignee has no email
+        recipientEmail = creatorEmail;
+        recipientName = task.creator?.name || "Manager";
+      }
+
+      if (!recipientEmail) {
         await prisma.task.update({
           where: { id: task.id },
           data: { overdueNotifiedAt: now },
@@ -53,20 +71,11 @@ export async function checkAndNotifyOverdueTasks(companyId?: string | null) {
         continue;
       }
 
-      let ccEmail: string | undefined = undefined;
-      if (
-        task.creator?.email &&
-        task.creator.email.includes("@") &&
-        task.creator.id !== task.assignee.id
-      ) {
-        ccEmail = task.creator.email;
-      }
-
       try {
         await sendTaskOverdueEmail({
           to: recipientEmail,
           cc: ccEmail,
-          assigneeName: task.assignee.name,
+          assigneeName: recipientName,
           taskTitle: task.title,
           taskDescription: task.description,
           priority: task.priority,
@@ -82,6 +91,7 @@ export async function checkAndNotifyOverdueTasks(companyId?: string | null) {
         });
 
         notifiedTaskIds.push(task.id);
+        console.log(`[Task Overdue Check] Successfully notified for task ${task.id} (${task.title}) to ${recipientEmail}${ccEmail ? ` (CC: ${ccEmail})` : ""}`);
       } catch (sendErr) {
         console.error(`[Task Overdue Check] Error sending alert for task ${task.id}:`, sendErr);
       }

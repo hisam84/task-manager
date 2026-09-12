@@ -145,10 +145,40 @@ export default function TasksPage() {
 
   async function handleQuickStatusChange(taskId: string, newStatus: string) {
     try {
+      let cancelReason: string | undefined = undefined;
+      if (newStatus === "CANCELLED") {
+        const reason = window.prompt("Reason for cancellation (optional):", "");
+        if (reason === null) return; // User pressed Cancel on the prompt
+        cancelReason = reason.trim() || "Marked as cancelled";
+      }
+
+      let notifyCreatorOnComplete = false;
+      let completionNote: string | undefined = undefined;
+
+      if (newStatus === "DONE") {
+        const wantsNotify = window.confirm(
+          "টাস্কটি সম্পন্ন হয়েছে। টাস্ক এসাইনকারীকে কি কমপ্লিটেশন ইমেইল পাঠাতে চান? (ঐচ্ছিক)\nWould you like to send a completion email to the task assigner? (Optional)"
+        );
+        if (wantsNotify) {
+          notifyCreatorOnComplete = true;
+          const note = window.prompt(
+            "কমপ্লিটেশন সংক্রান্ত কোনো মন্তব্য বা নোট দিতে চান? (ঐচ্ছিক / Optional):",
+            ""
+          );
+          if (note && note.trim()) {
+            completionNote = note.trim();
+          }
+        }
+      }
+
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          ...(cancelReason ? { cancelReason, notifyOnCancel: true } : {}),
+          ...(notifyCreatorOnComplete ? { notifyCreatorOnComplete: true, completionNote } : {}),
+        }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -190,6 +220,7 @@ export default function TasksPage() {
   const inProgressCount = tasks.filter((t) => t.status === "IN_PROGRESS").length;
   const inReviewCount = tasks.filter((t) => t.status === "IN_REVIEW").length;
   const doneCount = tasks.filter((t) => t.status === "DONE").length;
+  const cancelledCount = tasks.filter((t) => t.status === "CANCELLED").length;
 
   return (
     <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
@@ -234,6 +265,7 @@ export default function TasksPage() {
               { id: "IN_PROGRESS", label: "In Progress", count: inProgressCount },
               { id: "IN_REVIEW", label: "In Review", count: inReviewCount },
               { id: "DONE", label: "Completed", count: doneCount },
+              { id: "CANCELLED", label: "Cancelled", count: cancelledCount },
             ].map((tab) => {
               const active = statusFilter === tab.id;
               return (
@@ -338,9 +370,11 @@ export default function TasksPage() {
                     <tbody className="divide-y divide-slate-800/60 text-slate-300">
                       {tasks.map((t) => {
                         const isDone = t.status === "DONE";
+                        const isCancelled = t.status === "CANCELLED";
                         const isOverdue =
                           t.dueDate &&
                           !isDone &&
+                          !isCancelled &&
                           new Date(t.dueDate).getTime() < Date.now();
 
                         return (
@@ -350,6 +384,8 @@ export default function TasksPage() {
                             className={`transition-all cursor-pointer group ${
                               isDone
                                 ? "bg-emerald-950/25 dark:bg-emerald-950/35 hover:bg-emerald-950/45 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
+                                : isCancelled
+                                ? "bg-rose-950/15 dark:bg-rose-950/25 hover:bg-rose-950/35 border-l-4 border-l-rose-500/70 opacity-75 hover:opacity-100"
                                 : "hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
                             }`}
                           >
@@ -358,7 +394,9 @@ export default function TasksPage() {
                               <div
                                 className={`font-semibold transition-colors truncate ${
                                   isDone
-                                    ? "text-emerald-600 dark:text-emerald-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-200"
+                                    ? "text-emerald-600 dark:text-emerald-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-200 line-through"
+                                    : isCancelled
+                                    ? "text-slate-400 dark:text-slate-400 line-through group-hover:text-rose-400"
                                     : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                 }`}
                               >
@@ -383,6 +421,8 @@ export default function TasksPage() {
                                 className={`border rounded-lg px-2.5 py-1.5 text-[11px] font-medium outline-none cursor-pointer transition-colors ${
                                   isDone
                                     ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-500/40 dark:text-emerald-300 hover:border-emerald-400"
+                                    : t.status === "CANCELLED"
+                                    ? "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:border-rose-500/40 dark:text-rose-300 hover:border-rose-400"
                                     : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-500"
                                 }`}
                               >
@@ -390,6 +430,7 @@ export default function TasksPage() {
                                 <option value="IN_PROGRESS">In Progress</option>
                                 <option value="IN_REVIEW">In Review</option>
                                 <option value="DONE">Completed</option>
+                                <option value="CANCELLED">Cancelled</option>
                               </select>
                             </td>
 
@@ -484,9 +525,11 @@ export default function TasksPage() {
                   {tasks.map((t) => {
                     const isExpanded = expandedTaskId === t.id;
                     const isDone = t.status === "DONE";
+                    const isCancelled = t.status === "CANCELLED";
                     const isOverdue =
                       t.dueDate &&
                       !isDone &&
+                      !isCancelled &&
                       new Date(t.dueDate).getTime() < Date.now();
 
                     return (
@@ -495,6 +538,8 @@ export default function TasksPage() {
                         className={`p-3.5 transition-all ${
                           isDone
                             ? "bg-emerald-950/25 dark:bg-emerald-950/35 border-l-4 border-l-emerald-500 opacity-80 hover:opacity-100"
+                            : isCancelled
+                            ? "bg-rose-950/15 dark:bg-rose-950/25 border-l-4 border-l-rose-500/70 opacity-75 hover:opacity-100"
                             : "transition-colors hover:bg-slate-100/70 dark:hover:bg-slate-800/20"
                         }`}
                       >
@@ -506,7 +551,11 @@ export default function TasksPage() {
                           <div className="flex items-start justify-between gap-2.5">
                             <h4
                               className={`text-sm font-semibold leading-snug break-words flex-1 transition-colors ${
-                                isDone ? "text-emerald-300" : "text-white"
+                                isDone
+                                  ? "text-emerald-300 line-through"
+                                  : isCancelled
+                                  ? "text-slate-400 line-through"
+                                  : "text-white"
                               }`}
                             >
                               {t.title}
@@ -545,6 +594,8 @@ export default function TasksPage() {
                                   ? "bg-blue-500/15 text-blue-400"
                                   : t.status === "IN_REVIEW"
                                   ? "bg-amber-500/15 text-amber-400"
+                                  : t.status === "CANCELLED"
+                                  ? "bg-rose-500/15 text-rose-400 border border-rose-500/20"
                                   : "bg-slate-800 text-slate-400"
                               }`}
                             >
@@ -554,6 +605,8 @@ export default function TasksPage() {
                                 ? "In Progress"
                                 : t.status === "IN_REVIEW"
                                 ? "In Review"
+                                : t.status === "CANCELLED"
+                                ? "Cancelled"
                                 : "To Do"}
                             </span>
 
@@ -615,6 +668,7 @@ export default function TasksPage() {
                                   <option value="IN_PROGRESS">In Progress</option>
                                   <option value="IN_REVIEW">In Review</option>
                                   <option value="DONE">Completed</option>
+                                  <option value="CANCELLED">Cancelled</option>
                                 </select>
                               </div>
 

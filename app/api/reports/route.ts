@@ -98,6 +98,7 @@ export async function GET(req: Request) {
         IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS").length,
         IN_REVIEW: tasks.filter((t) => t.status === "IN_REVIEW").length,
         DONE: tasks.filter((t) => t.status === "DONE").length,
+        CANCELLED: tasks.filter((t) => t.status === "CANCELLED").length,
       };
 
       const priorityBreakdown = {
@@ -113,7 +114,7 @@ export async function GET(req: Request) {
         const inProgress = emp.assignedTasks.filter((t) => t.status === "IN_PROGRESS").length;
         const pending = emp.assignedTasks.filter((t) => t.status === "TODO" || t.status === "IN_REVIEW").length;
         const overdue = emp.assignedTasks.filter(
-          (t) => t.status !== "DONE" && t.dueDate && new Date(t.dueDate) < now
+          (t) => t.status !== "DONE" && t.status !== "CANCELLED" && t.dueDate && new Date(t.dueDate) < now
         ).length;
         const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -180,8 +181,9 @@ export async function GET(req: Request) {
     const inProgress = myTasks.filter((t) => t.status === "IN_PROGRESS").length;
     const inReview = myTasks.filter((t) => t.status === "IN_REVIEW").length;
     const todo = myTasks.filter((t) => t.status === "TODO").length;
+    const cancelled = myTasks.filter((t) => t.status === "CANCELLED").length;
     const overdue = myTasks.filter(
-      (t) => t.status !== "DONE" && t.dueDate && new Date(t.dueDate) < now
+      (t) => t.status !== "DONE" && t.status !== "CANCELLED" && t.dueDate && new Date(t.dueDate) < now
     ).length;
     const selfCreated = myTasks.filter((t) => t.creatorId === sessionUser.id).length;
 
@@ -209,6 +211,7 @@ export async function GET(req: Request) {
         IN_PROGRESS: inProgress,
         IN_REVIEW: inReview,
         DONE: completed,
+        CANCELLED: cancelled,
       },
       upcomingDeadlines,
     });

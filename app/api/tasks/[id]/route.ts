@@ -3,7 +3,7 @@ import { canAccessTask, canDeleteTask, getCurrentUser, isManagerOrAdmin, canAssi
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
-import { sendTaskCreatedEmail } from "@/lib/mail";
+import { sendTaskCreatedEmail, sendTaskCompletedEmail, sendTaskCancelledEmail } from "@/lib/mail";
 import type { Prisma } from "@prisma/client";
 
 export const maxDuration = 15;
@@ -12,11 +12,15 @@ export const dynamic = "force-dynamic";
 const patchTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).optional().nullable(),
-  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).optional(),
+  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   assigneeId: z.string().min(1).optional().nullable(),
   dueDate: z.string().optional().nullable(),
   rescheduleReason: z.string().max(1000).optional().nullable(),
+  notifyCreatorOnComplete: z.boolean().optional(),
+  completionNote: z.string().max(1000).optional().nullable(),
+  cancelReason: z.string().max(1000).optional().nullable(),
+  notifyOnCancel: z.boolean().optional(),
 });
 
 export async function GET(
@@ -92,6 +96,7 @@ export async function PATCH(
         creatorId: true,
         dueDate: true,
         title: true,
+        status: true,
       },
     });
 
@@ -108,6 +113,25 @@ export async function PATCH(
 
     if (data.status) {
       updateData.status = data.status;
+
+      if (data.status === "CANCELLED" && existingTask.status !== "CANCELLED") {
+        const reasonText = data.cancelReason?.trim();
+        await prisma.comment.create({
+          data: {
+            taskId: id,
+            authorId: user.id,
+            body: `🚫 [Task Cancelled] Task was marked as Cancelled by ${user.name || "User"}.${reasonText ? `\nReason: ${reasonText}` : ""}`,
+          },
+        });
+      } else if (existingTask.status === "CANCELLED" && data.status !== "CANCELLED") {
+        await prisma.comment.create({
+          data: {
+            taskId: id,
+            authorId: user.id,
+            body: `🔄 [Task Reopened] Task was reopened by ${user.name || "User"} (Status changed to ${data.status}).`,
+          },
+        });
+      }
     }
 
     if (data.title) {
@@ -212,6 +236,79 @@ export async function PATCH(
         });
       } catch (err) {
         console.error("Failed to send task reassignment notification email:", err);
+      }
+    }
+
+    if (updatedTask.status === "DONE" && data.notifyCreatorOnComplete && updatedTask.creator?.email) {
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        "https://taskmanager-iit.vercel.app/";
+      const taskUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
+      const noteText = data.completionNote?.trim() || null;
+
+      try {
+        await sendTaskCompletedEmail({
+          to: updatedTask.creator.email,
+          creatorName: updatedTask.creator.name || "Manager",
+          assigneeName: user.name || updatedTask.assignee?.name || "Employee",
+          taskTitle: updatedTask.title,
+          taskDescription: updatedTask.description,
+          priority: updatedTask.priority,
+          completedAt: new Date(),
+          completionNote: noteText,
+          companyName: user.companyName || updatedTask.company?.name,
+          taskUrl,
+        });
+
+        await prisma.comment.create({
+          data: {
+            taskId: id,
+            authorId: user.id,
+            body: `✅ [Task Completed & Notified] ${user.name} sent completion notification email to ${updatedTask.creator.name} (${updatedTask.creator.email}).${noteText ? `\nNote: ${noteText}` : ""}`,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to send task completion notification email:", err);
+      }
+    }
+
+    if (updatedTask.status === "CANCELLED" && existingTask.status !== "CANCELLED" && data.notifyOnCancel) {
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        "https://taskmanager-iit.vercel.app/";
+      const taskUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
+      const reasonText = data.cancelReason?.trim() || null;
+
+      // Determine recipient: if canceller is creator, notify assignee; otherwise notify creator
+      const recipient = user.id === updatedTask.creatorId ? updatedTask.assignee : updatedTask.creator;
+
+      if (recipient?.email) {
+        try {
+          await sendTaskCancelledEmail({
+            to: recipient.email,
+            recipientName: recipient.name || "Team Member",
+            cancellerName: user.name || "Team Member",
+            taskTitle: updatedTask.title,
+            taskDescription: updatedTask.description,
+            priority: updatedTask.priority,
+            cancelledAt: new Date(),
+            cancelReason: reasonText,
+            companyName: user.companyName || updatedTask.company?.name,
+            taskUrl,
+          });
+
+          await prisma.comment.create({
+            data: {
+              taskId: id,
+              authorId: user.id,
+              body: `📧 [Cancellation Notified] ${user.name} sent cancellation notification email to ${recipient.name} (${recipient.email}).`,
+            },
+          });
+        } catch (err) {
+          console.error("Failed to send task cancellation notification email:", err);
+        }
       }
     }
 

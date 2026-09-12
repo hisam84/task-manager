@@ -441,6 +441,397 @@ export async function sendTaskCreatedEmail({
   return info;
 }
 
+export async function sendTaskCompletedEmail({
+  to,
+  creatorName,
+  assigneeName,
+  taskTitle,
+  taskDescription,
+  priority,
+  completedAt,
+  completionNote,
+  companyName,
+  taskUrl,
+}: {
+  to: string;
+  creatorName: string;
+  assigneeName: string;
+  taskTitle: string;
+  taskDescription?: string | null;
+  priority: string;
+  completedAt?: Date | string | null;
+  completionNote?: string | null;
+  companyName?: string | null;
+  taskUrl?: string;
+}) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.warn("SMTP credentials not set. Task completed notification email skipped.");
+    return null;
+  }
+
+  const priorityColors: Record<string, { bg: string; text: string; border: string }> = {
+    URGENT: { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
+    HIGH: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+    MEDIUM: { bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" },
+    LOW: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+  };
+
+  const priorityStyle = priorityColors[priority] || priorityColors.MEDIUM;
+
+  let formattedDate = "Just now";
+  if (completedAt) {
+    const d = new Date(completedAt);
+    if (!isNaN(d.getTime())) {
+      formattedDate = d.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  }
+
+  const targetUrl =
+    taskUrl ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://taskmanager-iit.vercel.app/";
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Task Completed</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
+          <tr>
+            <td align="center">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 22px 28px; border-bottom: 1px solid #f1f5f9; background-color: #ffffff;">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td>
+                          <div style="display: inline-block; width: 28px; height: 28px; line-height: 28px; background-color: #10b981; border-radius: 6px; text-align: center; color: #ffffff; font-weight: bold; font-size: 13px; margin-right: 8px; vertical-align: middle;">
+                            ✓
+                          </div>
+                          <span style="font-size: 16px; font-weight: 700; color: #0f172a; vertical-align: middle; letter-spacing: -0.2px;">
+                            ${companyName ? `${companyName} &bull; ` : ""}Task Manager
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 28px;">
+                    <div style="display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; margin-bottom: 12px;">
+                      ✓ Task Completed
+                    </div>
+                    <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px;">
+                      Task Finished by ${assigneeName}
+                    </h2>
+                    <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;">
+                      Hello <strong>${creatorName}</strong>,<br>
+                      <strong>${assigneeName}</strong> has marked the task assigned by you as <strong>Completed</strong>.
+                    </p>
+
+                    <!-- Task Detail Box -->
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;">
+                      <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 22px;">
+                        ${taskTitle}
+                      </h3>
+
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b; width: 110px;">Status:</td>
+                          <td style="padding: 5px 0;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
+                              DONE (Completed)
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Priority:</td>
+                          <td style="padding: 5px 0;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; background-color: ${priorityStyle.bg}; color: ${priorityStyle.text}; border: 1px solid ${priorityStyle.border};">
+                              ${priority}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Completed By:</td>
+                          <td style="padding: 5px 0; color: #334155; font-weight: 600;">
+                            ${assigneeName}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #64748b;">Completed At:</td>
+                          <td style="padding: 5px 0; color: #334155; font-weight: 500;">
+                            ${formattedDate}
+                          </td>
+                        </tr>
+                      </table>
+
+                      ${
+                        taskDescription
+                          ? `
+                        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                          <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Task Description
+                          </div>
+                          <div style="font-size: 13px; line-height: 20px; color: #334155; white-space: pre-line;">
+                            ${taskDescription}
+                          </div>
+                        </div>
+                      `
+                          : ""
+                      }
+                    </div>
+
+                    ${
+                      completionNote
+                        ? `
+                      <!-- Note from Employee -->
+                      <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                          Note from ${assigneeName}:
+                        </div>
+                        <div style="font-size: 13px; line-height: 20px; color: #1e3a8a; white-space: pre-line;">
+                          ${completionNote}
+                        </div>
+                      </div>
+                    `
+                        : ""
+                    }
+
+                    <!-- CTA Button -->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0 8px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${targetUrl}" target="_blank" style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                            View Completed Task
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 16px 28px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                      &copy; ${new Date().getFullYear()} Task Manager. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const cleanTo = to.trim();
+  console.log(`[Task Email] Sending completion notification to assigner ${cleanTo} for task: "${taskTitle}"`);
+
+  const info = await transporter.sendMail({
+    from: smtpFrom,
+    to: cleanTo,
+    subject: `[Completed] ${taskTitle} - Done by ${assigneeName}`,
+    text: `Hello ${creatorName},\n\n${assigneeName} has completed the task: "${taskTitle}".\nPriority: ${priority}\nCompleted At: ${formattedDate}${completionNote ? `\n\nNote from ${assigneeName}:\n${completionNote}` : ""}\n\nView task: ${targetUrl}`,
+    html,
+  });
+
+  console.log(`[Task Email] Completion notification sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
+  return info;
+}
+
+export async function sendTaskCancelledEmail({
+  to,
+  recipientName,
+  cancellerName,
+  taskTitle,
+  taskDescription,
+  priority,
+  cancelledAt,
+  cancelReason,
+  companyName,
+  taskUrl,
+}: {
+  to: string;
+  recipientName: string;
+  cancellerName: string;
+  taskTitle: string;
+  taskDescription?: string | null;
+  priority: string;
+  cancelledAt: Date;
+  cancelReason?: string | null;
+  companyName?: string | null;
+  taskUrl?: string;
+}) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.warn("SMTP credentials not set. Task cancellation email notification skipped.");
+    return null;
+  }
+
+  const cleanTo = to.trim();
+  if (!cleanTo) {
+    console.warn("[Task Email] No recipient email address provided. Skipping task cancellation email.");
+    return null;
+  }
+
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://taskmanager-iit.vercel.app/";
+  const baseUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
+  const targetUrl = taskUrl || baseUrl;
+
+  const formattedDate = cancelledAt.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const priorityColor =
+    priority === "URGENT"
+      ? "#ef4444"
+      : priority === "HIGH"
+      ? "#f59e0b"
+      : priority === "MEDIUM"
+      ? "#3b82f6"
+      : "#64748b";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Task Cancelled</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px 12px; color: #1e293b;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center">
+              <table width="100%" style="max-width: 580px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0;" border="0" cellspacing="0" cellpadding="0">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #e11d48, #be123c); padding: 28px 24px; text-align: center;">
+                    <div style="font-size: 28px; line-height: 1; margin-bottom: 8px;">🚫</div>
+                    <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">Task Cancelled</h1>
+                    <p style="color: #ffe4e6; margin: 6px 0 0 0; font-size: 13px;">${companyName ? `${companyName} &bull; ` : ""}Task Status Update</p>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 28px;">
+                    <p style="font-size: 15px; line-height: 24px; margin: 0 0 16px 0; color: #334155;">
+                      Hello <strong>${recipientName}</strong>,
+                    </p>
+                    <p style="font-size: 14px; line-height: 22px; margin: 0 0 20px 0; color: #475569;">
+                      <strong>${cancellerName}</strong> has marked this task as cancelled:
+                    </p>
+
+                    <!-- Task Card -->
+                    <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;">
+                      <div style="font-size: 16px; font-weight: 700; color: #9f1239; margin-bottom: 6px; text-decoration: line-through;">
+                        ${taskTitle}
+                      </div>
+                      ${
+                        taskDescription
+                          ? `<div style="font-size: 13px; line-height: 20px; color: #881337; margin-bottom: 12px; white-space: pre-line;">${taskDescription}</div>`
+                          : ""
+                      }
+                      <table border="0" cellspacing="0" cellpadding="0" style="margin-top: 10px; font-size: 12px; color: #9f1239;">
+                        <tr>
+                          <td style="padding-right: 16px;">
+                            <strong>Priority:</strong>
+                            <span style="display: inline-block; background-color: ${priorityColor}; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; margin-left: 4px;">${priority}</span>
+                          </td>
+                          <td>
+                            <strong>Cancelled At:</strong> ${formattedDate}
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    ${
+                      cancelReason
+                        ? `
+                      <!-- Reason for Cancellation -->
+                      <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                          Cancellation Reason:
+                        </div>
+                        <div style="font-size: 13px; line-height: 20px; color: #7f1d1d; white-space: pre-line;">
+                          ${cancelReason}
+                        </div>
+                      </div>
+                    `
+                        : ""
+                    }
+
+                    <!-- CTA Button -->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0 8px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${targetUrl}" target="_blank" style="display: inline-block; background-color: #e11d48; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                            View Task
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 16px 28px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                      &copy; ${new Date().getFullYear()} Task Manager. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const info = await transporter.sendMail({
+    from: smtpFrom,
+    to: cleanTo,
+    subject: `[Cancelled] ${taskTitle} - Cancelled by ${cancellerName}`,
+    text: `Hello ${recipientName},\n\n${cancellerName} has cancelled the task: "${taskTitle}".\nPriority: ${priority}\nCancelled At: ${formattedDate}${cancelReason ? `\n\nReason:\n${cancelReason}` : ""}\n\nView task: ${targetUrl}`,
+    html,
+  });
+
+  console.log(`[Task Email] Cancellation notification sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
+  return info;
+}
+
 export async function sendLeaveApplicationEmail({
   to,
   applicantName,
@@ -474,15 +865,16 @@ export async function sendLeaveApplicationEmail({
     return null;
   }
 
-  const baseUrl =
+  const cleanBaseUrl = (
     appUrl ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    "https://taskmanager-iit.vercel.app";
+    "https://taskmanager-iit.vercel.app"
+  ).replace(/\/+$/, "");
 
-  const approveUrl = `${baseUrl}/api/leaves/action?token=${encodeURIComponent(actionToken)}&action=approve`;
-  const rejectUrl = `${baseUrl}/api/leaves/action?token=${encodeURIComponent(actionToken)}&action=reject`;
-  const portalUrl = `${baseUrl}/attendance`;
+  const approveUrl = `${cleanBaseUrl}/api/leaves/action?token=${encodeURIComponent(actionToken)}&action=approve`;
+  const rejectUrl = `${cleanBaseUrl}/api/leaves/action?token=${encodeURIComponent(actionToken)}&action=reject`;
+  const portalUrl = `${cleanBaseUrl}/attendance`;
 
   const html = `
     <!DOCTYPE html>
@@ -628,18 +1020,33 @@ export async function sendLeaveApplicationEmail({
     </html>
   `;
 
-  const recipients = Array.isArray(to) ? to.filter(Boolean) : [to];
-  if (recipients.length === 0) return null;
+  const rawRecipients = Array.isArray(to) ? to : [to];
+  const recipients = rawRecipients
+    .map((r) => (typeof r === "string" ? r.trim() : ""))
+    .filter((r) => r.length > 0 && r.includes("@"));
 
-  console.log(`[Leave Email] Sending application email to: ${recipients.join(", ")}`);
+  if (recipients.length === 0) {
+    console.warn("[Leave Email] No valid recipient email addresses provided. Skipped sending.");
+    return null;
+  }
 
-  return await transporter.sendMail({
-    from: smtpFrom,
-    to: recipients.join(", "),
-    subject: `[Leave Application] ${applicantName} - ${daysCount} Day${daysCount > 1 ? "s" : ""} (${leaveType})`,
-    text: `Hello,\n\n${applicantName} has applied for ${daysCount} day(s) leave (${leaveType}).\nPeriod: ${startDate} to ${endDate}\nReason: ${reason}\n\nAccept: ${approveUrl}\nReject: ${rejectUrl}\n\nView Portal: ${portalUrl}`,
-    html,
-  });
+  console.log(`[Leave Email] Sending leave application email to ${recipients.length} recipient(s): ${recipients.join(", ")}`);
+
+  const results = await Promise.allSettled(
+    recipients.map(async (recipientEmail) => {
+      const info = await transporter.sendMail({
+        from: smtpFrom,
+        to: recipientEmail,
+        subject: `[Leave Application] ${applicantName} - ${daysCount} Day${daysCount > 1 ? "s" : ""} (${leaveType})`,
+        text: `Hello,\n\n${applicantName} has applied for ${daysCount} day(s) leave (${leaveType}).\nPeriod: ${startDate} to ${endDate}\nReason: ${reason}\n\nAccept: ${approveUrl}\nReject: ${rejectUrl}\n\nView Portal: ${portalUrl}`,
+        html,
+      });
+      console.log(`[Leave Email] Successfully delivered to ${recipientEmail} (MessageId: ${info?.messageId})`);
+      return info;
+    })
+  );
+
+  return results;
 }
 
 export async function sendLeaveDecisionEmail({
@@ -672,13 +1079,14 @@ export async function sendLeaveDecisionEmail({
   }
 
   const isApproved = status === "APPROVED";
-  const baseUrl =
+  const cleanBaseUrl = (
     appUrl ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
-    "https://taskmanager-iit.vercel.app";
+    "https://taskmanager-iit.vercel.app"
+  ).replace(/\/+$/, "");
 
-  const portalUrl = `${baseUrl}/attendance`;
+  const portalUrl = `${cleanBaseUrl}/attendance`;
 
   const html = `
     <!DOCTYPE html>

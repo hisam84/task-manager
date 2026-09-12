@@ -13,7 +13,7 @@ const createTaskSchema = z.object({
   title: z.string().min(1, "Task title is required").max(200),
   description: z.string().max(5000).optional().nullable(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
-  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
+  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"]).default("TODO"),
   assigneeId: z.string().optional().nullable(),
   dueDate: z.string().optional().nullable(),
   companyId: z.string().optional().nullable(),
@@ -85,10 +85,10 @@ export async function GET(req: Request) {
     const tasks = hasMore ? rows.slice(0, take) : rows;
     const nextCursor = hasMore ? tasks[tasks.length - 1]?.id ?? null : null;
 
-    if (targetCompanyId) {
-      checkAndNotifyOverdueTasks(targetCompanyId).catch((err) =>
-        console.error("[Tasks Route] Overdue check background error:", err)
-      );
+    try {
+      await checkAndNotifyOverdueTasks(targetCompanyId || null);
+    } catch (err) {
+      console.error("[Tasks Route] Overdue check error:", err);
     }
 
     return NextResponse.json({ tasks, nextCursor });

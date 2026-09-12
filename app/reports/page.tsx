@@ -65,7 +65,7 @@ export default function ReportsPage() {
   }
 
   const metrics = reportData?.metrics || {};
-  const statusBreakdown = reportData?.statusBreakdown || { TODO: 0, IN_PROGRESS: 0, IN_REVIEW: 0, DONE: 0 };
+  const statusBreakdown = reportData?.statusBreakdown || { TODO: 0, IN_PROGRESS: 0, IN_REVIEW: 0, DONE: 0, CANCELLED: 0 };
   const employeeMatrix = reportData?.employeeMatrix || [];
 
   const donutItems = [
@@ -73,6 +73,7 @@ export default function ReportsPage() {
     { label: "In Progress", count: statusBreakdown.IN_PROGRESS, color: "#3b82f6" },
     { label: "In Review", count: statusBreakdown.IN_REVIEW, color: "#8b5cf6" },
     { label: "To Do", count: statusBreakdown.TODO, color: "#f59e0b" },
+    ...(statusBreakdown.CANCELLED ? [{ label: "Cancelled", count: statusBreakdown.CANCELLED, color: "#f43f5e" }] : []),
   ];
 
   return (

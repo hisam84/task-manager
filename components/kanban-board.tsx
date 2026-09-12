@@ -7,7 +7,7 @@ interface Task {
   id: string;
   title: string;
   description?: string | null;
-  status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
+  status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string | null;
   assignee: { id: string; name: string; email: string; department?: string | null };
@@ -27,6 +27,7 @@ const COLUMNS: { key: Task["status"]; label: string; color: string; badge: strin
   { key: "IN_PROGRESS", label: "In Progress", color: "border-blue-900/50", badge: "badge-in_progress" },
   { key: "IN_REVIEW", label: "In Review", color: "border-amber-900/50", badge: "badge-in_review" },
   { key: "DONE", label: "Completed", color: "border-emerald-900/50", badge: "badge-done" },
+  { key: "CANCELLED", label: "Cancelled", color: "border-rose-900/50", badge: "badge-cancelled" },
 ];
 
 export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick }: KanbanBoardProps) {
@@ -84,7 +85,7 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
       </div>
 
       {/* Kanban Grid Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
         {COLUMNS.map((col) => {
           const colTasks = filteredTasks.filter((t) => t.status === col.key);
 
@@ -186,13 +187,12 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                             <select
                               value={task.status}
                               onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                onStatusChange(task.id, e.target.value as Task["status"]);
-                              }}
-                              className={`text-[10px] rounded px-1.5 py-0.5 font-mono cursor-pointer outline-none transition-colors ${
-                                isDone
+                              onChange={(e) => onStatusChange(task.id, e.target.value as Task["status"])}
+                              className={`text-[11px] rounded-md px-2 py-1 outline-none cursor-pointer transition-all ${
+                                task.status === "DONE"
                                   ? "bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500"
+                                  : task.status === "CANCELLED"
+                                  ? "bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700/60 text-rose-800 dark:text-rose-300 hover:border-rose-500"
                                   : "bg-slate-100 dark:bg-[#111111] hover:bg-slate-200 dark:hover:bg-[#1a1a1a] text-slate-700 dark:text-[#aaaaaa] border border-slate-300 dark:border-[#2e2e2e]"
                               }`}
                             >
@@ -200,6 +200,7 @@ export function KanbanBoard({ tasks, onTaskClick, onStatusChange, onNewTaskClick
                               <option value="IN_PROGRESS">In Progress</option>
                               <option value="IN_REVIEW">In Review</option>
                               <option value="DONE">Completed</option>
+                              <option value="CANCELLED">Cancelled</option>
                             </select>
                           </div>
                         </div>

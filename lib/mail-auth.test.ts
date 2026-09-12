@@ -87,6 +87,59 @@ describe("task notification email", () => {
     });
     assert.ok(result === null || typeof result === "object");
   });
+
+  it("executes sendTaskCompletedEmail safely and handles parameters gracefully", async () => {
+    const { sendTaskCompletedEmail } = await import("./mail");
+    const result = await sendTaskCompletedEmail({
+      to: "creator@example.com",
+      creatorName: "Manager Boss",
+      assigneeName: "Rahim Ahmed",
+      taskTitle: "Database Migration to Production",
+      taskDescription: "Execute Prisma schema push and seed verification",
+      priority: "URGENT",
+      completedAt: new Date(),
+      completionNote: "Finished all migrations and verified tables.",
+      companyName: "Tech Corp",
+      taskUrl: "https://taskmanager-iit.vercel.app/",
+    });
+    assert.ok(result === null || typeof result === "object");
+  });
+
+  it("executes sendLeaveApplicationEmail safely for multiple recipients", async () => {
+    const { sendLeaveApplicationEmail } = await import("./mail");
+    const result = await sendLeaveApplicationEmail({
+      to: ["admin@example.com", "manager@example.com"],
+      applicantName: "Rahim Ahmed",
+      applicantDesignation: "Software Engineer",
+      applicantDepartment: "Engineering",
+      companyName: "Tech Corp",
+      startDate: "Oct 10, 2026",
+      endDate: "Oct 12, 2026",
+      daysCount: 3,
+      leaveType: "CASUAL",
+      reason: "Family event",
+      actionToken: "abc123token",
+      appUrl: "https://taskmanager-iit.vercel.app",
+    });
+    assert.ok(result === null || Array.isArray(result) || typeof result === "object");
+  });
+
+  it("executes sendLeaveDecisionEmail safely", async () => {
+    const { sendLeaveDecisionEmail } = await import("./mail");
+    const result = await sendLeaveDecisionEmail({
+      to: "employee@example.com",
+      employeeName: "Rahim Ahmed",
+      status: "APPROVED",
+      reviewerName: "Admin User",
+      startDate: "Oct 10, 2026",
+      endDate: "Oct 12, 2026",
+      daysCount: 3,
+      leaveType: "CASUAL",
+      reviewNotes: "Enjoy your leave!",
+      appUrl: "https://taskmanager-iit.vercel.app",
+    });
+    assert.ok(result === null || typeof result === "object");
+  });
 });
 
 

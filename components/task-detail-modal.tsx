@@ -12,6 +12,10 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Mail,
+  CheckCircle2,
+  Ban,
+  RotateCcw,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/types";
 import { canDeleteTask } from "@/lib/access";
@@ -37,6 +41,15 @@ const COMMON_REASONS = [
   "Technical blocker encountered",
   "Scope/requirement change",
   "Workload priority shift",
+];
+
+const COMMON_CANCEL_REASONS = [
+  "Task no longer needed",
+  "Duplicate task",
+  "Requirements changed / deprioritized",
+  "Client requested cancellation",
+  "Assigned incorrectly",
+  "Postponed indefinitely",
 ];
 
 function toDateTimeLocalString(dateInput?: string | Date | null): string {
@@ -80,7 +93,8 @@ export function TaskDetailModal({
     status: string;
     priority: string;
     dueDate?: string | null;
-    assignee?: { name?: string };
+    assignee?: { id?: string; name?: string; email?: string };
+    creator?: { id?: string; name?: string; email?: string; role?: string };
     company?: { name?: string };
     comments?: Comment[];
   } | null>(null);
@@ -92,6 +106,21 @@ export function TaskDetailModal({
   const [priority, setPriority] = useState("MEDIUM");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Completion Notification State
+  const [showNotifyPanel, setShowNotifyPanel] = useState(false);
+  const [completionNote, setCompletionNote] = useState("");
+  const [sendingNotification, setSendingNotification] = useState(false);
+  const [notifySuccessMessage, setNotifySuccessMessage] = useState<string | null>(null);
+  const [notifyErrorMessage, setNotifyErrorMessage] = useState<string | null>(null);
+
+  // Cancellation State
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [notifyOnCancel, setNotifyOnCancel] = useState(true);
+  const [savingCancel, setSavingCancel] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [reopeningTask, setReopeningTask] = useState(false);
 
   // Edit Mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -153,6 +182,13 @@ export function TaskDetailModal({
       fetchTaskDetails(task.id);
       setIsEditing(false);
       setIsRescheduling(false);
+      setIsCancelling(false);
+      setCancelReason("");
+      setCancelError(null);
+      setShowNotifyPanel(false);
+      setNotifySuccessMessage(null);
+      setNotifyErrorMessage(null);
+      setCompletionNote("");
     }
   }, [task, isOpen]);
 
@@ -183,6 +219,8 @@ export function TaskDetailModal({
   async function handleStatusChange(newStatus: string) {
     if (!taskDetail) return;
     setUpdatingStatus(true);
+    setNotifySuccessMessage(null);
+    setNotifyErrorMessage(null);
     try {
       const res = await fetch(`/api/tasks/${taskDetail.id}`, {
         method: "PATCH",
@@ -193,11 +231,123 @@ export function TaskDetailModal({
         setStatus(newStatus);
         fetchTaskDetails(taskDetail.id);
         onTaskUpdated();
+        if (newStatus === "DONE") {
+          setShowNotifyPanel(true);
+        } else {
+          setShowNotifyPanel(false);
+        }
+        if (newStatus !== "CANCELLED") {
+          setIsCancelling(false);
+        }
       }
     } catch (e) {
       console.error(e);
     } finally {
       setUpdatingStatus(false);
+    }
+  }
+
+  function onStatusDropdownChange(val: string) {
+    if (val === "CANCELLED") {
+      setIsCancelling(true);
+      setIsEditing(false);
+      setIsRescheduling(false);
+      setShowNotifyPanel(false);
+    } else {
+      setIsCancelling(false);
+      handleStatusChange(val);
+    }
+  }
+
+  async function handleConfirmCancel(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!taskDetail) return;
+    setSavingCancel(true);
+    setCancelError(null);
+    try {
+      const res = await fetch(`/api/tasks/${taskDetail.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "CANCELLED",
+          cancelReason: cancelReason.trim() || "Task marked as Cancelled",
+          notifyOnCancel,
+        }),
+      });
+      if (res.ok) {
+        setStatus("CANCELLED");
+        setIsCancelling(false);
+        setCancelReason("");
+        fetchTaskDetails(taskDetail.id);
+        onTaskUpdated();
+      } else {
+        const d = await res.json();
+        setCancelError(d.error || "Failed to cancel task.");
+      }
+    } catch (err) {
+      console.error("Error cancelling task:", err);
+      setCancelError("Failed to cancel task. Please try again.");
+    } finally {
+      setSavingCancel(false);
+    }
+  }
+
+  async function handleReopenTask() {
+    if (!taskDetail) return;
+    setReopeningTask(true);
+    try {
+      const res = await fetch(`/api/tasks/${taskDetail.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "TODO",
+        }),
+      });
+      if (res.ok) {
+        setStatus("TODO");
+        setIsCancelling(false);
+        fetchTaskDetails(taskDetail.id);
+        onTaskUpdated();
+      }
+    } catch (err) {
+      console.error("Error reopening task:", err);
+    } finally {
+      setReopeningTask(false);
+    }
+  }
+
+  async function handleSendCompletionNotification(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!taskDetail) return;
+    setSendingNotification(true);
+    setNotifyErrorMessage(null);
+    setNotifySuccessMessage(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskDetail.id}/notify-complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completionNote: completionNote.trim() || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setNotifySuccessMessage(
+          data.message || `Email sent successfully to ${taskDetail.creator?.name || "assigner"}`
+        );
+        setCompletionNote("");
+        fetchTaskDetails(taskDetail.id);
+        onTaskUpdated();
+      } else {
+        setNotifyErrorMessage(data.error || "Failed to send completion email.");
+      }
+    } catch (err) {
+      console.error("Error sending completion notification:", err);
+      setNotifyErrorMessage("Failed to send email. Please check network connection.");
+    } finally {
+      setSendingNotification(false);
     }
   }
 
@@ -376,14 +526,21 @@ export function TaskDetailModal({
             {/* Status Dropdown */}
             <select
               value={status}
-              onChange={(e) => handleStatusChange(e.target.value)}
+              onChange={(e) => onStatusDropdownChange(e.target.value)}
               disabled={updatingStatus}
-              className="min-h-11 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-base md:text-xs font-medium text-slate-100 rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors"
+              className={`min-h-11 border text-base md:text-xs font-medium rounded-lg px-2.5 py-1.5 outline-none cursor-pointer transition-colors ${
+                status === "CANCELLED"
+                  ? "bg-rose-950/60 border-rose-500/40 text-rose-300 hover:border-rose-400"
+                  : status === "DONE"
+                  ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
+                  : "bg-slate-900 border-slate-700 hover:border-indigo-500 text-slate-100"
+              }`}
             >
               <option value="TODO">To Do</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="IN_REVIEW">In Review</option>
               <option value="DONE">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
 
             {/* Priority Selector */}
@@ -405,6 +562,7 @@ export function TaskDetailModal({
               onClick={() => {
                 setIsEditing(!isEditing);
                 setIsRescheduling(false);
+                setIsCancelling(false);
               }}
               title="Edit Task"
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -422,6 +580,8 @@ export function TaskDetailModal({
               onClick={() => {
                 setIsRescheduling(!isRescheduling);
                 setIsEditing(false);
+                setIsCancelling(false);
+                setShowNotifyPanel(false);
               }}
               title="Reschedule Due Date & Time"
               className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -433,6 +593,68 @@ export function TaskDetailModal({
               <Calendar className="w-3.5 h-3.5" />
               <span>{isRescheduling ? "Close" : "Reschedule"}</span>
             </button>
+
+            {/* Cancel Task or Reopen Button */}
+            {status === "CANCELLED" || taskDetail?.status === "CANCELLED" ? (
+              <button
+                type="button"
+                onClick={handleReopenTask}
+                disabled={reopeningTask}
+                title="Reopen this task"
+                className="flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-200 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-all cursor-pointer"
+              >
+                {reopeningTask ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5" />
+                )}
+                <span>Reopen Task</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCancelling(!isCancelling);
+                  setIsEditing(false);
+                  setIsRescheduling(false);
+                  setShowNotifyPanel(false);
+                  setCancelError(null);
+                }}
+                title="Cancel this task"
+                className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  isCancelling
+                    ? "bg-rose-600 text-white shadow-md shadow-rose-600/30"
+                    : "text-rose-700 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30"
+                }`}
+              >
+                <Ban className="w-3.5 h-3.5" />
+                <span>{isCancelling ? "Dismiss Cancel" : "Cancel Task"}</span>
+              </button>
+            )}
+
+            {/* Email Assigner Button (when status is DONE or taskDetail is DONE) */}
+            {(status === "DONE" || taskDetail?.status === "DONE") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNotifyPanel(!showNotifyPanel);
+                  setIsEditing(false);
+                  setIsRescheduling(false);
+                  setIsCancelling(false);
+                  setNotifySuccessMessage(null);
+                  setNotifyErrorMessage(null);
+                }}
+                title="Send completion email to the person who assigned this task"
+                className={`flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  showNotifyPanel
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                    : "text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30"
+                }`}
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>{showNotifyPanel ? "Hide Email" : "Email Assigner"}</span>
+              </button>
+            )}
 
             {/* Delete button (Super Admin / Admin / Manager only - Regular employees cannot delete) */}
             {hasDeletePermission && (
@@ -461,6 +683,256 @@ export function TaskDetailModal({
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* Cancelled Task Banner */}
+          {(status === "CANCELLED" || taskDetail.status === "CANCELLED") && (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/30 space-y-3 animate-fadeIn shadow-lg shadow-rose-950/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                    <Ban className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-rose-300 block">
+                      Task Cancelled
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      This task has been marked as cancelled. Work is discontinued.
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleReopenTask}
+                  disabled={reopeningTask}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition-all cursor-pointer"
+                >
+                  {reopeningTask ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  )}
+                  <span>Reopen Task</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Cancel Task Panel */}
+          {isCancelling && (
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-rose-200 dark:border-rose-500/30 space-y-3.5 animate-fadeIn shadow-lg shadow-rose-950/20">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                    <Ban className="w-3.5 h-3.5" />
+                  </div>
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-white">
+                    Cancel Task
+                  </h3>
+                </div>
+                <span className="text-[11px] text-rose-500 dark:text-rose-400 font-medium">
+                  Status will change to Cancelled
+                </span>
+              </div>
+
+              {cancelError && (
+                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{cancelError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleConfirmCancel} className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Quick Reason Preset
+                  </label>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {COMMON_CANCEL_REASONS.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setCancelReason(r)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors cursor-pointer ${
+                          cancelReason === r
+                            ? "bg-rose-600 text-white border-rose-600"
+                            : "bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-800"
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Reason for Cancellation (ঐচ্ছিক / Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="e.g. Project deprioritized, client cancelled, duplicate request..."
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 focus:border-rose-500 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="notifyOnCancelCheck"
+                    checked={notifyOnCancel}
+                    onChange={(e) => setNotifyOnCancel(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-slate-700 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="notifyOnCancelCheck"
+                    className="text-[11px] text-slate-600 dark:text-slate-400 cursor-pointer select-none"
+                  >
+                    Send cancellation email notification to team member
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCancelling(false);
+                      setCancelError(null);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Keep Task
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingCancel}
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 transition-all shadow-md shadow-rose-600/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    {savingCancel ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Ban className="w-3.5 h-3.5" />
+                    )}
+                    <span>Confirm Cancel Task</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Completed Task Notification Banner / Panel */}
+          {(status === "DONE" || taskDetail.status === "DONE") && (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 space-y-3 animate-fadeIn shadow-lg shadow-emerald-950/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-emerald-300 block">
+                      Task Completed
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Assigned by:{" "}
+                      <strong className="text-slate-200">
+                        {taskDetail.creator?.name || "Assigner"}
+                      </strong>
+                      {taskDetail.creator?.email ? ` (${taskDetail.creator.email})` : ""}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifyPanel(!showNotifyPanel);
+                    setNotifySuccessMessage(null);
+                    setNotifyErrorMessage(null);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    showNotifyPanel
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                      : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>{showNotifyPanel ? "Hide Email Panel" : "Email Assigner"}</span>
+                </button>
+              </div>
+
+              {notifySuccessMessage && (
+                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{notifySuccessMessage}</span>
+                </div>
+              )}
+
+              {notifyErrorMessage && (
+                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{notifyErrorMessage}</span>
+                </div>
+              )}
+
+              {showNotifyPanel && (
+                <form
+                  onSubmit={handleSendCompletionNotification}
+                  className="pt-2.5 border-t border-slate-800 space-y-3 animate-fadeIn"
+                >
+                  <div className="text-[11px] text-slate-300 leading-relaxed">
+                    যে এসাইন করেছে তাকে মেইল পাঠানোর জন্য নিচের অপশনাল নোট লিখুন এবং Send Completion Email চাপুন:
+                    {taskDetail.creator?.email ? (
+                      <span className="block mt-0.5 text-slate-400">
+                        Recipient: <span className="text-emerald-400 font-mono">{taskDetail.creator.email}</span>
+                      </span>
+                    ) : (
+                      <span className="block mt-0.5 text-amber-400">
+                        Notice: Task assigner has no email address configured.
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      Completion Note / Remarks (ঐচ্ছিক বার্তা)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={completionNote}
+                      onChange={(e) => setCompletionNote(e.target.value)}
+                      placeholder="e.g. Work is done, files are uploaded, please review..."
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNotifyPanel(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={sendingNotification || !taskDetail.creator?.email}
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 cursor-pointer"
+                    >
+                      {sendingNotification ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      <span>Send Completion Email</span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 
@@ -790,7 +1262,7 @@ export function TaskDetailModal({
           )}
 
           {/* Metadata Cards */}
-          <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
             <div>
               <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
                 Assignee
@@ -802,7 +1274,19 @@ export function TaskDetailModal({
 
             <div>
               <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
-                Deadline (Date & Time)
+                Assigned By
+              </span>
+              <span
+                className="text-slate-100 font-medium block mt-1 truncate"
+                title={taskDetail.creator?.email || ""}
+              >
+                {taskDetail.creator?.name || "Assigner"}
+              </span>
+            </div>
+
+            <div>
+              <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+                Deadline
               </span>
               <span className="text-slate-100 font-medium block mt-1 flex items-center gap-1.5 font-mono text-[11px]">
                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -833,11 +1317,17 @@ export function TaskDetailModal({
               ) : (
                 comments.map((c) => {
                   const isRescheduleEvent = c.body.includes("[Task Rescheduled]");
+                  const isCancelEvent = c.body.includes("[Task Cancelled]");
+                  const isReopenEvent = c.body.includes("[Task Reopened]");
                   return (
                     <div
                       key={c.id}
                       className={`p-3 rounded-xl border text-xs transition-colors ${
-                        isRescheduleEvent
+                        isCancelEvent
+                          ? "bg-rose-500/10 border-rose-500/30 text-rose-200"
+                          : isReopenEvent
+                          ? "bg-sky-500/10 border-sky-500/30 text-sky-200"
+                          : isRescheduleEvent
                           ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
                           : "bg-slate-950/50 border-slate-800/80 text-slate-200"
                       }`}
@@ -851,6 +1341,12 @@ export function TaskDetailModal({
                               className="w-4 h-4 rounded-full object-cover shrink-0 border border-slate-700 inline"
                             />
                           ) : null}
+                          {isCancelEvent && (
+                            <Ban className="w-3.5 h-3.5 text-rose-400 inline" />
+                          )}
+                          {isReopenEvent && (
+                            <RotateCcw className="w-3.5 h-3.5 text-sky-400 inline" />
+                          )}
                           {isRescheduleEvent && (
                             <Calendar className="w-3.5 h-3.5 text-amber-400 inline" />
                           )}

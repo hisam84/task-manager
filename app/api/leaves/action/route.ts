@@ -111,7 +111,7 @@ export async function GET(req: Request) {
     // Notify employee of the decision
     try {
       if (leaveRequest.user.email) {
-        sendLeaveDecisionEmail({
+        await sendLeaveDecisionEmail({
           to: leaveRequest.user.email,
           employeeName: leaveRequest.user.name,
           status: newStatus,
@@ -121,7 +121,7 @@ export async function GET(req: Request) {
           daysCount: leaveRequest.daysCount,
           leaveType: leaveRequest.leaveType,
           reviewNotes: "Decision submitted via email link.",
-        }).catch((e) => console.error("Leave decision email failed:", e));
+        });
       }
     } catch (mailErr) {
       console.error("Failed to notify employee:", mailErr);
