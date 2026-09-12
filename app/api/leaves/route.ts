@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendLeaveApplicationEmail } from "@/lib/mail";
+import { logActivity } from "@/lib/activity-log";
 
 export async function GET(req: Request) {
   try {
@@ -152,6 +153,23 @@ export async function POST(req: Request) {
             name: true,
           },
         },
+      },
+    });
+
+    // Record Activity Log
+    await logActivity({
+      companyId,
+      userId: sessionUser.id,
+      action: "LEAVE_APPLY",
+      entityType: "LEAVE",
+      entityId: leaveRequest.id,
+      description: `${sessionUser.name} applied for ${daysCount} day(s) ${leaveType || "CASUAL"} leave (${startDate} to ${endDate})`,
+      details: {
+        startDate,
+        endDate,
+        daysCount,
+        leaveType: leaveType || "CASUAL",
+        reason: trimmedReason,
       },
     });
 

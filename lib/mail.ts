@@ -1063,7 +1063,7 @@ export async function sendLeaveDecisionEmail({
 }: {
   to: string;
   employeeName: string;
-  status: "APPROVED" | "REJECTED";
+  status: "APPROVED" | "REJECTED" | "CANCELLED";
   reviewerName: string;
   startDate: string;
   endDate: string;
@@ -1079,6 +1079,13 @@ export async function sendLeaveDecisionEmail({
   }
 
   const isApproved = status === "APPROVED";
+  const isCancelled = status === "CANCELLED";
+  const statusLabel = isApproved ? "APPROVED" : isCancelled ? "CANCELLED" : "REJECTED";
+  const headerColor = isApproved ? "#059669" : isCancelled ? "#d97706" : "#dc2626";
+  const badgeBg = isApproved ? "#ecfdf5" : isCancelled ? "#fffbeb" : "#fef2f2";
+  const badgeText = isApproved ? "#047857" : isCancelled ? "#b45309" : "#b91c1c";
+  const badgeBorder = isApproved ? "#a7f3d0" : isCancelled ? "#fde68a" : "#fecaca";
+
   const cleanBaseUrl = (
     appUrl ||
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -1094,7 +1101,7 @@ export async function sendLeaveDecisionEmail({
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Leave Request ${isApproved ? "Approved" : "Rejected"}</title>
+        <title>Leave Request ${statusLabel}</title>
       </head>
       <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
@@ -1107,7 +1114,7 @@ export async function sendLeaveDecisionEmail({
                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                       <tr>
                         <td>
-                          <div style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background-color: ${isApproved ? "#059669" : "#dc2626"}; border-radius: 8px; text-align: center; color: #ffffff; font-weight: bold; font-size: 13px; margin-right: 10px; vertical-align: middle;">
+                          <div style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background-color: ${headerColor}; border-radius: 8px; text-align: center; color: #ffffff; font-weight: bold; font-size: 13px; margin-right: 10px; vertical-align: middle;">
                             TM
                           </div>
                           <span style="font-size: 16px; font-weight: 700; color: #0f172a; vertical-align: middle;">
@@ -1123,19 +1130,19 @@ export async function sendLeaveDecisionEmail({
                 <tr>
                   <td style="padding: 28px;">
                     <div style="margin-bottom: 18px;">
-                      <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${isApproved ? "#ecfdf5" : "#fef2f2"}; color: ${isApproved ? "#047857" : "#b91c1c"}; border: 1px solid ${isApproved ? "#a7f3d0" : "#fecaca"};">
-                        LEAVE ${isApproved ? "APPROVED" : "REJECTED"}
+                      <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background-color: ${badgeBg}; color: ${badgeText}; border: 1px solid ${badgeBorder};">
+                        LEAVE ${statusLabel}
                       </span>
                     </div>
 
                     <h2 style="margin: 0 0 12px 0; font-size: 19px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px;">
-                      Your Leave Request has been ${isApproved ? "Approved" : "Rejected"}
+                      Your Leave Request has been ${statusLabel}
                     </h2>
 
                     <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;">
                       Hello <strong>${employeeName}</strong>,<br>
-                      Your leave request for <strong>${startDate} to ${endDate} (${daysCount} day${daysCount > 1 ? "s" : ""})</strong> has been <strong>${isApproved ? "approved" : "rejected"}</strong> by <strong>${reviewerName}</strong>.
-                      ${isApproved ? "<br><br>The approved dates have been automatically recorded in your attendance sheet." : ""}
+                      Your leave request for <strong>${startDate} to ${endDate} (${daysCount} day${daysCount > 1 ? "s" : ""})</strong> has been <strong>${status.toLowerCase()}</strong> by <strong>${reviewerName}</strong>.
+                      ${isApproved ? "<br><br>The approved dates have been automatically recorded in your attendance sheet." : isCancelled ? "<br><br>Any leave dates previously marked in your attendance sheet have been removed." : ""}
                     </p>
 
                     ${
@@ -1184,7 +1191,7 @@ export async function sendLeaveDecisionEmail({
   return await transporter.sendMail({
     from: smtpFrom,
     to: to.trim(),
-    subject: `[Leave ${isApproved ? "Approved" : "Rejected"}] ${startDate} - ${endDate}`,
+    subject: `[Leave ${statusLabel}] ${startDate} - ${endDate}`,
     text: `Hello ${employeeName},\n\nYour leave request for ${startDate} to ${endDate} (${daysCount} days) has been ${status.toLowerCase()} by ${reviewerName}.\n\nView attendance sheet: ${portalUrl}`,
     html,
   });

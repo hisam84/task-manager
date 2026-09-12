@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
 import { sendTaskCreatedEmail, sendTaskCompletedEmail, sendTaskCancelledEmail } from "@/lib/mail";
+import { logActivity } from "@/lib/activity-log";
 import type { Prisma } from "@prisma/client";
 
 export const maxDuration = 15;
@@ -312,6 +313,25 @@ export async function PATCH(
       }
     }
 
+    // Record Activity Log
+    const isStatusChange = updatedTask.status !== existingTask.status;
+    await logActivity({
+      companyId: user.companyId || updatedTask.companyId,
+      userId: user.id,
+      action: isStatusChange ? "TASK_STATUS_CHANGED" : "TASK_UPDATED",
+      entityType: "TASK",
+      entityId: id,
+      description: isStatusChange
+        ? `${user.name} changed status of "${updatedTask.title}" from ${existingTask.status} to ${updatedTask.status}`
+        : `${user.name} updated task "${updatedTask.title}"`,
+      details: {
+        fromStatus: existingTask.status,
+        toStatus: updatedTask.status,
+        priority: updatedTask.priority,
+        assigneeName: updatedTask.assignee?.name,
+      },
+    });
+
     return NextResponse.json(updatedTask);
   } catch (error) {
     return apiError(error, "Failed to update task");
@@ -331,7 +351,7 @@ export async function DELETE(
     const { id } = await params;
     const task = await prisma.task.findUnique({
       where: { id },
-      select: { id: true, companyId: true, assigneeId: true },
+      select: { id: true, title: true, companyId: true, assigneeId: true },
     });
 
     if (!task) {
@@ -343,6 +363,16 @@ export async function DELETE(
     }
 
     await prisma.task.delete({ where: { id } });
+
+    await logActivity({
+      companyId: task.companyId,
+      userId: user.id,
+      action: "TASK_DELETED",
+      entityType: "TASK",
+      entityId: id,
+      description: `${user.name} deleted task "${task.title}"`,
+    });
+
     return NextResponse.json({ success: true, deletedId: id });
   } catch (error) {
     return apiError(error, "Failed to delete task");

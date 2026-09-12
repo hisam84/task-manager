@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { syncApprovedLeaveToAttendance } from "@/lib/leave-sync";
 import { sendLeaveDecisionEmail } from "@/lib/mail";
+import { logActivity } from "@/lib/activity-log";
 
 export async function GET(req: Request) {
   try {
@@ -93,6 +94,18 @@ export async function GET(req: Request) {
         status: newStatus,
         reviewedAt: new Date(),
         reviewNotes: "Actioned directly via email link",
+      },
+    });
+
+    await logActivity({
+      companyId: leaveRequest.companyId,
+      action: isApprove ? "LEAVE_APPROVED" : "LEAVE_REJECTED",
+      entityType: "LEAVE",
+      entityId: leaveRequest.id,
+      description: `${isApprove ? "Approved" : "Rejected"} leave request for ${leaveRequest.user.name} via email action link`,
+      details: {
+        status: newStatus,
+        viaEmail: true,
       },
     });
 

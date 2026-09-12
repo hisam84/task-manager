@@ -33,6 +33,7 @@ import {
   AlertCircle,
   CalendarDays,
   Bell,
+  Ban,
 } from "lucide-react";
 import { fetchTaskList } from "@/lib/api";
 import type { SessionUser } from "@/lib/types";
@@ -109,7 +110,22 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const handleQuickLeaveAction = async (leaveId: string, action: "APPROVED" | "REJECTED") => {
+  const handleQuickLeaveAction = async (leaveId: string, action: "APPROVED" | "REJECTED" | "CANCELLED") => {
+    let customNote = "";
+    if (action === "CANCELLED") {
+      const promptRes = window.prompt("Reason for cancellation (optional):", "");
+      if (promptRes === null) return;
+      customNote = promptRes.trim();
+    } else if (action === "REJECTED") {
+      const promptRes = window.prompt("Reason for rejection / note (optional):", "");
+      if (promptRes === null) return;
+      customNote = promptRes.trim();
+    } else if (action === "APPROVED") {
+      const promptRes = window.prompt("Approval note (optional, click OK to proceed):", "Approved");
+      if (promptRes === null) return;
+      customNote = promptRes.trim();
+    }
+
     setActioningLeaveId(leaveId);
     try {
       const res = await fetch(`/api/leaves/${leaveId}`, {
@@ -117,7 +133,7 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: action,
-          reviewNotes: `Quick ${action.toLowerCase()} from Dashboard`,
+          reviewNotes: customNote || (action === "CANCELLED" ? "Cancelled by applicant" : "Approved from Dashboard"),
         }),
       });
       if (res.ok) {
@@ -785,14 +801,12 @@ export default function DashboardPage() {
                       <Plus className="w-3.5 h-3.5" />
                       <span>Apply for Leave</span>
                     </button>
-                    {!isEmployee && (
-                      <button
-                        onClick={() => setIsLeaveRequestsModalOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
-                      >
-                        <span>View History</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setIsLeaveRequestsModalOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <span>{isEmployee ? "My Leaves" : "View History"}</span>
+                    </button>
                     <button
                       onClick={() => router.push("/attendance")}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 transition-colors cursor-pointer"
@@ -840,14 +854,12 @@ export default function DashboardPage() {
                       <span>Apply for Leave</span>
                     </button>
 
-                    {!isEmployee && (
-                      <button
-                        onClick={() => setIsLeaveRequestsModalOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
-                      >
-                        <span>View History</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setIsLeaveRequestsModalOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <span>{isEmployee ? "My Leaves" : "View History"}</span>
+                    </button>
 
                     <button
                       onClick={() => router.push("/attendance")}
@@ -924,8 +936,8 @@ export default function DashboardPage() {
                           )}
                         </div>
 
-                        {/* Quick decision actions for Admins / Managers on PENDING leaves */}
-                        {!isEmployee && (
+                        {/* Quick decision actions for Admins / Managers or Cancel action for Employee */}
+                        {!isEmployee ? (
                           <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
                             <button
                               type="button"
@@ -944,6 +956,19 @@ export default function DashboardPage() {
                             >
                               <XIcon className="w-3.5 h-3.5" />
                               <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end">
+                            <button
+                              type="button"
+                              disabled={isActioning}
+                              onClick={() => handleQuickLeaveAction(leave.id, "CANCELLED")}
+                              className="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:border-rose-300 dark:hover:border-rose-800 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-[11px] font-medium flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                              title="Cancel this pending leave request"
+                            >
+                              <Ban className="w-3 h-3" />
+                              <span>Cancel Request</span>
                             </button>
                           </div>
                         )}

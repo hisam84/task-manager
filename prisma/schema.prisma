@@ -24,6 +24,7 @@ model Company {
   holidays    Holiday[]
   attendances Attendance[]
   leaveRequests LeaveRequest[]
+  activityLogs ActivityLog[]
 }
 
 model Department {
@@ -69,6 +70,7 @@ model User {
   attendances   Attendance[]
   leaveRequests LeaveRequest[] @relation("Applicant")
   reviewedLeaves LeaveRequest[] @relation("Reviewer")
+  activityLogs  ActivityLog[]
 
   @@index([companyId])
   @@index([departmentId])
@@ -213,5 +215,26 @@ model LeaveRequest {
   @@index([companyId, status])
   @@index([userId, status])
   @@index([actionToken])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   // TASK_CREATE, TASK_UPDATE, TASK_DELETE, LEAVE_APPLY, LEAVE_APPROVE, LEAVE_REJECT, LEAVE_CANCEL, CLOCK_IN, CLOCK_OUT, USER_CREATE, USER_UPDATE, etc.
+  entityType  String   // TASK, LEAVE, ATTENDANCE, USER, DEPARTMENT, SHIFT, HOLIDAY, AUTH
+  entityId    String?
+  description String   @db.Text
+  details     String?  @db.Text
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([companyId, entityType])
+  @@index([userId, createdAt])
 }
 

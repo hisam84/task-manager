@@ -3,6 +3,7 @@ import { getCurrentUser, hashPassword, isManagerOrAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { apiError, jsonError } from "@/lib/http";
+import { logActivity } from "@/lib/activity-log";
 
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(120),
@@ -184,6 +185,23 @@ export async function POST(req: Request) {
           select: { id: true, name: true, startTime: true, endTime: true },
         },
         createdAt: true,
+      },
+    });
+
+    // Record Activity Log
+    await logActivity({
+      companyId: targetCompanyId,
+      userId: user.id,
+      action: "USER_CREATED",
+      entityType: "USER",
+      entityId: newUser.id,
+      description: `${user.name} added new team member ${newUser.name} (${newUser.role})`,
+      details: {
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        department: newUser.department,
+        designation: newUser.designation,
       },
     });
 

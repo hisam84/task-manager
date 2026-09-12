@@ -28,6 +28,7 @@ import {
   Coffee,
   Clock,
   Calendar,
+  History,
 } from "lucide-react";
 import { EditProfileModal } from "@/components/edit-profile-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -79,6 +80,34 @@ export function Sidebar({
       setAttendanceOpen(true);
     }
   }, [pathname]);
+
+  // Automatically close mobile menu on page route change
+  React.useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile drawer is open for a smooth app-like feel
+  React.useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  // Close smoothly on Escape key press
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen]);
 
   const handleAttendanceToggle = () => {
     if (!attendanceOpen) {
@@ -138,6 +167,12 @@ export function Sidebar({
           icon: Building2,
           show: true,
         },
+        {
+          label: "Activity Logs",
+          href: "/activity-logs",
+          icon: History,
+          show: true,
+        },
       ]
     : [
         {
@@ -182,6 +217,12 @@ export function Sidebar({
           icon: Users,
           show: isCompanyAdmin,
         },
+        {
+          label: "Activity Logs",
+          href: "/activity-logs",
+          icon: History,
+          show: isCompanyAdmin,
+        },
       ].filter((item) => item.show);
 
   const getRoleBadge = () => {
@@ -215,13 +256,24 @@ export function Sidebar({
           )}
         </div>
 
+        {/* Desktop Collapse Toggle */}
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="hidden lg:inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </button>
+
+        {/* Mobile Close Button */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden min-h-10 min-w-10 inline-flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -479,10 +531,10 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 transition-all cursor-pointer"
           aria-label="Open menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 transition-transform duration-200" />
         </button>
         <span className="text-sm font-semibold truncate">{user.companyName || "Task Manager"}</span>
         <div className="flex items-center gap-1.5">
@@ -507,29 +559,31 @@ export function Sidebar({
         </div>
       </header>
 
-      {mobileOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/70"
-            onClick={() => setMobileOpen(false)}
-            aria-label="Close menu"
-          />
-          <aside className="relative flex h-full w-[min(18rem,88vw)] flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-y-auto">
-            <div className="flex items-center justify-end px-3 py-2">
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            {asideInner}
-          </aside>
-        </div>
-      ) : null}
+      {/* Mobile Drawer with smooth slide-in/out and backdrop fade animation */}
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ease-in-out ${
+          mobileOpen ? "visible opacity-100" : "invisible opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!mobileOpen}
+      >
+        {/* Backdrop overlay */}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300 ease-in-out ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu backdrop"
+        />
+
+        {/* Sliding Drawer Container */}
+        <aside
+          className={`relative flex h-full w-[min(19rem,86vw)] flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-out will-change-transform ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {asideInner}
+        </aside>
+      </div>
 
       <aside
         className={`relative hidden lg:flex flex-col h-dvh bg-white dark:bg-slate-900/95 border-r border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 transition-all duration-300 z-30 select-none ${

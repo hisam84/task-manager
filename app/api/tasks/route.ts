@@ -5,6 +5,7 @@ import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
 import { sendTaskCreatedEmail } from "@/lib/mail";
 import { checkAndNotifyOverdueTasks } from "@/lib/task-overdue";
+import { logActivity } from "@/lib/activity-log";
 
 export const maxDuration = 15;
 export const dynamic = "force-dynamic";
@@ -151,6 +152,23 @@ export async function POST(req: Request) {
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
       },
       select: TASK_LIST_SELECT,
+    });
+
+    // Record Activity Log
+    await logActivity({
+      companyId: targetCompanyId,
+      userId: user.id,
+      action: "TASK_CREATED",
+      entityType: "TASK",
+      entityId: task.id,
+      description: `${user.name} created task "${task.title}" (Assigned to ${assignee.name || "Employee"})`,
+      details: {
+        title: task.title,
+        priority: task.priority,
+        status: task.status,
+        assigneeName: assignee.name,
+        dueDate: task.dueDate,
+      },
     });
 
     // Send email notification to assignee in Gmail

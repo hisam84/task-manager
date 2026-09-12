@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeDailyAttendanceMetrics } from "@/lib/attendance";
+import { logActivity } from "@/lib/activity-log";
 
 export async function POST(req: Request) {
   try {
@@ -85,6 +86,23 @@ export async function POST(req: Request) {
         lateMinutes: metrics.lateMinutes,
         latePenalty: metrics.latePenalty,
         overtimeMinutes: metrics.overtimeMinutes,
+        workingMinutes: metrics.workingMinutes,
+      },
+    });
+
+    // Record Activity Log
+    await logActivity({
+      companyId,
+      userId: user.id,
+      action: action === "in" ? "ATTENDANCE_CHECKIN" : "ATTENDANCE_CHECKOUT",
+      entityType: "ATTENDANCE",
+      entityId: attendance.id,
+      description: `${user.name} clocked ${action === "in" ? "IN" : "OUT"} at ${currentTimeStr}`,
+      details: {
+        action,
+        time: currentTimeStr,
+        status: metrics.status,
+        lateMinutes: metrics.lateMinutes,
         workingMinutes: metrics.workingMinutes,
       },
     });
