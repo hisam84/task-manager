@@ -157,7 +157,7 @@ export default function KanbanPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans">
       <Sidebar
         user={currentUser}
         onUserUpdated={(u) => setCurrentUser(u)}
@@ -166,22 +166,24 @@ export default function KanbanPage() {
       />
 
       <main className="flex-1 min-w-0 overflow-y-auto flex flex-col justify-between">
-        <div className="p-4 sm:p-6 md:p-8 flex-1">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <div className="p-3.5 sm:p-5 md:p-6 lg:p-8 flex-1">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-                  <KanbanSquare className="w-6 h-6 text-indigo-400" />
-                  Interactive Kanban Progression Board
+                <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                  <KanbanSquare className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <span>Kanban Progression Board</span>
                 </h1>
-                <p className="text-xs text-slate-400 mt-1">
-                  Visual workflow columns (To Do, In Progress, In Review, Completed)
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Visual workflow columns (To Do, In Progress, In Review, Completed, Cancelled)
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setIsCreateTaskOpen(true)}
-                className="flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 transition-all shadow-lg shadow-indigo-600/25 w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 h-9 sm:h-10 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-sm shadow-indigo-600/25 w-full sm:w-auto cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Task</span>
