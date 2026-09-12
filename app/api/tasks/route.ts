@@ -5,6 +5,7 @@ import { z } from "zod";
 import { apiError, jsonError, TASK_LIST_SELECT } from "@/lib/http";
 import { sendTaskCreatedEmail } from "@/lib/mail";
 import { checkAndNotifyOverdueTasks } from "@/lib/task-overdue";
+import { checkAndNotifyDueReminderTasks } from "@/lib/task-due-reminder";
 import { logActivity } from "@/lib/activity-log";
 
 export const maxDuration = 15;
@@ -99,9 +100,12 @@ export async function GET(req: Request) {
     const nextCursor = hasMore ? tasks[tasks.length - 1]?.id ?? null : null;
 
     try {
-      await checkAndNotifyOverdueTasks(targetCompanyId || null);
+      await Promise.allSettled([
+        checkAndNotifyOverdueTasks(targetCompanyId || null),
+        checkAndNotifyDueReminderTasks(targetCompanyId || null),
+      ]);
     } catch (err) {
-      console.error("[Tasks Route] Overdue check error:", err);
+      console.error("[Tasks Route] Overdue/Reminder check error:", err);
     }
 
     return NextResponse.json({ tasks, nextCursor });

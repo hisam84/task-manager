@@ -88,6 +88,23 @@ describe("task notification email", () => {
     assert.ok(result === null || typeof result === "object");
   });
 
+  it("executes sendTaskDueReminderEmail safely and handles parameters gracefully", async () => {
+    const { sendTaskDueReminderEmail } = await import("./mail");
+    const result = await sendTaskDueReminderEmail({
+      to: "employee@example.com",
+      cc: "manager@example.com",
+      assigneeName: "Rahim Ahmed",
+      taskTitle: "Database Migration to Production",
+      taskDescription: "Execute Prisma schema push and seed verification",
+      priority: "HIGH",
+      dueDate: new Date(Date.now() + 7200000),
+      creatorName: "Admin User",
+      companyName: "Tech Corp",
+      taskUrl: "https://taskmanager-iit.vercel.app/",
+    });
+    assert.ok(result === null || typeof result === "object");
+  });
+
   it("executes sendTaskCompletedEmail safely and handles parameters gracefully", async () => {
     const { sendTaskCompletedEmail } = await import("./mail");
     const result = await sendTaskCompletedEmail({

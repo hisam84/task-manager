@@ -1415,3 +1415,218 @@ export async function sendTaskOverdueEmail({
   console.log(`[Task Overdue Email] Alert sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
   return info;
 }
+
+export async function sendTaskDueReminderEmail({
+  to,
+  cc,
+  assigneeName,
+  taskTitle,
+  taskDescription,
+  priority,
+  dueDate,
+  creatorName,
+  companyName,
+  taskUrl,
+}: {
+  to: string;
+  cc?: string | string[];
+  assigneeName: string;
+  taskTitle: string;
+  taskDescription?: string | null;
+  priority: string;
+  dueDate: Date | string;
+  creatorName?: string;
+  companyName?: string | null;
+  taskUrl?: string;
+}) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.warn("SMTP credentials not set. 2-hour task reminder email skipped.");
+    return null;
+  }
+
+  const priorityColors: Record<string, { bg: string; text: string; border: string }> = {
+    URGENT: { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
+    HIGH: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+    MEDIUM: { bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" },
+    LOW: { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+  };
+
+  const priorityStyle = priorityColors[priority] || priorityColors.MEDIUM;
+
+  let formattedDueDate = "In 2 hours";
+  if (dueDate) {
+    const d = new Date(dueDate);
+    if (!isNaN(d.getTime())) {
+      formattedDueDate = d.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  }
+
+  const targetUrl =
+    taskUrl ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://taskmanager-iit.vercel.app/";
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>2-Hour Task Deadline Reminder</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 15px;">
+          <tr>
+            <td align="center">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border: 1px solid #fef3c7; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 22px 28px; border-bottom: 1px solid #fde68a; background-color: #fffbeb;">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td>
+                          <div style="display: inline-block; width: 28px; height: 28px; line-height: 28px; background-color: #d97706; border-radius: 6px; text-align: center; color: #ffffff; font-weight: bold; font-size: 13px; margin-right: 8px; vertical-align: middle;">
+                            TM
+                          </div>
+                          <span style="font-size: 16px; font-weight: 700; color: #92400e; vertical-align: middle; letter-spacing: -0.2px;">
+                            ${companyName ? `${companyName} &bull; ` : ""}Task Manager
+                          </span>
+                        </td>
+                        <td align="right">
+                          <span style="display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; background-color: #fef3c7; color: #b45309; border: 1px solid #fcd34d;">
+                            2 HOURS LEFT
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 28px;">
+                    <h2 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #92400e; letter-spacing: -0.3px;">
+                      ⏰ Upcoming Deadline Reminder
+                    </h2>
+                    <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;">
+                      Hello <strong>${assigneeName}</strong>,<br>
+                      This is a friendly reminder that the following task is due in <strong>2 hours</strong> and is still in <strong>To Do</strong> status. Please review or start working on it:
+                    </p>
+
+                    <!-- Task Detail Box -->
+                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+                      <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 22px;">
+                        ${taskTitle}
+                      </h3>
+
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+                        <tr>
+                          <td style="padding: 5px 0; color: #78350f; width: 100px; font-weight: 500;">Deadline:</td>
+                          <td style="padding: 5px 0; color: #b45309; font-weight: 700;">
+                            ${formattedDueDate}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #78350f; font-weight: 500;">Priority:</td>
+                          <td style="padding: 5px 0;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; background-color: ${priorityStyle.bg}; color: ${priorityStyle.text}; border: 1px solid ${priorityStyle.border};">
+                              ${priority}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 5px 0; color: #78350f; font-weight: 500;">Current Status:</td>
+                          <td style="padding: 5px 0; color: #1e293b; font-weight: 600;">
+                            To Do
+                          </td>
+                        </tr>
+                        ${
+                          creatorName
+                            ? `
+                        <tr>
+                          <td style="padding: 5px 0; color: #78350f; font-weight: 500;">Assigned By:</td>
+                          <td style="padding: 5px 0; color: #334155; font-weight: 500;">
+                            ${creatorName}
+                          </td>
+                        </tr>
+                        `
+                            : ""
+                        }
+                      </table>
+
+                      ${
+                        taskDescription
+                          ? `
+                        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #fde68a;">
+                          <div style="font-size: 11px; font-weight: 600; color: #78350f; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Description
+                          </div>
+                          <div style="font-size: 13px; line-height: 20px; color: #334155; white-space: pre-line;">
+                            ${taskDescription}
+                          </div>
+                        </div>
+                      `
+                          : ""
+                      }
+                    </div>
+
+                    <!-- CTA Button -->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0 8px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${targetUrl}" target="_blank" style="display: inline-block; background-color: #d97706; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);">
+                            Open Task & Start Working
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 16px 28px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                      &copy; ${new Date().getFullYear()} Task Manager. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const cleanTo = to.trim();
+  console.log(`[Task 2-Hour Reminder Email] Sending reminder to ${cleanTo} for upcoming task: "${taskTitle}"`);
+
+  const mailOptions: any = {
+    from: smtpFrom,
+    to: cleanTo,
+    subject: `⏰ [Upcoming Deadline] 2 Hours Remaining: ${taskTitle}`,
+    text: `Hello ${assigneeName},\n\nThis is a friendly reminder that your task is due in 2 hours (${formattedDueDate}) and is currently in To Do status:\n\nTask: ${taskTitle}\nPriority: ${priority}\nStatus: To Do\nDue Date: ${formattedDueDate}\n\nPlease open the task and start working on it: ${targetUrl}`,
+    html,
+  };
+
+  if (cc) {
+    const cleanCc = Array.isArray(cc) ? cc.join(", ") : cc;
+    if (cleanCc.trim()) mailOptions.cc = cleanCc;
+  }
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`[Task 2-Hour Reminder Email] Reminder sent successfully to ${cleanTo} (MessageId: ${info?.messageId})`);
+  return info;
+}
+

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { checkAndNotifyOverdueTasks } from "@/lib/task-overdue";
+import { checkAndNotifyDueReminderTasks } from "@/lib/task-due-reminder";
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
@@ -35,13 +36,18 @@ async function handleOverdueCheck(req: Request) {
     }
 
     const companyId = user?.companyId || searchParams.get("companyId") || null;
-    const result = await checkAndNotifyOverdueTasks(companyId);
+    const [overdueResult, reminderResult] = await Promise.all([
+      checkAndNotifyOverdueTasks(companyId),
+      checkAndNotifyDueReminderTasks(companyId),
+    ]);
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      notifiedCount: result.count,
-      taskIds: result.taskIds || [],
+      notifiedCount: (overdueResult.count || 0) + (reminderResult.count || 0),
+      overdueCount: overdueResult.count || 0,
+      reminderCount: reminderResult.count || 0,
+      taskIds: [...(overdueResult.taskIds || []), ...(reminderResult.taskIds || [])],
     });
   } catch (error: any) {
     console.error("Task overdue API error:", error);

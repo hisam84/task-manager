@@ -161,6 +161,7 @@ export async function PATCH(
       updateData.dueDate = newDueDate;
       if (newDueDate && newDueDate.getTime() > Date.now()) {
         updateData.overdueNotifiedAt = null;
+        updateData.dueReminderNotifiedAt = null;
       }
 
       const formatDT = (d: Date | null | undefined) =>
