@@ -109,16 +109,12 @@ export function Sidebar({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
-  const handleAttendanceToggle = () => {
-    if (!attendanceOpen) {
-      setAttendanceOpen(true);
-      if (pathname !== "/attendance") {
-        router.push("/attendance");
-        setMobileOpen(false);
-      }
-    } else {
-      setAttendanceOpen(false);
+  const handleAttendanceToggle = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
+    setAttendanceOpen((prev) => !prev);
   };
 
   const attendanceSubItems = [
@@ -299,19 +295,22 @@ export function Sidebar({
           if (item.href === "/attendance") {
             if (!showLabels) {
               return (
-                <Link
+                <button
                   key={item.href}
-                  href="/attendance"
-                  onClick={() => setMobileOpen(false)}
+                  type="button"
+                  onClick={() => {
+                    setCollapsed(false);
+                    setAttendanceOpen(true);
+                  }}
                   className={`flex items-center justify-center min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                     isAttendanceActive
                       ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
                   }`}
-                  title="Attendance Sheet & Leaves"
+                  title="Attendance (Click to expand)"
                 >
                   <CalendarCheck2 className={`w-5 h-5 shrink-0 ${isAttendanceActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} />
-                </Link>
+                </button>
               );
             }
 

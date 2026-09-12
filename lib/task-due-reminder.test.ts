@@ -62,7 +62,7 @@ describe("2-Hour Pre-Overdue Task Reminder Logic", () => {
     );
   });
 
-  it("does NOT send reminder if total task duration is less than 2 hours ('টাস্কের টাইম ২ ঘন্টা না থাকলে মেইল যাবে না')", () => {
+  it("does NOT send reminder if total task duration is less than 2 hours", () => {
     // Created 30 minutes ago with deadline in 30 minutes (total allotted duration: 1 hour)
     const createdAt = new Date(baseNow.getTime() - 30 * 60 * 1000);
     const dueDate = new Date(baseNow.getTime() + 30 * 60 * 1000);

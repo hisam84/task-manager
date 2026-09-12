@@ -1156,7 +1156,7 @@ function ProfilePageContent() {
                               <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                               <span>Task Completion Email Dispatch Mode</span>
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">
-                                স্বয়ংক্রিয় / ম্যানুয়াল
+                                Automatic / Manual
                               </span>
                             </span>
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -1185,7 +1185,7 @@ function ProfilePageContent() {
                                   </div>
                                   <div>
                                     <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                                      Automatic (স্বয়ংক্রিয়)
+                                      Automatic
                                     </span>
                                     <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
                                       Instant Email Dispatch
@@ -1225,7 +1225,7 @@ function ProfilePageContent() {
                                   </div>
                                   <div>
                                     <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                                      Manual (ম্যানুয়াল)
+                                      Manual
                                     </span>
                                     <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                                       Confirmation Dialog

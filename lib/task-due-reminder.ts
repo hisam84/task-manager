@@ -34,11 +34,11 @@ export function shouldSendDueReminder({
 
   if (isNaN(dueTime) || isNaN(createdTime)) return false;
 
-  // Rule: "টাস্কের টাইম ২ ঘন্টা না থাকলে মেইল যাবে না"
+  // Rule: Total task duration must be at least 2 hours to send reminder email
   const totalAllotted = dueTime - createdTime;
   if (totalAllotted < TWO_HOURS_MS) return false;
 
-  // Rule: "শুধুমাত্র ২ ঘন্টা আগেই মেইল যাবে" (within the 2-hour window before due date)
+  // Rule: Send reminder strictly within the 2-hour window before due date
   const twoHoursBefore = dueTime - TWO_HOURS_MS;
   if (currentTime < twoHoursBefore) return false;
   if (currentTime >= dueTime) return false;
@@ -102,8 +102,7 @@ export async function checkAndNotifyDueReminderTasks(companyId?: string | null) 
     for (const task of upcomingTasks) {
       if (!task.dueDate) continue;
 
-      // Condition: "টাস্কের টাইম ২ ঘন্টা না থাকলে মেইল যাবে না"
-      // Total duration between task creation and due date must be at least 2 hours
+      // Condition: Total duration between task creation and due date must be at least 2 hours
       const totalAllottedDuration = task.dueDate.getTime() - task.createdAt.getTime();
       if (totalAllottedDuration < TWO_HOURS_MS) {
         // Skip tasks that were created with less than 2 hours total deadline time

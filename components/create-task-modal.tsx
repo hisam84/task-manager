@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Plus, AlertCircle, Calendar, Check, Users, Search, Lock } from "lucide-react";
+import { X, Plus, AlertCircle, Calendar, Check, Users, Search, Lock, ChevronDown } from "lucide-react";
 
 interface UserOption {
   id: string;
@@ -35,6 +35,7 @@ export function CreateTaskModal({
   const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED">("TODO");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [assigneeSearch, setAssigneeSearch] = useState("");
+  const [isAssigneeDropdownOpen, setIsAssigneeDropdownOpen] = useState(false);
   const [dueDate, setDueDate] = useState("");
 
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -43,6 +44,29 @@ export function CreateTaskModal({
 
   const isEmployee = currentUserRole === "EMPLOYEE";
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        assigneeDropdownRef.current &&
+        !assigneeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsAssigneeDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsAssigneeDropdownOpen(false);
+      setAssigneeSearch("");
+    }
+  }, [isOpen]);
 
   const formatDateTimeLocal = (d: Date): string => {
     const year = d.getFullYear();
@@ -176,6 +200,9 @@ export function CreateTaskModal({
       setTitle("");
       setDescription("");
       setDueDate("");
+      setAssigneeIds([]);
+      setAssigneeSearch("");
+      setIsAssigneeDropdownOpen(false);
       onSuccess();
       onClose();
     } catch (err) {
@@ -244,25 +271,25 @@ export function CreateTaskModal({
           </div>
 
           {/* Multi-Assignee Selection */}
-          <div className="space-y-2">
+          <div className="space-y-1.5" ref={assigneeDropdownRef}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="w-3.5 h-3.5 text-indigo-400" />
                 <label className="text-xs font-semibold text-slate-200">
                   Assignees *
                 </label>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  {assigneeIds.length} Selected
-                </span>
+                {assigneeIds.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {assigneeIds.length} Selected
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                {currentUserId && (
+                {currentUserId && !assigneeIds.includes(currentUserId) && (
                   <button
                     type="button"
                     onClick={() => {
-                      if (!assigneeIds.includes(currentUserId)) {
-                        setAssigneeIds((prev) => [...prev, currentUserId]);
-                      }
+                      setAssigneeIds((prev) => [...prev, currentUserId]);
                     }}
                     className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium hover:underline cursor-pointer"
                   >
@@ -281,123 +308,199 @@ export function CreateTaskModal({
               </div>
             </div>
 
-            {/* Selected Chips */}
-            {assigneeIds.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800">
-                {assigneeIds.map((uid) => {
-                  const u = users.find((user) => user.id === uid);
-                  if (!u) return null;
-                  return (
-                    <span
-                      key={u.id}
-                      className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-lg text-[11px] font-medium bg-indigo-950/70 border border-indigo-500/40 text-indigo-200 shadow-sm animate-fadeIn"
-                    >
-                      <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold">
-                        {u.name[0]?.toUpperCase()}
-                      </span>
-                      <span>{u.name}</span>
+            {/* Clean Box Trigger & Dropdown */}
+            <div className="relative">
+              <div
+                onClick={() => setIsAssigneeDropdownOpen((prev) => !prev)}
+                className={`min-h-[44px] w-full bg-slate-950 border rounded-xl px-3 py-2 cursor-pointer transition-all flex items-center justify-between gap-2 select-none ${
+                  isAssigneeDropdownOpen
+                    ? "border-indigo-500 ring-1 ring-indigo-500/30"
+                    : "border-slate-800 hover:border-slate-700"
+                }`}
+              >
+                {assigneeIds.length === 0 ? (
+                  <span className="text-xs text-slate-500">Select assignees...</span>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1.5 min-w-0 pr-1">
+                    {assigneeIds.map((uid) => {
+                      const u = users.find((user) => user.id === uid);
+                      if (!u) return null;
+                      return (
+                        <span
+                          key={u.id}
+                          className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded-lg text-[11px] font-medium bg-indigo-950/70 border border-indigo-500/40 text-indigo-200 shadow-sm animate-fadeIn"
+                        >
+                          <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
+                            {u.name[0]?.toUpperCase()}
+                          </span>
+                          <span className="truncate max-w-[130px]">{u.name}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAssignee(u.id);
+                            }}
+                            className="hover:text-rose-300 p-0.5 rounded-full hover:bg-rose-500/20 transition-colors cursor-pointer"
+                            title="Remove"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      isAssigneeDropdownOpen ? "rotate-180 text-indigo-400" : ""
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Dropdown Popover */}
+              {isAssigneeDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-fadeIn">
+                  {/* Search box on top of the list */}
+                  <div className="p-2.5 border-b border-slate-800 bg-slate-950/80 flex items-center gap-2">
+                    <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={assigneeSearch}
+                      onChange={(e) => setAssigneeSearch(e.target.value)}
+                      placeholder="Search team members by name or department..."
+                      className="w-full bg-transparent text-xs text-slate-200 placeholder:text-slate-500 outline-none"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    {assigneeSearch && (
                       <button
                         type="button"
-                        onClick={() => toggleAssignee(u.id)}
-                        className="hover:text-rose-300 p-0.5 rounded-full hover:bg-rose-500/20 transition-colors cursor-pointer"
-                        title="Remove"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAssigneeSearch("");
+                        }}
+                        className="text-slate-400 hover:text-slate-200 text-xs p-1"
                       >
                         <X className="w-3 h-3" />
                       </button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+                    )}
+                  </div>
 
-            {/* Search & Team member multi-select checklist */}
-            <div className="border border-slate-800 rounded-xl bg-slate-950 overflow-hidden">
-              <div className="p-2 border-b border-slate-800/80 flex items-center gap-2">
-                <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <input
-                  type="text"
-                  value={assigneeSearch}
-                  onChange={(e) => setAssigneeSearch(e.target.value)}
-                  placeholder="Search team members by name or department..."
-                  className="w-full bg-transparent text-xs text-slate-200 placeholder:text-slate-500 outline-none"
-                />
-              </div>
+                  {/* List of employees */}
+                  <div className="max-h-56 overflow-y-auto divide-y divide-slate-800/40 p-1">
+                    {users
+                      .filter(
+                        (u) =>
+                          !assigneeSearch.trim() ||
+                          u.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                          u.department?.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                          u.role.toLowerCase().includes(assigneeSearch.toLowerCase())
+                      )
+                      .map((u) => {
+                        const isSelected = assigneeIds.includes(u.id);
+                        const isCurrent = u.id === currentUserId;
+                        const currentEmployee = users.find((cur) => cur.id === currentUserId);
+                        const currentOrder = currentEmployee?.order ?? 0;
+                        const uOrder = u.order ?? 0;
+                        const isSenior = isEmployee && !isCurrent && (u.role !== "EMPLOYEE" || uOrder <= currentOrder);
 
-              <div className="max-h-36 overflow-y-auto divide-y divide-slate-800/50 p-1">
-                {users
-                  .filter((u) =>
-                    !assigneeSearch.trim() ||
-                    u.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
-                    u.department?.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
-                    u.role.toLowerCase().includes(assigneeSearch.toLowerCase())
-                  )
-                  .map((u) => {
-                    const isSelected = assigneeIds.includes(u.id);
-                    const isCurrent = u.id === currentUserId;
-                    const currentEmployee = users.find((cur) => cur.id === currentUserId);
-                    const currentOrder = currentEmployee?.order ?? 0;
-                    const uOrder = u.order ?? 0;
-                    const isSenior = isEmployee && !isCurrent && (u.role !== "EMPLOYEE" || uOrder <= currentOrder);
-
-                    return (
-                      <button
-                        key={u.id}
-                        type="button"
-                        disabled={isSenior}
-                        onClick={() => toggleAssignee(u.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all cursor-pointer ${
-                          isSenior
-                            ? "opacity-40 cursor-not-allowed bg-slate-950"
-                            : isSelected
-                            ? "bg-indigo-600/15 text-white hover:bg-indigo-600/25"
-                            : "hover:bg-slate-900 text-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                              isSelected
-                                ? "bg-indigo-600 text-white"
-                                : "bg-slate-800 text-slate-400"
+                        return (
+                          <button
+                            key={u.id}
+                            type="button"
+                            disabled={isSenior}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAssignee(u.id);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all cursor-pointer ${
+                              isSenior
+                                ? "opacity-40 cursor-not-allowed bg-slate-950"
+                                : isSelected
+                                ? "bg-indigo-600/15 text-white hover:bg-indigo-600/25"
+                                : "hover:bg-slate-800 text-slate-300"
                             }`}
                           >
-                            {u.name[0]?.toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-xs font-medium truncate flex items-center gap-1.5">
-                              <span>{u.name}</span>
-                              {isCurrent && (
-                                <span className="text-[10px] text-indigo-400 font-mono">(You)</span>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                  isSelected
+                                    ? "bg-indigo-600 text-white"
+                                    : "bg-slate-800 text-slate-400"
+                                }`}
+                              >
+                                {u.name[0]?.toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-xs font-medium truncate flex items-center gap-1.5">
+                                  <span>{u.name}</span>
+                                  {isCurrent && (
+                                    <span className="text-[10px] text-indigo-400 font-mono">
+                                      (You)
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-500 truncate">
+                                  {u.department || "General"} • {u.role}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                              {isSenior ? (
+                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                  <Lock className="w-3 h-3" />
+                                  <span>Senior</span>
+                                </span>
+                              ) : (
+                                <div
+                                  className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                                    isSelected
+                                      ? "bg-indigo-600 border-indigo-500 text-white"
+                                      : "border-slate-700 bg-slate-900"
+                                  }`}
+                                >
+                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
                               )}
                             </div>
-                            <div className="text-[10px] text-slate-500 truncate">
-                              {u.department || "General"} • {u.role}
-                            </div>
-                          </div>
-                        </div>
+                          </button>
+                        );
+                      })}
+                    {users.filter(
+                      (u) =>
+                        !assigneeSearch.trim() ||
+                        u.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                        u.department?.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
+                        u.role.toLowerCase().includes(assigneeSearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="py-6 text-center text-xs text-slate-500">
+                        No team members found matching "{assigneeSearch}"
+                      </div>
+                    )}
+                  </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                          {isSenior ? (
-                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                              <Lock className="w-3 h-3" />
-                              <span>Senior</span>
-                            </span>
-                          ) : (
-                            <div
-                              className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? "bg-indigo-600 border-indigo-500 text-white"
-                                  : "border-slate-700 bg-slate-900"
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
+                  {/* Dropdown footer info */}
+                  <div className="px-3 py-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>
+                      {assigneeIds.length} member{assigneeIds.length === 1 ? "" : "s"} selected
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAssigneeDropdownOpen(false);
+                      }}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 font-medium px-2 py-0.5 rounded hover:bg-indigo-500/10 cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {isEmployee && (
@@ -465,7 +568,7 @@ export function CreateTaskModal({
                   type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-26 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer hide-native-picker"
+                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-11 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer hide-native-picker"
                 />
                 <button
                   type="button"
@@ -473,21 +576,32 @@ export function CreateTaskModal({
                     e.stopPropagation();
                     dateInputRef.current?.showPicker?.();
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer select-none"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center justify-center cursor-pointer select-none"
                   title="Open Calendar"
                   aria-label="Open Calendar"
                 >
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span>Calendar</span>
+                  <Calendar className="w-4 h-4 shrink-0" />
                 </button>
               </div>
+            </div>
 
-              {/* Quick Date Presets */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+            {/* Quick Date Presets - Spanning across full width including left side */}
+            <div className="col-span-1 sm:col-span-2 -mt-1 pt-1.5 border-t border-slate-200 dark:border-slate-800/60">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  ⚡ Quick Deadline Suggestions:
+                </span>
+                {dueDate && (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium">
+                    Selected: {new Date(dueDate).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setQuickHours(2)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                   title="2 hours from now"
                 >
                   +2 Hours
@@ -495,42 +609,42 @@ export function CreateTaskModal({
                 <button
                   type="button"
                   onClick={() => setQuickDate(0, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Today (5 PM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(0, 22)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Tonight (10 PM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(1, 10)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Tomorrow (10 AM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(1, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   Tomorrow (5 PM)
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(3, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   In 3 Days
                 </button>
                 <button
                   type="button"
                   onClick={setThisFriday}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                   title="Upcoming Friday at 5:00 PM"
                 >
                   This Friday (5 PM)
@@ -538,7 +652,7 @@ export function CreateTaskModal({
                 <button
                   type="button"
                   onClick={setNextMonday}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                   title="Next Monday at 10:00 AM"
                 >
                   Next Monday (10 AM)
@@ -546,21 +660,21 @@ export function CreateTaskModal({
                 <button
                   type="button"
                   onClick={() => setQuickDate(7, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   In 1 Week
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDate(14, 17)}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   In 2 Weeks
                 </button>
                 <button
                   type="button"
                   onClick={setEndOfMonth}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-colors cursor-pointer"
                 >
                   End of Month
                 </button>
@@ -568,10 +682,10 @@ export function CreateTaskModal({
                   <button
                     type="button"
                     onClick={() => setDueDate("")}
-                    className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer ml-auto"
                     title="Clear selected deadline"
                   >
-                    Clear
+                    ✕ Clear
                   </button>
                 )}
               </div>

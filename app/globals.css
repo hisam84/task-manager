@@ -11,6 +11,7 @@
 }
 
 html {
+  font-size: 17px;
   overflow-x: hidden;
 }
 
@@ -22,6 +23,8 @@ body {
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
   overscroll-behavior-y: contain;
+  font-size: 0.9375rem;
+  line-height: 1.55;
 }
 
 input,
@@ -34,7 +37,7 @@ textarea {
   input,
   select,
   textarea {
-    font-size: 14px;
+    font-size: 14.5px;
   }
 }
 
