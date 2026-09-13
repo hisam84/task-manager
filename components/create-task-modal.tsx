@@ -119,6 +119,9 @@ export function CreateTaskModal({
 
   useEffect(() => {
     if (isOpen) {
+      setAssigneeIds([]);
+      setAssigneeSearch("");
+      setIsAssigneeDropdownOpen(false);
       fetchUsers();
     }
   }, [isOpen]);
@@ -130,12 +133,6 @@ export function CreateTaskModal({
       if (Array.isArray(data)) {
         const sorted = [...data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         setUsers(sorted);
-        if (sorted.length > 0) {
-          const defaultUser = currentUserId
-            ? sorted.find((u) => u.id === currentUserId)?.id || sorted[0].id
-            : sorted[0].id;
-          setAssigneeIds([defaultUser]);
-        }
       }
     } catch (e) {
       console.error(e);
@@ -150,13 +147,17 @@ export function CreateTaskModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const finalAssigneeIds =
-      assigneeIds.length > 0 ? assigneeIds : currentUserId ? [currentUserId] : [];
-
-    if (!title.trim() || finalAssigneeIds.length === 0) {
-      setError("Please provide a task title and select at least one assignee.");
+    if (!title.trim()) {
+      setError("Please provide a task title.");
       return;
     }
+
+    if (assigneeIds.length === 0) {
+      setError("Please select at least one assignee.");
+      return;
+    }
+
+    const finalAssigneeIds = assigneeIds;
 
     // Client-side seniority check for employees
     if (isEmployee) {
@@ -215,24 +216,24 @@ export function CreateTaskModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <Plus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 {isEmployee ? "Create Self Task" : "Create New Task"}
               </h3>
-              <p className="text-xs text-slate-400">Add a new task item with deadlines</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Add a new task item with deadlines</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="min-h-11 min-w-11 inline-flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -241,32 +242,32 @@ export function CreateTaskModal({
         {/* Modal Body / Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Task Title *</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Task Title *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Prepare monthly analytics report"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none transition-all"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/30 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Description</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide details, requirements, or progress notes..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none transition-all resize-none"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/30 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-all resize-none"
             />
           </div>
 
@@ -274,12 +275,12 @@ export function CreateTaskModal({
           <div className="space-y-1.5" ref={assigneeDropdownRef}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-3.5 h-3.5 text-indigo-400" />
-                <label className="text-xs font-semibold text-slate-200">
+                <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   Assignees *
                 </label>
                 {assigneeIds.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                     {assigneeIds.length} Selected
                   </span>
                 )}
@@ -291,7 +292,7 @@ export function CreateTaskModal({
                     onClick={() => {
                       setAssigneeIds((prev) => [...prev, currentUserId]);
                     }}
-                    className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium hover:underline cursor-pointer"
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold hover:underline cursor-pointer"
                   >
                     + Assign Myself
                   </button>
@@ -300,7 +301,7 @@ export function CreateTaskModal({
                   <button
                     type="button"
                     onClick={() => setAssigneeIds([])}
-                    className="text-[11px] text-slate-400 hover:text-slate-300 hover:underline cursor-pointer"
+                    className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:underline cursor-pointer"
                   >
                     Clear
                   </button>
@@ -312,14 +313,14 @@ export function CreateTaskModal({
             <div className="relative">
               <div
                 onClick={() => setIsAssigneeDropdownOpen((prev) => !prev)}
-                className={`min-h-[44px] w-full bg-slate-950 border rounded-xl px-3 py-2 cursor-pointer transition-all flex items-center justify-between gap-2 select-none ${
+                className={`min-h-[44px] w-full bg-white dark:bg-slate-950 border rounded-xl px-3 py-2 cursor-pointer transition-all flex items-center justify-between gap-2 select-none ${
                   isAssigneeDropdownOpen
-                    ? "border-indigo-500 ring-1 ring-indigo-500/30"
-                    : "border-slate-800 hover:border-slate-700"
+                    ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:ring-indigo-500/30"
+                    : "border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
                 }`}
               >
                 {assigneeIds.length === 0 ? (
-                  <span className="text-xs text-slate-500">Select assignees...</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">Select assignees...</span>
                 ) : (
                   <div className="flex flex-wrap items-center gap-1.5 min-w-0 pr-1">
                     {assigneeIds.map((uid) => {
@@ -328,19 +329,19 @@ export function CreateTaskModal({
                       return (
                         <span
                           key={u.id}
-                          className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded-lg text-[11px] font-medium bg-indigo-950/70 border border-indigo-500/40 text-indigo-200 shadow-sm animate-fadeIn"
+                          className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded-lg text-[11px] font-medium bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-200 shadow-2xs animate-fadeIn"
                         >
                           <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                             {u.name[0]?.toUpperCase()}
                           </span>
-                          <span className="truncate max-w-[130px]">{u.name}</span>
+                          <span className="truncate max-w-[130px] font-medium">{u.name}</span>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleAssignee(u.id);
                             }}
-                            className="hover:text-rose-300 p-0.5 rounded-full hover:bg-rose-500/20 transition-colors cursor-pointer"
+                            className="hover:text-rose-600 dark:hover:text-rose-300 p-0.5 rounded-full hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors cursor-pointer"
                             title="Remove"
                           >
                             <X className="w-3 h-3" />
@@ -351,10 +352,10 @@ export function CreateTaskModal({
                   </div>
                 )}
 
-                <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
+                <div className="flex items-center gap-1.5 shrink-0 text-slate-400 dark:text-slate-500">
                   <ChevronDown
                     className={`w-4 h-4 transition-transform duration-200 ${
-                      isAssigneeDropdownOpen ? "rotate-180 text-indigo-400" : ""
+                      isAssigneeDropdownOpen ? "rotate-180 text-indigo-600 dark:text-indigo-400" : ""
                     }`}
                   />
                 </div>
@@ -362,17 +363,17 @@ export function CreateTaskModal({
 
               {/* Dropdown Popover */}
               {isAssigneeDropdownOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-fadeIn">
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-fadeIn">
                   {/* Search box on top of the list */}
-                  <div className="p-2.5 border-b border-slate-800 bg-slate-950/80 flex items-center gap-2">
-                    <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <div className="p-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/80 flex items-center gap-2">
+                    <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                     <input
                       type="text"
                       autoFocus
                       value={assigneeSearch}
                       onChange={(e) => setAssigneeSearch(e.target.value)}
                       placeholder="Search team members by name or department..."
-                      className="w-full bg-transparent text-xs text-slate-200 placeholder:text-slate-500 outline-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                       onClick={(e) => e.stopPropagation()}
                     />
                     {assigneeSearch && (
@@ -382,7 +383,7 @@ export function CreateTaskModal({
                           e.stopPropagation();
                           setAssigneeSearch("");
                         }}
-                        className="text-slate-400 hover:text-slate-200 text-xs p-1"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1 cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -390,7 +391,7 @@ export function CreateTaskModal({
                   </div>
 
                   {/* List of employees */}
-                  <div className="max-h-56 overflow-y-auto divide-y divide-slate-800/40 p-1">
+                  <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/40 p-1.5">
                     {users
                       .filter(
                         (u) =>
@@ -416,34 +417,34 @@ export function CreateTaskModal({
                               e.stopPropagation();
                               toggleAssignee(u.id);
                             }}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all cursor-pointer ${
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${
                               isSenior
-                                ? "opacity-40 cursor-not-allowed bg-slate-950"
+                                ? "opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-950"
                                 : isSelected
-                                ? "bg-indigo-600/15 text-white hover:bg-indigo-600/25"
-                                : "hover:bg-slate-800 text-slate-300"
+                                ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-950 dark:text-white border border-indigo-100 dark:border-indigo-500/30"
+                                : "hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200"
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div
                                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
                                   isSelected
-                                    ? "bg-indigo-600 text-white"
-                                    : "bg-slate-800 text-slate-400"
+                                    ? "bg-indigo-600 text-white shadow-2xs"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                                 }`}
                               >
                                 {u.name[0]?.toUpperCase()}
                               </div>
                               <div className="min-w-0">
-                                <div className="text-xs font-medium truncate flex items-center gap-1.5">
+                                <div className="text-xs font-semibold truncate flex items-center gap-1.5 text-slate-900 dark:text-white">
                                   <span>{u.name}</span>
                                   {isCurrent && (
-                                    <span className="text-[10px] text-indigo-400 font-mono">
+                                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono font-medium">
                                       (You)
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[10px] text-slate-500 truncate">
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                                   {u.department || "General"} • {u.role}
                                 </div>
                               </div>
@@ -451,7 +452,7 @@ export function CreateTaskModal({
 
                             <div className="flex items-center gap-1.5 shrink-0 ml-2">
                               {isSenior ? (
-                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
                                   <Lock className="w-3 h-3" />
                                   <span>Senior</span>
                                 </span>
@@ -459,8 +460,8 @@ export function CreateTaskModal({
                                 <div
                                   className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                                     isSelected
-                                      ? "bg-indigo-600 border-indigo-500 text-white"
-                                      : "border-slate-700 bg-slate-900"
+                                      ? "bg-indigo-600 border-indigo-600 text-white shadow-2xs"
+                                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                                   }`}
                                 >
                                   {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -477,15 +478,15 @@ export function CreateTaskModal({
                         u.department?.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
                         u.role.toLowerCase().includes(assigneeSearch.toLowerCase())
                     ).length === 0 && (
-                      <div className="py-6 text-center text-xs text-slate-500">
+                      <div className="py-6 text-center text-xs text-slate-500 dark:text-slate-400">
                         No team members found matching "{assigneeSearch}"
                       </div>
                     )}
                   </div>
 
                   {/* Dropdown footer info */}
-                  <div className="px-3 py-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>
+                  <div className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                    <span className="font-medium">
                       {assigneeIds.length} member{assigneeIds.length === 1 ? "" : "s"} selected
                     </span>
                     <button
@@ -494,7 +495,7 @@ export function CreateTaskModal({
                         e.stopPropagation();
                         setIsAssigneeDropdownOpen(false);
                       }}
-                      className="text-xs text-indigo-400 hover:text-indigo-300 font-medium px-2 py-0.5 rounded hover:bg-indigo-500/10 cursor-pointer"
+                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors cursor-pointer"
                     >
                       Done
                     </button>
@@ -504,20 +505,19 @@ export function CreateTaskModal({
             </div>
 
             {isEmployee && (
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                 💡 Employees can assign tasks to junior team members or themselves based on company seniority order.
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Priority Level</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Priority Level</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as "LOW" | "MEDIUM" | "HIGH" | "URGENT")}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer font-mono"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/30 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="LOW">Low Priority</option>
                 <option value="MEDIUM">Medium Priority</option>
@@ -529,11 +529,11 @@ export function CreateTaskModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Initial Status</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Initial Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "CANCELLED")}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-white outline-none transition-all cursor-pointer font-mono"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/30 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all cursor-pointer font-mono"
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -544,15 +544,15 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-medium text-slate-300">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Due Date & Time
                 </label>
                 {dueDate && (
                   <button
                     type="button"
                     onClick={() => setDueDate("")}
-                    className="text-[11px] text-rose-400 hover:text-rose-300 hover:underline cursor-pointer"
+                    className="text-[11px] text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 hover:underline cursor-pointer"
                   >
                     Clear
                   </button>
@@ -568,7 +568,7 @@ export function CreateTaskModal({
                   type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 group-hover:border-slate-700 focus:border-indigo-500 rounded-xl pl-3.5 pr-11 py-2.5 text-xs text-white outline-none transition-all font-mono cursor-pointer hide-native-picker"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 group-hover:border-slate-400 dark:group-hover:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all font-mono cursor-pointer hide-native-picker"
                 />
                 <button
                   type="button"
@@ -576,7 +576,7 @@ export function CreateTaskModal({
                     e.stopPropagation();
                     dateInputRef.current?.showPicker?.();
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 transition-all flex items-center justify-center cursor-pointer select-none"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 transition-all flex items-center justify-center cursor-pointer select-none"
                   title="Open Calendar"
                   aria-label="Open Calendar"
                 >
@@ -588,11 +588,11 @@ export function CreateTaskModal({
             {/* Quick Date Presets - Spanning across full width including left side */}
             <div className="col-span-1 sm:col-span-2 -mt-1 pt-1.5 border-t border-slate-200 dark:border-slate-800/60">
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   ⚡ Quick Deadline Suggestions:
                 </span>
                 {dueDate && (
-                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium">
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-semibold">
                     Selected: {new Date(dueDate).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                   </span>
                 )}
@@ -693,18 +693,18 @@ export function CreateTaskModal({
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-transparent transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-transparent transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-xs font-semibold text-white transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-xs font-semibold text-white transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Creating..." : "Create Task"}
             </button>

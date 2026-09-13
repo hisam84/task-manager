@@ -12,9 +12,10 @@ interface StatusItem {
 interface DonutChartProps {
   items: StatusItem[];
   totalLabel?: string;
+  title?: string;
 }
 
-export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProps) {
+export function DonutChart({ items, totalLabel = "Total Tasks", title }: DonutChartProps) {
   const total = items.reduce((acc, curr) => acc + curr.count, 0);
   let cumulativePercent = 0;
 
@@ -43,7 +44,18 @@ export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProp
   });
 
   return (
-    <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center justify-center gap-5 sm:gap-6 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none w-full min-w-0">
+    <div className="flex flex-col p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-none w-full min-w-0">
+      {title && (
+        <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/60">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">
+            {title}
+          </h3>
+          <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/15 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-500/20">
+            {total} {totalLabel}
+          </span>
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center justify-center gap-5 sm:gap-6 w-full min-w-0">
       <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
         <svg viewBox="-1.1 -1.1 2.2 2.2" className="w-full h-full -rotate-90 transform">
           {slices.map((slice, i) =>
@@ -85,6 +97,7 @@ export function DonutChart({ items, totalLabel = "Total Tasks" }: DonutChartProp
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
