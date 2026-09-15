@@ -11,7 +11,6 @@
 }
 
 html {
-  font-size: 17px;
   overflow-x: hidden;
 }
 
@@ -23,8 +22,6 @@ body {
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
   overscroll-behavior-y: contain;
-  font-size: 0.9375rem;
-  line-height: 1.55;
 }
 
 input,
@@ -37,7 +34,7 @@ textarea {
   input,
   select,
   textarea {
-    font-size: 14.5px;
+    font-size: 14px;
   }
 }
 
@@ -252,8 +249,6 @@ html.light div:not(.fixed):not([class*="inset-0"]).bg-black,
 html.light main.bg-slate-950,
 html.light div.bg-slate-950,
 html.light div.bg-slate-950\/95,
-html.light div.bg-slate-950\/90,
-html.light div.bg-slate-950\/80,
 html.light div.bg-slate-950\/60,
 html.light span.bg-slate-950,
 html.light span.bg-slate-900,
@@ -737,131 +732,4 @@ html.light nav a[class*="hover:bg-[#111111]"]:hover svg,
 html.light nav button[class*="hover:bg-[#111111]"]:hover svg {
   color: #0f172a !important;
 }
-
-/* ==========================================================================
-   Premium Theme Switch UI
-   ========================================================================== */
-.premium-switch input[type="checkbox"] {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-.premium-switch input[type="checkbox"]:focus-visible + .premium-toggle {
-  outline: 3px solid #6366f1;
-  outline-offset: 4px;
-}
-
-/* Container switch pill */
-.premium-toggle {
-  position: relative;
-  width: 190px;
-  height: 92px;
-  border-radius: 50px;
-  background: linear-gradient(145deg, #f8f8f8, #d9d9d9);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  box-shadow: 
-    inset 7px 7px 12px rgba(0, 0, 0, 0.16),
-    inset -6px -6px 12px rgba(255, 255, 255, 0.9),
-    0 8px 20px rgba(0, 0, 0, 0.08);
-  user-select: none;
-  transition: background 0.4s ease, box-shadow 0.4s ease;
-}
-
-/* Pill state in dark mode */
-.premium-switch input[type="checkbox"]:checked + .premium-toggle,
-.premium-toggle.is-dark {
-  background: linear-gradient(145deg, #2b2b36, #202028);
-  box-shadow: 
-    inset 7px 7px 12px rgba(0, 0, 0, 0.5),
-    inset -6px -6px 12px rgba(255, 255, 255, 0.05),
-    0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Sliding Thumb (Blob) */
-.premium-toggle .blob {
-  position: absolute;
-  top: 13px;
-  left: 13px;
-  width: 66px;
-  height: 66px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #ffc85a, #ed8b00);
-  box-shadow: 
-    7px 9px 12px rgba(0, 0, 0, 0.25),
-    inset -2px -2px 5px rgba(0, 0, 0, 0.2),
-    inset 2px 2px 5px rgba(255, 255, 255, 0.5);
-  transition: transform 0.45s cubic-bezier(0.68, -0.3, 0.27, 1.3), background 0.45s ease, box-shadow 0.45s ease;
-  z-index: 2;
-}
-
-/* Sliding Thumb to Moon/Dark mode */
-.premium-switch input[type="checkbox"]:checked + .premium-toggle .blob,
-.premium-toggle.is-dark .blob {
-  transform: translateX(98px);
-  background: linear-gradient(145deg, #4d5366, #2b2f3e);
-  box-shadow: 
-    7px 9px 12px rgba(0, 0, 0, 0.35),
-    inset -2px -2px 5px rgba(0, 0, 0, 0.3),
-    inset 2px 2px 5px rgba(255, 255, 255, 0.2);
-}
-
-/* Icon wrappers */
-.premium-toggle .icon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.premium-toggle .icon svg {
-  width: 28px;
-  height: 28px;
-  transition: stroke 0.35s ease, fill 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
-}
-
-/* Sun Icon styling */
-.premium-toggle .icon.sun svg {
-  stroke: #ffffff;
-  fill: none;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Moon Icon styling */
-.premium-toggle .icon.moon svg {
-  stroke: #777d88;
-  fill: none;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Active state transitions for icons */
-.premium-switch input[type="checkbox"]:checked + .premium-toggle .icon.sun svg,
-.premium-toggle.is-dark .icon.sun svg {
-  stroke: #777d88;
-  opacity: 0.6;
-}
-
-.premium-switch input[type="checkbox"]:checked + .premium-toggle .icon.moon svg,
-.premium-toggle.is-dark .icon.moon svg {
-  stroke: #ffffff;
-  opacity: 1;
-}
-
 

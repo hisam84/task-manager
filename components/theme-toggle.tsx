@@ -1,108 +1,93 @@
 "use client";
 
-import React, { useEffect, useState, useId } from "react";
+import React, { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "./theme-provider";
 
-export interface ThemeToggleProps {
+interface ThemeToggleProps {
   showLabel?: boolean;
   className?: string;
-  variant?: "premium" | "switch" | "button";
-  size?: "sm" | "md" | "lg";
+  variant?: "button" | "switch";
 }
 
 export function ThemeToggle({
   showLabel = false,
   className = "",
-  variant = "premium",
-  size = "sm",
+  variant = "button",
 }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const inputId = useId();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  if (!mounted) {
+    if (variant === "switch") {
+      return (
+        <div
+          className={`h-7 w-14 rounded-full bg-slate-200 dark:bg-slate-800 opacity-60 ${className}`}
+        />
+      );
+    }
+    return (
+      <button
+        type="button"
+        disabled
+        className={`h-10 inline-flex items-center justify-center rounded-xl text-slate-400 bg-slate-800/40 opacity-70 ${className}`}
+        aria-label="Toggle theme"
+      >
+        <Sun className="w-4 h-4 text-amber-400 animate-pulse" />
+      </button>
+    );
+  }
+
   const isDark = theme === "dark";
 
-  // Scale calculations for premium toggle UI (190px x 92px native dimensions)
-  const scaleMap = {
-    sm: 0.38, // ~72px x 35px
-    md: 0.55, // ~104.5px x 50.6px
-    lg: 1.0,  // 190px x 92px
-  };
-
-  const scale = scaleMap[size] || 0.38;
-  const width = Math.round(190 * scale);
-  const height = Math.round(92 * scale);
-
-  if (!mounted) {
+  if (variant === "switch") {
     return (
-      <div
-        style={{ width: `${width}px`, height: `${height}px` }}
-        className={`inline-block rounded-full bg-slate-200 dark:bg-slate-800/80 opacity-60 animate-pulse ${className}`}
-      />
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className={`relative inline-flex items-center justify-between w-14 h-7 p-1 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer shrink-0 select-none shadow-xs ${className}`}
+        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        <Moon className="w-3.5 h-3.5 text-indigo-600 ml-0.5" />
+        <Sun className="w-3.5 h-3.5 text-amber-400 mr-0.5" />
+        <span
+          className={`absolute top-0.5 left-0.5 flex items-center justify-center w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow-sm transition-transform duration-200 ease-in-out ${
+            isDark ? "translate-x-7 text-amber-400" : "translate-x-0 text-indigo-600"
+          }`}
+        >
+          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+        </span>
+      </button>
     );
   }
 
   return (
-    <div
-      className={`relative inline-flex items-center select-none ${className}`}
-      style={{ width: `${width}px`, height: `${height}px` }}
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={`h-10 inline-flex items-center justify-center gap-2 px-2.5 rounded-xl text-xs font-medium transition-all select-none ${
+        isDark
+          ? "bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/60 shadow-sm"
+          : "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-sm"
+      } ${className}`}
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
-      <div
-        className="premium-switch shrink-0 cursor-pointer"
-        style={{
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: "190px",
-          height: "92px",
-        }}
-      >
-        <input
-          type="checkbox"
-          id={inputId}
-          checked={isDark}
-          onChange={toggleTheme}
-        />
-        <label
-          className={`premium-toggle ${isDark ? "is-dark" : ""}`}
-          htmlFor={inputId}
-          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          <div className="blob" />
-
-          {/* Sun SVG */}
-          <span className="icon sun">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="4.5" />
-              <line x1="12" y1="2" x2="12" y2="4.5" />
-              <line x1="12" y1="19.5" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="4.5" y2="12" />
-              <line x1="19.5" y1="12" x2="22" y2="12" />
-              <line x1="4.93" y1="4.93" x2="6.7" y2="6.7" />
-              <line x1="17.3" y1="17.3" x2="19.07" y2="19.07" />
-              <line x1="4.93" y1="19.07" x2="6.7" y2="17.3" />
-              <line x1="17.3" y1="6.7" x2="19.07" y2="4.93" />
-            </svg>
-          </span>
-
-          {/* Moon SVG */}
-          <span className="icon moon">
-            <svg viewBox="0 0 24 24">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          </span>
-        </label>
-      </div>
+      {isDark ? (
+        <Sun className="w-4 h-4 text-amber-400 shrink-0 transition-transform hover:rotate-45" />
+      ) : (
+        <Moon className="w-4 h-4 text-indigo-600 shrink-0 transition-transform hover:-rotate-12" />
+      )}
       {showLabel && (
-        <span className="ml-3 text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
-          {isDark ? "Dark Mode" : "Light Mode"}
+        <span className="text-xs font-medium truncate">
+          {isDark ? "Light Mode" : "Dark Mode"}
         </span>
       )}
-    </div>
+    </button>
   );
 }
-

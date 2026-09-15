@@ -109,12 +109,16 @@ export function Sidebar({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
-  const handleAttendanceToggle = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleAttendanceToggle = () => {
+    if (!attendanceOpen) {
+      setAttendanceOpen(true);
+      if (pathname !== "/attendance") {
+        router.push("/attendance");
+        setMobileOpen(false);
+      }
+    } else {
+      setAttendanceOpen(false);
     }
-    setAttendanceOpen((prev) => !prev);
   };
 
   const attendanceSubItems = [
@@ -295,22 +299,19 @@ export function Sidebar({
           if (item.href === "/attendance") {
             if (!showLabels) {
               return (
-                <button
+                <Link
                   key={item.href}
-                  type="button"
-                  onClick={() => {
-                    setCollapsed(false);
-                    setAttendanceOpen(true);
-                  }}
+                  href="/attendance"
+                  onClick={() => setMobileOpen(false)}
                   className={`flex items-center justify-center min-h-11 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                     isAttendanceActive
                       ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/25"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60"
                   }`}
-                  title="Attendance (Click to expand)"
+                  title="Attendance Sheet & Leaves"
                 >
                   <CalendarCheck2 className={`w-5 h-5 shrink-0 ${isAttendanceActive ? "text-white" : "text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} />
-                </button>
+                </Link>
               );
             }
 
@@ -499,13 +500,10 @@ export function Sidebar({
                 </span>
                 <Edit3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</span>
             </div>
           )}
         </Link>
-
-        <div className={`mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800/60 flex items-center ${showLabels ? "justify-between px-1" : "justify-center"}`}>
-          <ThemeToggle size="sm" showLabel={showLabels} />
-        </div>
 
         {onLogout && (
           <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800/60">
@@ -539,7 +537,7 @@ export function Sidebar({
         </button>
         <span className="text-sm font-semibold truncate">{user.companyName || "Task Manager"}</span>
         <div className="flex items-center gap-1.5">
-          <ThemeToggle size="sm" />
+          <ThemeToggle className="min-w-9 min-h-9 h-9 w-9 p-0" />
           <Link
             href="/profile"
             className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
