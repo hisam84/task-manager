@@ -499,10 +499,13 @@ export function Sidebar({
                 </span>
                 <Edit3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</span>
             </div>
           )}
         </Link>
+
+        <div className={`mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800/60 flex items-center ${showLabels ? "justify-between px-1" : "justify-center"}`}>
+          <ThemeToggle size="sm" showLabel={showLabels} />
+        </div>
 
         {onLogout && (
           <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800/60">
@@ -536,7 +539,7 @@ export function Sidebar({
         </button>
         <span className="text-sm font-semibold truncate">{user.companyName || "Task Manager"}</span>
         <div className="flex items-center gap-1.5">
-          <ThemeToggle className="min-w-9 min-h-9 h-9 w-9 p-0" />
+          <ThemeToggle size="sm" />
           <Link
             href="/profile"
             className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
