@@ -52,6 +52,8 @@ interface AttendanceRecord {
   dayOfWeek: number;
   isWeekend: boolean;
   isHoliday: boolean;
+  isCompanyHoliday?: boolean;
+  isHolidayOverridden?: boolean;
   isLeave?: boolean;
   holidayName: string | null;
   status: string;
@@ -643,23 +645,27 @@ function AttendanceContent() {
         status: record.status,
       };
 
-      const isHoliday = record.isHoliday || rowState.status === "HOLIDAY";
-      const isLeave = record.isLeave || rowState.status === "LEAVE";
+      const isLeave = rowState.status === "LEAVE" || (!rowState.status && record.isLeave);
       const isWeekend = record.isWeekend;
       const rowShiftStart = record.shiftStartTime || shiftStartTime;
       const rowShiftEnd = record.shiftEndTime || shiftEndTime;
 
       let effectiveStatus = rowState.status;
-      if (effectiveStatus !== "LEAVE") {
+      if (!effectiveStatus) {
         if (rowState.inTime) {
           const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
           effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
         } else {
-          if (isHoliday) effectiveStatus = "HOLIDAY";
-          else if (isWeekend) effectiveStatus = "WEEKEND";
-          else effectiveStatus = rowState.status || "ABSENT";
+          effectiveStatus = record.status || (record.isHoliday ? "HOLIDAY" : isWeekend ? "WEEKEND" : "ABSENT");
+        }
+      } else if (effectiveStatus !== "LEAVE" && effectiveStatus !== "HOLIDAY" && effectiveStatus !== "ABSENT") {
+        if (rowState.inTime) {
+          const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
+          effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
         }
       }
+
+      const isHoliday = effectiveStatus === "HOLIDAY";
 
       const currentLateMin = rowState.inTime
         ? calculateLateMinutes(rowState.inTime, rowShiftStart)
@@ -1189,21 +1195,27 @@ function AttendanceContent() {
                       const rowShiftEnd = record.shiftEndTime || shiftEndTime;
 
                       let effectiveStatus = rowState.status;
-                      if (effectiveStatus !== "LEAVE") {
+                      if (!effectiveStatus) {
                         if (rowState.inTime) {
                           const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
                           effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                         } else {
-                          if (record.isHoliday) effectiveStatus = "HOLIDAY";
-                          else if (record.isWeekend) effectiveStatus = "WEEKEND";
-                          else effectiveStatus = "ABSENT";
+                          effectiveStatus = record.status || (record.isHoliday ? "HOLIDAY" : record.isWeekend ? "WEEKEND" : "ABSENT");
+                        }
+                      } else if (effectiveStatus !== "LEAVE" && effectiveStatus !== "HOLIDAY" && effectiveStatus !== "ABSENT") {
+                        if (rowState.inTime) {
+                          const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
+                          effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                         }
                       }
 
                       const isToday = date === todayStr;
                       const isWeekend = record.isWeekend;
-                      const isHoliday = effectiveStatus === "HOLIDAY" || record.isHoliday;
-                      const isLeave = effectiveStatus === "LEAVE" || record.isLeave;
+                      const isHoliday = effectiveStatus === "HOLIDAY";
+                      const isLeave = effectiveStatus === "LEAVE";
+                      const isHolidayOverridden = Boolean(
+                        (record.isCompanyHoliday || (record.holidayName && !isHoliday)) && !isHoliday
+                      );
                       const isSaving = savingDates[date];
                       const isSaved = savedDates[date];
                       const isExpanded = !!expandedDates[date];
@@ -1321,8 +1333,13 @@ function AttendanceContent() {
                                   )}
 
                                   {record.holidayName && (
-                                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold truncate max-w-[120px]">
-                                      {record.holidayName}
+                                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold truncate max-w-[140px] flex items-center gap-1">
+                                      <span>{record.holidayName}</span>
+                                      {isHolidayOverridden && (
+                                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                                          Overridden
+                                        </span>
+                                      )}
                                     </span>
                                   )}
                                   {!record.holidayName && isLeave && (
@@ -1549,18 +1566,24 @@ function AttendanceContent() {
 
                                   <button
                                     type="button"
-                                    onClick={() => {
-                                      setSelectedHolidayDate(date);
-                                      setHolidayModalOpen(true);
-                                    }}
+                                    onClick={() => handleToggleHoliday(record)}
                                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                       isHoliday
-                                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30"
+                                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 font-bold"
+                                        : isHolidayOverridden
+                                        ? "bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 font-bold"
                                         : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750"
                                     }`}
+                                    title={
+                                      isHoliday
+                                        ? "Override holiday for this employee"
+                                        : isHolidayOverridden
+                                        ? "Restore default holiday for this employee"
+                                        : "Set holiday for this employee"
+                                    }
                                   >
                                     <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                                    <span>{isHoliday ? "Holiday Set" : "+ Holiday"}</span>
+                                    <span>{isHoliday ? "Holiday Set" : isHolidayOverridden ? "Overridden" : "+ Holiday"}</span>
                                   </button>
                                 </div>
                               )}
@@ -1607,21 +1630,27 @@ function AttendanceContent() {
                         const rowShiftEnd = record.shiftEndTime || shiftEndTime;
 
                         let effectiveStatus = rowState.status;
-                        if (effectiveStatus !== "LEAVE") {
+                        if (!effectiveStatus) {
                           if (rowState.inTime) {
                             const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
                             effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                           } else {
-                            if (record.isHoliday) effectiveStatus = "HOLIDAY";
-                            else if (record.isWeekend) effectiveStatus = "WEEKEND";
-                            else effectiveStatus = "ABSENT";
+                            effectiveStatus = record.status || (record.isHoliday ? "HOLIDAY" : record.isWeekend ? "WEEKEND" : "ABSENT");
+                          }
+                        } else if (effectiveStatus !== "LEAVE" && effectiveStatus !== "HOLIDAY" && effectiveStatus !== "ABSENT") {
+                          if (rowState.inTime) {
+                            const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
+                            effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                           }
                         }
 
                         const isToday = date === todayStr;
                         const isWeekend = record.isWeekend;
-                        const isHoliday = effectiveStatus === "HOLIDAY" || record.isHoliday;
-                        const isLeave = effectiveStatus === "LEAVE" || record.isLeave;
+                        const isHoliday = effectiveStatus === "HOLIDAY";
+                        const isLeave = effectiveStatus === "LEAVE";
+                        const isHolidayOverridden = Boolean(
+                          (record.isCompanyHoliday || (record.holidayName && !isHoliday)) && !isHoliday
+                        );
                         const isSaving = savingDates[date];
                         const isSaved = savedDates[date];
 
@@ -1686,8 +1715,13 @@ function AttendanceContent() {
                                 <div>
                                   <span className="font-medium text-slate-700 dark:text-slate-300 block">{dayName}</span>
                                   {record.holidayName && (
-                                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block">
-                                      {record.holidayName}
+                                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block flex items-center gap-1">
+                                      <span>{record.holidayName}</span>
+                                      {isHolidayOverridden && (
+                                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                                          Overridden
+                                        </span>
+                                      )}
                                     </span>
                                   )}
                                   {!record.holidayName && isLeave && (
@@ -1906,19 +1940,24 @@ function AttendanceContent() {
 
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        setSelectedHolidayDate(date);
-                                        setHolidayModalOpen(true);
-                                      }}
+                                      onClick={() => handleToggleHoliday(record)}
                                       className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
                                         isHoliday
-                                          ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 hover:bg-amber-500/30 border border-amber-300 dark:border-amber-500/30"
+                                          ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 hover:bg-amber-500/30 border border-amber-300 dark:border-amber-500/30 font-bold"
+                                          : isHolidayOverridden
+                                          ? "bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-500/20 border border-purple-300 dark:border-purple-500/30 font-bold"
                                           : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700"
                                       }`}
-                                      title={isHoliday ? "Manage company holiday" : "Add company holiday on this date"}
+                                      title={
+                                        isHoliday
+                                          ? "Override holiday for this employee"
+                                          : isHolidayOverridden
+                                          ? "Restore default holiday for this employee"
+                                          : "Set holiday for this employee"
+                                      }
                                     >
                                       <Calendar className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-                                      <span>{isHoliday ? "Holiday" : "+ Holiday"}</span>
+                                      <span>{isHoliday ? "Holiday" : isHolidayOverridden ? "Overridden" : "+ Holiday"}</span>
                                     </button>
                                   </div>
                                 )}

@@ -91,6 +91,31 @@ test("computeDailyAttendanceMetrics - holiday has 0 penalty and status HOLIDAY",
   assert.equal(result.lateMinutes, 0);
 });
 
+test("computeDailyAttendanceMetrics - overridden holiday to false with inTime computes PRESENT or LATE", () => {
+  // Overridden employee working on holiday date: isHoliday is set to false for this specific employee
+  const onTimeResult = computeDailyAttendanceMetrics({
+    inTime: "09:00",
+    outTime: "18:00",
+    isHoliday: false,
+    shiftStartTime: "09:00",
+    shiftEndTime: "18:00",
+  });
+  assert.equal(onTimeResult.status, "PRESENT");
+  assert.equal(onTimeResult.latePenalty, 0);
+  assert.equal(onTimeResult.lateMinutes, 0);
+
+  const lateResult = computeDailyAttendanceMetrics({
+    inTime: "09:25",
+    outTime: "18:00",
+    isHoliday: false,
+    shiftStartTime: "09:00",
+    shiftEndTime: "18:00",
+  });
+  assert.equal(lateResult.status, "LATE");
+  assert.equal(lateResult.lateMinutes, 25);
+  assert.equal(lateResult.latePenalty, 30);
+});
+
 test("computeDailyAttendanceMetrics - leave has 0 penalty and status LEAVE", () => {
   const result = computeDailyAttendanceMetrics({
     inTime: null,

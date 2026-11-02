@@ -4,6 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { isManagerOrAdmin, canViewPenaltyAndOvertime } from "@/lib/access";
 import { computeDailyAttendanceMetrics, getEffectiveShiftForDate } from "@/lib/attendance";
 
+function normalizeTime(t?: string | null): string | null {
+  if (!t || typeof t !== "string") return null;
+  const trimmed = t.trim();
+  if (!trimmed) return null;
+  const parts = trimmed.split(":");
+  if (parts.length >= 2) {
+    const hh = parts[0].padStart(2, "0");
+    const mm = parts[1].padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  return trimmed;
+}
+
 export async function GET(req: Request) {
   try {
     const sessionUser = await getCurrentUser();
@@ -14,15 +27,18 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const requestedUserId = searchParams.get("userId") || sessionUser.id;
     const now = new Date();
-    const year = parseInt(searchParams.get("year") || String(now.getFullYear()), 10);
-    const month = parseInt(searchParams.get("month") || String(now.getMonth() + 1), 10); // 1-12
 
-    // Check permissions
+    const parsedYear = parseInt(searchParams.get("year") || "", 10);
+    const parsedMonth = parseInt(searchParams.get("month") || "", 10);
+    const year = !isNaN(parsedYear) && parsedYear >= 2000 && parsedYear <= 2100 ? parsedYear : now.getFullYear();
+    const month = !isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth : now.getMonth() + 1;
+
+    // Check permissions: regular employees can only view their own attendance
     if (sessionUser.role === "EMPLOYEE" && requestedUserId !== sessionUser.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch target user with shift
+    // Fetch target user with shift and company settings
     const targetUser = await prisma.user.findUnique({
       where: { id: requestedUserId },
       select: {
@@ -61,6 +77,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
+    // Cross-tenant permission check
     if (
       sessionUser.role !== "SUPER_ADMIN" &&
       targetUser.companyId !== sessionUser.companyId
@@ -70,9 +87,9 @@ export async function GET(req: Request) {
 
     const companyId = targetUser.companyId || sessionUser.companyId;
 
-    // Date range for the requested month
-    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
-    const daysInMonth = new Date(year, month, 0).getDate();
+    // Safe UTC date range for the requested month
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month - 1, daysInMonth, 23, 59, 59, 999));
 
     // Fetch existing attendance records for user
@@ -138,7 +155,7 @@ export async function GET(req: Request) {
       const shiftEndTime = dayShift.shiftEndTime;
 
       const holidayName = holidayMap.get(dateKey) || null;
-      const isHoliday = !!holidayName;
+      const isCompanyHoliday = !!holidayName;
 
       const record = attendanceMap.get(dateKey);
 
@@ -153,21 +170,38 @@ export async function GET(req: Request) {
       let attendanceId = null;
       let lateReason = null;
       let lateInformed = false;
+      let isHolidayOverridden = false;
 
       if (record) {
         attendanceId = record.id;
-        inTime = record.inTime;
-        outTime = record.outTime;
+        inTime = normalizeTime(record.inTime);
+        outTime = normalizeTime(record.outTime);
         notes = record.notes;
         lateReason = record.lateReason;
         lateInformed = record.lateInformed || false;
 
+        const isLeaveRecord = record.status === "LEAVE";
+        const hasExplicitNonHoliday =
+          Boolean(record.status && record.status !== "HOLIDAY");
+
+        // Check if company holiday is overridden for this specific employee
+        if (isCompanyHoliday && hasExplicitNonHoliday) {
+          isHolidayOverridden = true;
+        }
+
+        // For this employee, is it effectively a holiday?
+        // Default is company holiday UNLESS this employee's record explicitly overrides it to a non-holiday status.
+        const effectiveIsHoliday = record.status === "HOLIDAY"
+          ? true
+          : hasExplicitNonHoliday
+          ? false
+          : isCompanyHoliday;
+
         if (inTime || outTime) {
-          const isLeaveRecord = record.status === "LEAVE";
           const m = computeDailyAttendanceMetrics({
             inTime,
             outTime,
-            isHoliday,
+            isHoliday: effectiveIsHoliday,
             isLeave: isLeaveRecord,
             isWeekend,
             shiftStartTime,
@@ -175,7 +209,11 @@ export async function GET(req: Request) {
             lateInformed,
           });
 
-          status = isLeaveRecord && !inTime ? "LEAVE" : m.status;
+          if (hasExplicitNonHoliday) {
+            status = record.status === "PRESENT" && m.status === "LATE" ? "LATE" : record.status;
+          } else {
+            status = isLeaveRecord && !inTime ? "LEAVE" : m.status;
+          }
           lateMinutes = m.lateMinutes;
           latePenalty =
             enableLatePenalty && status !== "HOLIDAY" && status !== "LEAVE" && status !== "WEEKEND"
@@ -186,7 +224,12 @@ export async function GET(req: Request) {
         } else {
           if (record.status === "LEAVE") {
             status = "LEAVE";
-          } else if (isHoliday) {
+          } else if (record.status === "HOLIDAY") {
+            status = "HOLIDAY";
+          } else if (hasExplicitNonHoliday) {
+            // Explicit override by admin (e.g. PRESENT, ABSENT)
+            status = record.status;
+          } else if (isCompanyHoliday) {
             status = "HOLIDAY";
           } else if (isWeekend) {
             status = "WEEKEND";
@@ -199,7 +242,8 @@ export async function GET(req: Request) {
           workingMinutes = 0;
         }
       } else {
-        if (isHoliday) {
+        // By default:
+        if (isCompanyHoliday) {
           status = "HOLIDAY";
         } else if (isWeekend) {
           status = "WEEKEND";
@@ -211,7 +255,7 @@ export async function GET(req: Request) {
       if (status === "PRESENT") presentCount++;
       else if (status === "LATE") {
         lateCount++;
-        presentCount++; // late employees are present
+        presentCount++; // late employees are counted as present
       } else if (status === "HOLIDAY") holidayCount++;
       else if (status === "LEAVE") leaveCount++;
       else if (status === "WEEKEND") weekendCount++;
@@ -222,13 +266,17 @@ export async function GET(req: Request) {
       totalOvertimeMinutes += overtimeMinutes;
       totalWorkingMinutes += workingMinutes;
 
+      const isEffectiveHoliday = status === "HOLIDAY";
+
       dailyRecords.push({
         id: attendanceId,
         date: dateKey,
         day,
         dayOfWeek,
         isWeekend,
-        isHoliday: isHoliday || status === "HOLIDAY",
+        isHoliday: isEffectiveHoliday,
+        isCompanyHoliday,
+        isHolidayOverridden,
         isLeave: status === "LEAVE",
         holidayName,
         status,
@@ -284,6 +332,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Role check: Only Managers, Admins, and Super Admins can manually edit/update attendance records
+    if (!isManagerOrAdmin(sessionUser.role)) {
+      return NextResponse.json(
+        { error: "Forbidden. Only managers and admins can manually update attendance records." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const {
       userId: requestedUserId,
@@ -298,21 +354,28 @@ export async function POST(req: Request) {
 
     const targetUserId = requestedUserId || sessionUser.id;
 
-    if (sessionUser.role === "EMPLOYEE" && targetUserId !== sessionUser.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
     if (!date) {
       return NextResponse.json({ error: "Date is required." }, { status: 400 });
     }
 
-    // Normalize date to UTC midnight
-    const dateObj = new Date(`${date}T00:00:00.000Z`);
+    // Safely normalize date to UTC midnight (handles ISO format or YYYY-MM-DD)
+    const cleanDateStr = String(date).split("T")[0];
+    const dateObj = new Date(`${cleanDateStr}T00:00:00.000Z`);
+    if (isNaN(dateObj.getTime())) {
+      return NextResponse.json({ error: "Invalid date format." }, { status: 400 });
+    }
 
-    // Fetch user and shift
+    // Fetch target user with company and shift schedule
     const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId },
       include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            enableLatePenalty: true,
+          },
+        },
         shift: true,
         shiftSchedule: {
           include: {
@@ -326,6 +389,14 @@ export async function POST(req: Request) {
 
     if (!targetUser) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    // Cross-tenant permission check
+    if (
+      sessionUser.role !== "SUPER_ADMIN" &&
+      targetUser.companyId !== sessionUser.companyId
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const companyId = targetUser.companyId || sessionUser.companyId;
@@ -346,10 +417,29 @@ export async function POST(req: Request) {
       lateInformed !== undefined ? Boolean(lateInformed) : existing?.lateInformed || false;
     const effectiveLateReason =
       lateReason !== undefined ? (lateReason?.trim() || null) : existing?.lateReason || null;
+    const effectiveNotes = notes !== undefined ? (notes?.trim() || null) : existing?.notes || null;
 
-    // Check if it's marked as Holiday or Leave
-    const isHoliday = explicitStatus === "HOLIDAY";
-    const isLeave = explicitStatus === "LEAVE";
+    const normalizedInTime = normalizeTime(inTime);
+    const normalizedOutTime = normalizeTime(outTime);
+
+    // Determine holiday and leave status
+    let isHoliday = explicitStatus === "HOLIDAY";
+    let isLeave = explicitStatus === "LEAVE";
+
+    if (!explicitStatus) {
+      if (existing?.status === "HOLIDAY") {
+        isHoliday = true;
+      } else if (existing?.status === "LEAVE") {
+        isLeave = true;
+      } else if (!existing) {
+        const companyHoliday = await prisma.holiday.findFirst({
+          where: { companyId, date: dateObj },
+        });
+        if (companyHoliday) {
+          isHoliday = true;
+        }
+      }
+    }
 
     const effectiveShift = getEffectiveShiftForDate(targetUser, dateObj);
     const isWeekend = explicitStatus === "WEEKEND" || effectiveShift.isWeekend;
@@ -357,8 +447,8 @@ export async function POST(req: Request) {
     const shiftEndTime = effectiveShift.shiftEndTime;
 
     const metrics = computeDailyAttendanceMetrics({
-      inTime,
-      outTime,
+      inTime: normalizedInTime,
+      outTime: normalizedOutTime,
       isHoliday,
       isLeave,
       isWeekend,
@@ -367,10 +457,17 @@ export async function POST(req: Request) {
       lateInformed: effectiveLateInformed,
     });
 
-    const finalStatus =
-      explicitStatus && explicitStatus !== "PRESENT" && explicitStatus !== "LATE"
-        ? explicitStatus
-        : metrics.status;
+    const finalStatus = explicitStatus
+      ? explicitStatus === "PRESENT" && (normalizedInTime || normalizedOutTime) && metrics.status === "LATE"
+        ? "LATE"
+        : explicitStatus
+      : metrics.status;
+
+    const enableLatePenalty = targetUser.company?.enableLatePenalty ?? false;
+    const finalLatePenalty =
+      enableLatePenalty && finalStatus !== "HOLIDAY" && finalStatus !== "LEAVE" && finalStatus !== "WEEKEND"
+        ? metrics.latePenalty
+        : 0;
 
     const attendance = await prisma.attendance.upsert({
       where: {
@@ -380,31 +477,31 @@ export async function POST(req: Request) {
         },
       },
       update: {
-        inTime: inTime || null,
-        outTime: outTime || null,
+        inTime: normalizedInTime || null,
+        outTime: normalizedOutTime || null,
         status: finalStatus,
         lateMinutes: metrics.lateMinutes,
-        latePenalty: metrics.latePenalty,
+        latePenalty: finalLatePenalty,
         lateReason: effectiveLateReason,
         lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
-        notes: notes ?? undefined,
+        notes: effectiveNotes,
       },
       create: {
         userId: targetUserId,
         companyId,
         date: dateObj,
-        inTime: inTime || null,
-        outTime: outTime || null,
+        inTime: normalizedInTime || null,
+        outTime: normalizedOutTime || null,
         status: finalStatus,
         lateMinutes: metrics.lateMinutes,
-        latePenalty: metrics.latePenalty,
+        latePenalty: finalLatePenalty,
         lateReason: effectiveLateReason,
         lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
-        notes: notes ?? null,
+        notes: effectiveNotes,
       },
     });
 
