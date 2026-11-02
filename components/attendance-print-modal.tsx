@@ -113,7 +113,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
           <style>
             @page {
               size: A4 ${orientation};
-              margin: ${orientation === "portrait" ? "3mm 5mm 3mm 5mm" : "4mm 6mm"};
+              margin: ${orientation === "portrait" ? "2.5mm 5mm 2.5mm 5mm" : "4mm 6mm"};
             }
             * {
               box-sizing: border-box;
@@ -126,7 +126,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               margin: 0 !important;
               padding: 0 !important;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-              font-size: 8.5px !important;
+              font-size: 8px !important;
               line-height: 1.15 !important;
               height: 100% !important;
               max-height: 100% !important;
@@ -137,7 +137,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               visibility: visible !important;
               width: 100% !important;
               max-width: 100% !important;
-              max-height: 290mm !important;
+              max-height: 291mm !important;
               margin: 0 !important;
               padding: 0 !important;
               background: #ffffff !important;
@@ -157,7 +157,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               break-inside: avoid !important;
             }
             td, th {
-              padding: 1.5px 3px !important;
+              padding: 1px 2.5px !important;
               line-height: 1.15 !important;
             }
           </style>
@@ -195,7 +195,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
           __html: `
             @page {
               size: A4 ${orientation};
-              margin: ${orientation === "portrait" ? "3mm 5mm 3mm 5mm" : "4mm 6mm"};
+              margin: ${orientation === "portrait" ? "2.5mm 5mm 2.5mm 5mm" : "4mm 6mm"};
             }
             @media print {
               html, body {
@@ -206,7 +206,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                 overflow: hidden !important;
                 height: 100% !important;
                 max-height: 100% !important;
-                font-size: 8.5px !important;
+                font-size: 8px !important;
                 line-height: 1.15 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -227,7 +227,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                 position: static !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                max-height: 290mm !important;
+                max-height: 291mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
@@ -247,7 +247,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                 break-inside: avoid !important;
               }
               td, th {
-                padding: 1.5px 3px !important;
+                padding: 1px 2.5px !important;
               }
             }
           `,
@@ -257,7 +257,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-fadeIn print:p-0 print:bg-white print:static">
         <div className="relative w-full max-w-4xl lg:max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-white print:text-black">
           {/* Modal Toolbar - Hidden during print */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 print:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 print:hidden">
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 shadow-xs">
                 <Printer className="w-4 h-4" />
@@ -267,7 +267,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                   {showPenalty ? "Attendance & Late Penalty Report" : "Attendance Report"}
                 </span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
-                  1-Page A4 Guaranteed
+                  1-Page A4 Fit
                 </span>
               </div>
             </div>
@@ -283,7 +283,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                       ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
                   }`}
-                  title="Portrait: Standard 1-page A4 format"
+                  title="Portrait: 1-Page A4"
                 >
                   <Layout className="w-3.5 h-3.5" />
                   Portrait (1-Page)
@@ -321,122 +321,98 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
             </div>
           </div>
 
-          {/* Printable Document Container - Calibrated strictly for 1-Page A4 */}
+          {/* Printable Document Container - Strictly 1-Page A4 Fit */}
           <div
             id="attendance-printable-area"
-            className="p-3 sm:p-5 max-h-[85vh] overflow-y-auto print:max-h-none print:overflow-hidden print:p-0 bg-white text-slate-900 font-sans leading-tight"
+            className="p-3 sm:p-4 max-h-[88vh] overflow-y-auto print:max-h-none print:overflow-hidden print:p-0 bg-white text-slate-900 font-sans leading-tight"
           >
-            {/* Company & Report Header */}
-            <div className="border-b border-slate-300 pb-1.5 mb-1.5">
+            {/* Header: Company Name, Title & Metadata */}
+            <div className="border-b border-slate-300 pb-1 mb-1">
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-1">
                 <div>
                   <h1 className="text-base sm:text-lg print:text-base font-black tracking-tight text-slate-900 leading-tight">
                     {companyName}
                   </h1>
-                  <h2 className="text-[10px] print:text-[9.5px] font-bold text-indigo-700 uppercase tracking-wide">
+                  <h2 className="text-[10px] print:text-[9px] font-bold text-indigo-700 uppercase tracking-wide">
                     {showPenalty ? "EMPLOYEE ATTENDANCE & LATE PENALTY REPORT" : "EMPLOYEE ATTENDANCE REPORT"}
                   </h2>
-                  <p className="text-[9.5px] print:text-[9px] text-slate-600 mt-0.5">
+                  <p className="text-[9px] print:text-[8.5px] text-slate-600 mt-0.5">
                     Report Period: <strong className="font-bold text-slate-900">{monthName} {year}</strong>
                   </p>
                 </div>
-                <div className="text-left sm:text-right text-[9px] print:text-[8.5px] text-slate-500 leading-tight">
+                <div className="text-left sm:text-right text-[8.5px] print:text-[8px] text-slate-500 leading-tight">
                   <p>Generated: <span className="font-semibold text-slate-700">{new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></p>
                   <p className="font-mono mt-0.5 font-semibold text-slate-700">Ref: ATT-{year}{String(month).padStart(2, "0")}-{employee?.id?.slice(-5) || "0000"}</p>
                 </div>
               </div>
-
-              {/* Employee Metadata Strip */}
-              <div className="mt-1.5 p-1.5 rounded bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs print:p-1 print:bg-slate-50 print:border-slate-300">
-                <div>
-                  <span className="text-slate-500 block text-[8px] print:text-[7.5px] uppercase tracking-wider font-semibold">
-                    Employee Name
-                  </span>
-                  <span className="font-bold text-slate-900 text-[11px] print:text-[10px] block leading-tight">
-                    {employee?.name}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[8px] print:text-[7.5px] uppercase tracking-wider font-semibold">
-                    Designation
-                  </span>
-                  <span className="font-semibold text-slate-800 text-[10.5px] print:text-[9.5px] block leading-tight">
-                    {employee?.designation || "Team Member"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[8px] print:text-[7.5px] uppercase tracking-wider font-semibold">
-                    Department
-                  </span>
-                  <span className="font-semibold text-slate-800 text-[10.5px] print:text-[9.5px] block leading-tight">
-                    {employee?.departmentRel?.name || employee?.department || "General"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[8px] print:text-[7.5px] uppercase tracking-wider font-semibold">
-                    Assigned Shift
-                  </span>
-                  <span className="font-semibold text-slate-800 text-[10.5px] print:text-[9.5px] block leading-tight">
-                    {shiftName} ({shiftTimes})
-                  </span>
-                </div>
-              </div>
             </div>
 
-            {/* KPI Summary Strip */}
-            <div
-              className={`grid gap-1 mb-1.5 text-center ${
-                showPenalty && showOvertime
-                  ? "grid-cols-4 sm:grid-cols-8"
-                  : showPenalty || showOvertime
-                  ? "grid-cols-3 sm:grid-cols-7"
-                  : "grid-cols-3 sm:grid-cols-6"
-              }`}
-            >
-              <div className="p-1 rounded border border-slate-200 bg-slate-50">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-slate-500 leading-none">Total Days</span>
-                <span className="text-xs print:text-[10px] font-bold text-slate-900 leading-tight mt-0.5 block">{summary.totalDays}</span>
-              </div>
-              <div className="p-1 rounded border border-emerald-200 bg-emerald-50/50">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-emerald-700 leading-none">Present</span>
-                <span className="text-xs print:text-[10px] font-bold text-emerald-700 leading-tight mt-0.5 block">{summary.presentCount}</span>
-              </div>
-              <div className="p-1 rounded border border-rose-200 bg-rose-50/50">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-rose-600 leading-none">Late Days</span>
-                <span className="text-xs print:text-[10px] font-bold text-rose-700 leading-tight mt-0.5 block">{summary.lateCount}</span>
-              </div>
-              <div className="p-1 rounded border border-rose-200 bg-rose-50/50">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-rose-600 leading-none">Late Time</span>
-                <span className="text-xs print:text-[10px] font-bold text-rose-700 leading-tight mt-0.5 block">{summary.totalLateMinutes}m</span>
-              </div>
-              {showPenalty && (
-                <div className="p-1 rounded border border-rose-300 bg-rose-50">
-                  <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-rose-700 leading-none">Penalty Total</span>
-                  <span className="text-xs print:text-[10px] font-bold text-rose-800 leading-tight mt-0.5 block">BDT {summary.totalLatePenalty}</span>
-                </div>
-              )}
-              {showOvertime && (
-                <div className="p-1 rounded border border-indigo-200 bg-indigo-50/50">
-                  <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-indigo-700 leading-none">Overtime</span>
-                  <span className="text-xs print:text-[10px] font-bold text-indigo-800 leading-tight mt-0.5 block">{formatMinutes(summary.totalOvertimeMinutes)}</span>
-                </div>
-              )}
-              <div className="p-1 rounded border border-amber-300 bg-amber-50/60">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-amber-700 leading-none">Holidays</span>
-                <span className="text-xs print:text-[10px] font-bold text-amber-800 leading-tight mt-0.5 block">{summary.holidayCount}</span>
-              </div>
-              <div className="p-1 rounded border border-blue-300 bg-blue-50/60">
-                <span className="block text-[8px] print:text-[7.5px] uppercase font-bold text-blue-700 leading-none">Leaves</span>
-                <span className="text-xs print:text-[10px] font-bold text-blue-800 leading-tight mt-0.5 block">{summary.leaveCount || 0}</span>
-              </div>
-            </div>
+            {/* Employee Information Table (Replaces cards, saves vertical space) */}
+            <table className="w-full border-collapse border border-slate-300 text-[8.5px] print:text-[8px] leading-tight mb-1">
+              <tbody>
+                <tr className="bg-slate-50">
+                  <td className="py-1 px-2 border-r border-slate-300 w-1/4">
+                    <span className="text-[7px] text-slate-500 uppercase font-bold block">Employee Name</span>
+                    <span className="font-extrabold text-[9.5px] print:text-[9px] text-slate-900 block truncate">{employee?.name}</span>
+                  </td>
+                  <td className="py-1 px-2 border-r border-slate-300 w-1/4">
+                    <span className="text-[7px] text-slate-500 uppercase font-bold block">Designation</span>
+                    <span className="font-semibold text-slate-800 block truncate">{employee?.designation || "Team Member"}</span>
+                  </td>
+                  <td className="py-1 px-2 border-r border-slate-300 w-1/4">
+                    <span className="text-[7px] text-slate-500 uppercase font-bold block">Department</span>
+                    <span className="font-semibold text-slate-800 block truncate">{employee?.departmentRel?.name || employee?.department || "General"}</span>
+                  </td>
+                  <td className="py-1 px-2 w-1/4">
+                    <span className="text-[7px] text-slate-500 uppercase font-bold block">Assigned Shift</span>
+                    <span className="font-semibold text-slate-800 block truncate">{shiftName} ({shiftTimes})</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-            {/* Attendance & Penalty Table - 1-Page Vertical Fit */}
-            <div className="overflow-hidden border border-slate-300 rounded mb-1.5">
-              <table className="w-full text-left border-collapse text-[9px] print:text-[8px]">
+            {/* Monthly Attendance Summary Metrics Table (Replaces 8 KPI cards, compact 1-row table) */}
+            <table className="w-full border-collapse border border-slate-300 text-[8.5px] print:text-[8px] text-center leading-tight mb-1.5">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-300 text-[7.5px] print:text-[7px] uppercase font-bold text-slate-600">
+                  <th className="py-0.5 px-1 border-r border-slate-300">Total Days</th>
+                  <th className="py-0.5 px-1 border-r border-slate-300 text-emerald-700">Present</th>
+                  <th className="py-0.5 px-1 border-r border-slate-300 text-rose-600">Late Days</th>
+                  <th className="py-0.5 px-1 border-r border-slate-300 text-rose-600">Late Time</th>
+                  {showPenalty && (
+                    <th className="py-0.5 px-1 border-r border-slate-300 text-rose-700">Penalty Total</th>
+                  )}
+                  {showOvertime && (
+                    <th className="py-0.5 px-1 border-r border-slate-300 text-indigo-700">Overtime</th>
+                  )}
+                  <th className="py-0.5 px-1 border-r border-slate-300 text-amber-700">Holidays</th>
+                  <th className="py-0.5 px-1 text-blue-700">Leaves</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="font-bold text-[9.5px] print:text-[9px] bg-white">
+                  <td className="py-0.5 px-1 border-r border-slate-300 text-slate-900">{summary.totalDays}</td>
+                  <td className="py-0.5 px-1 border-r border-slate-300 text-emerald-700 bg-emerald-50/40">{summary.presentCount}</td>
+                  <td className="py-0.5 px-1 border-r border-slate-300 text-rose-700 bg-rose-50/40">{summary.lateCount}</td>
+                  <td className="py-0.5 px-1 border-r border-slate-300 text-rose-700 bg-rose-50/40">{summary.totalLateMinutes}m</td>
+                  {showPenalty && (
+                    <td className="py-0.5 px-1 border-r border-slate-300 text-rose-700 bg-rose-100/50 font-extrabold">BDT {summary.totalLatePenalty}</td>
+                  )}
+                  {showOvertime && (
+                    <td className="py-0.5 px-1 border-r border-slate-300 text-indigo-800 bg-indigo-50/40">{formatMinutes(summary.totalOvertimeMinutes)}</td>
+                  )}
+                  <td className="py-0.5 px-1 border-r border-slate-300 text-amber-800 bg-amber-50/50">{summary.holidayCount}</td>
+                  <td className="py-0.5 px-1 text-blue-800 bg-blue-50/50">{summary.leaveCount || 0}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Attendance & Penalty Table - 1-Page Calibrated */}
+            <div className="overflow-hidden border border-slate-300 rounded mb-1">
+              <table className="w-full text-left border-collapse text-[8.5px] print:text-[8px]">
                 <thead>
-                  <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-bold text-[9px] print:text-[8px]">
-                    <th className="py-1 px-1.5 border-r border-slate-300 text-left whitespace-nowrap min-w-[95px] w-[17%]">
+                  <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-bold text-[8.5px] print:text-[8px]">
+                    <th className="py-1 px-1.5 border-r border-slate-300 text-left whitespace-nowrap min-w-[90px] w-[17%]">
                       Date & Day
                     </th>
                     <th className="py-1 px-1.5 border-r border-slate-300 text-center whitespace-nowrap min-w-[65px] w-[11%]">
@@ -456,7 +432,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                     </th>
                     {showPenalty && (
                       <th className="py-1 px-1.5 border-r border-slate-300 text-center whitespace-nowrap min-w-[75px] w-[10%]">
-                        Penalty
+                        Penalty (BDT)
                       </th>
                     )}
                     {showOvertime && (
@@ -490,22 +466,22 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                             : ""
                         }`}
                       >
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 font-medium whitespace-nowrap">
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 font-medium whitespace-nowrap">
                           {String(r.day).padStart(2, "0")} {monthName.slice(0, 3)}, {dayName}
                           {r.holidayName && (
-                            <span className="text-[7.5px] text-amber-700 font-bold ml-1">
+                            <span className="text-[7px] text-amber-700 font-bold ml-1">
                               ({r.holidayName}{isOverridden ? " - Overridden" : ""})
                             </span>
                           )}
                           {!r.holidayName && isLeave && (
-                            <span className="text-[7.5px] text-blue-700 font-bold ml-1">
+                            <span className="text-[7px] text-blue-700 font-bold ml-1">
                               (Leave)
                             </span>
                           )}
                         </td>
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-center whitespace-nowrap">
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 text-center whitespace-nowrap">
                           <span
-                            className={`inline-block px-1 py-0 rounded text-[8px] print:text-[7.5px] font-bold ${
+                            className={`inline-block px-1 py-0 rounded text-[7.5px] print:text-[7px] font-bold ${
                               r.status === "PRESENT"
                                 ? "bg-emerald-100 text-emerald-800"
                                 : r.status === "LATE"
@@ -522,29 +498,29 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                             {r.status}
                           </span>
                         </td>
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
-                          {formatTime12Hour(r.inTime)}
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
+                          {formatTime12Hour(r.inTime) || "--:--"}
                         </td>
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
-                          {formatTime12Hour(r.outTime)}
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
+                          {formatTime12Hour(r.outTime) || "--:--"}
                         </td>
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 text-center font-mono whitespace-nowrap">
                           {r.workingMinutes > 0 ? formatMinutes(r.workingMinutes) : "-"}
                         </td>
-                        <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-left">
+                        <td className="py-[1px] px-1.5 border-r border-slate-200 text-left">
                           {r.lateMinutes > 0 ? (
                             <div className="flex items-center gap-1">
                               <span className={isLate ? "text-rose-700 font-bold" : "text-slate-600 font-medium"}>
                                 {r.lateMinutes}m
                               </span>
                               {r.lateInformed && (
-                                <span className="text-[7px] px-1 py-0 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <span className="text-[6.5px] px-1 py-0 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                                   Inf
                                 </span>
                               )}
                               {r.lateReason && (
                                 <span
-                                  className="text-[7.5px] text-slate-500 font-normal italic truncate max-w-[130px]"
+                                  className="text-[7px] text-slate-500 font-normal italic truncate max-w-[130px]"
                                   title={r.lateReason}
                                 >
                                   {r.lateReason}
@@ -556,9 +532,9 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                           )}
                         </td>
                         {showPenalty && (
-                          <td className="py-[1.5px] px-1.5 border-r border-slate-200 text-center font-bold whitespace-nowrap">
+                          <td className="py-[1px] px-1.5 border-r border-slate-200 text-center font-bold whitespace-nowrap">
                             {r.lateInformed ? (
-                              <span className="text-emerald-700 text-[8px] font-semibold">
+                              <span className="text-emerald-700 text-[7.5px] font-semibold">
                                 Informed (0)
                               </span>
                             ) : r.latePenalty > 0 ? (
@@ -569,7 +545,7 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                           </td>
                         )}
                         {showOvertime && (
-                          <td className="py-[1.5px] px-1.5 text-center font-mono whitespace-nowrap">
+                          <td className="py-[1px] px-1.5 text-center font-mono whitespace-nowrap">
                             {r.overtimeMinutes > 0 ? (
                               <span className="text-indigo-700 font-medium">
                                 +{formatMinutes(r.overtimeMinutes)}
@@ -584,12 +560,12 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-slate-100 border-t border-slate-300 font-bold text-[9px] print:text-[8px]">
+                  <tr className="bg-slate-100 border-t border-slate-300 font-bold text-[8.5px] print:text-[8px]">
                     <td colSpan={5} className="py-1 px-1.5 text-right border-r border-slate-300">
                       Monthly Total:
                     </td>
                     <td className="py-1 px-1.5 text-left border-r border-slate-300 text-rose-800">
-                      {summary.totalLateMinutes}m
+                      {summary.totalLateMinutes}m total late
                     </td>
                     {showPenalty && (
                       <td className="py-1 px-1.5 text-center border-r border-slate-300 text-rose-800 font-bold whitespace-nowrap">
@@ -606,9 +582,9 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               </table>
             </div>
 
-            {/* Late Penalty Policy Note */}
+            {/* Late Penalty Policy Note - 1 Compact Line */}
             {showPenalty && (
-              <div className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[7.5px] print:text-[7px] text-slate-600 mb-1.5">
+              <div className="px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[7px] print:text-[6.5px] text-slate-600 mb-1">
                 <span className="font-semibold text-slate-800">
                   Penalty Policy:{" "}
                 </span>
@@ -618,22 +594,22 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
               </div>
             )}
 
-            {/* Signatures Block - Compact & Elegant */}
-            <div className="grid grid-cols-3 gap-6 pt-1.5 border-t border-slate-300 text-center text-xs text-slate-700 mt-1">
+            {/* Signatures Block - Compact & Bottom-aligned */}
+            <div className="grid grid-cols-3 gap-6 pt-1 border-t border-slate-300 text-center text-xs text-slate-700 mt-0.5">
               <div>
-                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-4"></div>
-                <span className="font-semibold text-slate-800 block text-[8.5px] print:text-[8px]">Employee Signature</span>
-                <span className="text-[7.5px] print:text-[7px] text-slate-400">Date: ____________</span>
+                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-3.5"></div>
+                <span className="font-semibold text-slate-800 block text-[8px] print:text-[7.5px]">Employee Signature</span>
+                <span className="text-[7px] print:text-[6.5px] text-slate-400">Date: ____________</span>
               </div>
               <div>
-                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-4"></div>
-                <span className="font-semibold text-slate-800 block text-[8.5px] print:text-[8px]">Department Head</span>
-                <span className="text-[7.5px] print:text-[7px] text-slate-400">Date: ____________</span>
+                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-3.5"></div>
+                <span className="font-semibold text-slate-800 block text-[8px] print:text-[7.5px]">Department Head</span>
+                <span className="text-[7px] print:text-[6.5px] text-slate-400">Date: ____________</span>
               </div>
               <div>
-                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-4"></div>
-                <span className="font-semibold text-slate-800 block text-[8.5px] print:text-[8px]">HR & Accounts Authority</span>
-                <span className="text-[7.5px] print:text-[7px] text-slate-400">Date: ____________</span>
+                <div className="border-b border-slate-400 w-28 mx-auto mb-0.5 h-3.5"></div>
+                <span className="font-semibold text-slate-800 block text-[8px] print:text-[7.5px]">HR & Accounts Authority</span>
+                <span className="text-[7px] print:text-[6.5px] text-slate-400">Date: ____________</span>
               </div>
             </div>
           </div>
