@@ -13,6 +13,8 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const action = body?.action || "in"; // "in" or "out"
+    const lateReason = typeof body?.lateReason === "string" ? body.lateReason.trim() : undefined;
+    const lateInformed = typeof body?.lateInformed === "boolean" ? body.lateInformed : undefined;
 
     const now = new Date();
     // Current time in HH:mm (24-hour)
@@ -73,6 +75,11 @@ export async function POST(req: Request) {
     const inTime = action === "in" ? currentTimeStr : existing?.inTime || null;
     const outTime = action === "out" ? currentTimeStr : existing?.outTime || null;
 
+    const effectiveLateInformed =
+      lateInformed !== undefined ? lateInformed : existing?.lateInformed || false;
+    const effectiveLateReason =
+      lateReason !== undefined ? lateReason : existing?.lateReason || null;
+
     const metrics = computeDailyAttendanceMetrics({
       inTime,
       outTime,
@@ -80,6 +87,7 @@ export async function POST(req: Request) {
       isWeekend,
       shiftStartTime,
       shiftEndTime,
+      lateInformed: effectiveLateInformed,
     });
 
     const attendance = await prisma.attendance.upsert({
@@ -95,6 +103,8 @@ export async function POST(req: Request) {
         status: metrics.status,
         lateMinutes: metrics.lateMinutes,
         latePenalty: metrics.latePenalty,
+        lateReason: effectiveLateReason,
+        lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
       },
@@ -107,6 +117,8 @@ export async function POST(req: Request) {
         status: metrics.status,
         lateMinutes: metrics.lateMinutes,
         latePenalty: metrics.latePenalty,
+        lateReason: effectiveLateReason,
+        lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
       },

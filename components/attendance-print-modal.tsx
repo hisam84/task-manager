@@ -40,6 +40,8 @@ interface AttendancePrintModalProps {
       outTime: string | null;
       lateMinutes: number;
       latePenalty: number;
+      lateReason?: string | null;
+      lateInformed?: boolean;
       overtimeMinutes: number;
       workingMinutes: number;
       notes: string | null;
@@ -448,16 +450,35 @@ export function AttendancePrintModal({ isOpen, onClose, data, enableLatePenalty,
                         </td>
                         <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 border-r border-slate-200 text-center font-semibold">
                           {r.lateMinutes > 0 ? (
-                            <span className={isLate ? "text-rose-700 font-bold" : "text-slate-500"}>
-                              {r.lateMinutes}m
-                            </span>
+                            <div>
+                              <span className={isLate ? "text-rose-700 font-bold" : "text-slate-500"}>
+                                {r.lateMinutes}m
+                              </span>
+                              {r.lateInformed && (
+                                <span className="block text-[8px] print:text-[7px] text-emerald-700 font-semibold">
+                                  (Informed)
+                                </span>
+                              )}
+                              {r.lateReason && (
+                                <span
+                                  className="block text-[8px] print:text-[7px] text-slate-500 font-normal italic truncate max-w-[120px]"
+                                  title={r.lateReason}
+                                >
+                                  {r.lateReason}
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             "-"
                           )}
                         </td>
                         {showPenalty && (
                           <td className="py-0.5 px-2 print:py-[1.5px] print:px-1.5 border-r border-slate-200 text-center font-bold">
-                            {r.latePenalty > 0 ? (
+                            {r.lateInformed ? (
+                              <span className="text-emerald-700 text-[9px] print:text-[8px] font-semibold">
+                                Informed (0)
+                              </span>
+                            ) : r.latePenalty > 0 ? (
                               <span className="text-rose-700">BDT {r.latePenalty}</span>
                             ) : (
                               <span className="text-slate-400 font-normal">-</span>

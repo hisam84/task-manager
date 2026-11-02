@@ -104,6 +104,32 @@ test("computeDailyAttendanceMetrics - leave has 0 penalty and status LEAVE", () 
   assert.equal(result.lateMinutes, 0);
 });
 
+test("computeDailyAttendanceMetrics - lateInformed waives late penalty to 0 while keeping LATE status", () => {
+  // Late by 30 mins: standard penalty is 30
+  const regularLate = computeDailyAttendanceMetrics({
+    inTime: "09:30",
+    outTime: "18:00",
+    shiftStartTime: "09:00",
+    shiftEndTime: "18:00",
+    lateInformed: false,
+  });
+  assert.equal(regularLate.status, "LATE");
+  assert.equal(regularLate.lateMinutes, 30);
+  assert.equal(regularLate.latePenalty, 30);
+
+  // When lateInformed is true, penalty must be 0
+  const informedLate = computeDailyAttendanceMetrics({
+    inTime: "09:30",
+    outTime: "18:00",
+    shiftStartTime: "09:00",
+    shiftEndTime: "18:00",
+    lateInformed: true,
+  });
+  assert.equal(informedLate.status, "LATE");
+  assert.equal(informedLate.lateMinutes, 30);
+  assert.equal(informedLate.latePenalty, 0);
+});
+
 test("getEffectiveShiftForDate - falls back to single shift and Friday weekend when no schedule", () => {
   const userConfig = {
     shift: {

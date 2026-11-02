@@ -267,8 +267,18 @@ export function computeDailyAttendanceMetrics(params: {
   isLeave?: boolean;
   shiftStartTime?: string | null;
   shiftEndTime?: string | null;
+  lateInformed?: boolean;
 }) {
-  const { inTime, outTime, isHoliday, isWeekend, isLeave, shiftStartTime, shiftEndTime } = params;
+  const {
+    inTime,
+    outTime,
+    isHoliday,
+    isWeekend,
+    isLeave,
+    shiftStartTime,
+    shiftEndTime,
+    lateInformed,
+  } = params;
 
   if (isHoliday) {
     const workMin = inTime && outTime ? calculateWorkingMinutes(inTime, outTime) : 0;
@@ -319,7 +329,7 @@ export function computeDailyAttendanceMetrics(params: {
   let penalty = 0;
   if (inTime) {
     lateMin = calculateLateMinutes(inTime, defaultStart);
-    penalty = calculateLatePenalty(lateMin);
+    penalty = lateInformed ? 0 : calculateLatePenalty(lateMin);
   }
 
   let overtimeMin = 0;

@@ -7,6 +7,7 @@ import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ShiftModal } from "@/components/shift-modal";
 import { HolidayModal } from "@/components/holiday-modal";
 import { AttendancePrintModal } from "@/components/attendance-print-modal";
+import { LateCheckInModal } from "@/components/late-checkin-modal";
 import { ApplyLeaveModal } from "@/components/apply-leave-modal";
 import { LeaveRequestsModal } from "@/components/leave-requests-modal";
 import { Footer } from "@/components/footer";
@@ -64,6 +65,8 @@ interface AttendanceRecord {
   shiftName?: string | null;
   shiftStartTime?: string | null;
   shiftEndTime?: string | null;
+  lateReason?: string | null;
+  lateInformed?: boolean;
 }
 
 interface MonthlyData {
@@ -122,8 +125,19 @@ function AttendanceContent() {
   const [error, setError] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
-  // Row edit state: map of date -> { inTime, outTime, status }
-  const [rowEdits, setRowEdits] = useState<Record<string, { inTime: string; outTime: string; status: string }>>({});
+  // Row edit state: map of date -> { inTime, outTime, status, lateReason, lateInformed }
+  const [rowEdits, setRowEdits] = useState<
+    Record<
+      string,
+      {
+        inTime: string;
+        outTime: string;
+        status: string;
+        lateReason?: string | null;
+        lateInformed?: boolean;
+      }
+    >
+  >({});
 
   // Modals
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -134,6 +148,13 @@ function AttendanceContent() {
   const [applyLeaveModalOpen, setApplyLeaveModalOpen] = useState(false);
   const [leaveRequestsModalOpen, setLeaveRequestsModalOpen] = useState(false);
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
+
+  const [lateCheckInModalOpen, setLateCheckInModalOpen] = useState(false);
+  const [lateCheckInInfo, setLateCheckInInfo] = useState<{
+    lateMinutes: number;
+    shiftStartTime: string;
+    currentTimeStr: string;
+  }>({ lateMinutes: 0, shiftStartTime: "09:00", currentTimeStr: "" });
 
   // Auto-save states
   const autoSaveTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
@@ -227,13 +248,24 @@ function AttendanceContent() {
 
       // Only initialize row edits if not silent to prevent overwriting active typing
       if (!silent) {
-        const edits: Record<string, { inTime: string; outTime: string; status: string }> = {};
+        const edits: Record<
+          string,
+          {
+            inTime: string;
+            outTime: string;
+            status: string;
+            lateReason?: string | null;
+            lateInformed?: boolean;
+          }
+        > = {};
         if (data.records) {
           data.records.forEach((r: AttendanceRecord) => {
             edits[r.date] = {
               inTime: r.inTime || "",
               outTime: r.outTime || "",
               status: r.status,
+              lateReason: r.lateReason || "",
+              lateInformed: r.lateInformed || false,
             };
           });
         }
@@ -281,7 +313,16 @@ function AttendanceContent() {
 
   // Auto-save function
   const triggerAutoSave = useCallback(
-    async (date: string, dataToSave: { inTime: string; outTime: string; status: string }) => {
+    async (
+      date: string,
+      dataToSave: {
+        inTime?: string;
+        outTime?: string;
+        status?: string;
+        lateReason?: string | null;
+        lateInformed?: boolean;
+      }
+    ) => {
       if (!selectedUserId) return;
       try {
         setSavingDates((prev) => ({ ...prev, [date]: true }));
@@ -294,6 +335,8 @@ function AttendanceContent() {
             inTime: dataToSave.inTime || null,
             outTime: dataToSave.outTime || null,
             status: dataToSave.status,
+            lateReason: dataToSave.lateReason !== undefined ? dataToSave.lateReason : undefined,
+            lateInformed: dataToSave.lateInformed !== undefined ? dataToSave.lateInformed : undefined,
           }),
         });
 
@@ -331,6 +374,8 @@ function AttendanceContent() {
       inTime: currentRecord?.inTime || "",
       outTime: currentRecord?.outTime || "",
       status: currentRecord?.status || "ABSENT",
+      lateReason: currentRecord?.lateReason || "",
+      lateInformed: currentRecord?.lateInformed || false,
     };
 
     const newInTime = field === "inTime" ? val : existing.inTime;
@@ -355,6 +400,7 @@ function AttendanceContent() {
     }
 
     const updated = {
+      ...existing,
       inTime: newInTime,
       outTime: newOutTime,
       status: newStatus,
@@ -385,12 +431,70 @@ function AttendanceContent() {
     }
   };
 
+  const handleLateReasonChange = (date: string, val: string) => {
+    const currentRecord = monthlyData?.records?.find((r) => r.date === date);
+    const existing = rowEdits[date] || {
+      inTime: currentRecord?.inTime || "",
+      outTime: currentRecord?.outTime || "",
+      status: currentRecord?.status || "ABSENT",
+      lateReason: currentRecord?.lateReason || "",
+      lateInformed: currentRecord?.lateInformed || false,
+    };
+
+    const updated = {
+      ...existing,
+      lateReason: val,
+    };
+
+    setRowEdits((prev) => ({
+      ...prev,
+      [date]: updated,
+    }));
+
+    if (autoSaveTimersRef.current[date]) {
+      clearTimeout(autoSaveTimersRef.current[date]);
+    }
+    autoSaveTimersRef.current[date] = setTimeout(() => {
+      triggerAutoSave(date, updated);
+      delete autoSaveTimersRef.current[date];
+    }, 600);
+  };
+
+  const handleLateInformedToggle = (date: string, checked: boolean) => {
+    const currentRecord = monthlyData?.records?.find((r) => r.date === date);
+    const existing = rowEdits[date] || {
+      inTime: currentRecord?.inTime || "",
+      outTime: currentRecord?.outTime || "",
+      status: currentRecord?.status || "ABSENT",
+      lateReason: currentRecord?.lateReason || "",
+      lateInformed: currentRecord?.lateInformed || false,
+    };
+
+    const updated = {
+      ...existing,
+      lateInformed: checked,
+    };
+
+    setRowEdits((prev) => ({
+      ...prev,
+      [date]: updated,
+    }));
+
+    if (autoSaveTimersRef.current[date]) {
+      clearTimeout(autoSaveTimersRef.current[date]);
+      delete autoSaveTimersRef.current[date];
+    }
+    triggerAutoSave(date, updated);
+  };
+
   const handleStatusChange = (date: string, newStatus: string) => {
     const currentRecord = monthlyData?.records?.find((r) => r.date === date);
     const existing = rowEdits[date] || {
       inTime: currentRecord?.inTime || "",
       outTime: currentRecord?.outTime || "",
       status: currentRecord?.status || "ABSENT",
+      lateReason: currentRecord?.lateReason || "",
+      lateInformed: currentRecord?.lateInformed || false,
     };
 
     const updated = {
@@ -418,41 +522,6 @@ function AttendanceContent() {
     handleStatusChange(date, newStatus);
   };
 
-  const saveAttendanceRow = async (
-    date: string,
-    overrideData?: { inTime: string; outTime: string; status: string }
-  ) => {
-    const dataToSave = overrideData || rowEdits[date];
-    if (!dataToSave) return;
-    triggerAutoSave(date, dataToSave);
-  };
-
-  const handleClockAction = async (action: "in" | "out") => {
-    try {
-      setClocking(true);
-      const res = await fetch("/api/attendance/clock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Clock action failed.");
-
-      setSuccessToast(`Successfully clocked ${action.toUpperCase()} at ${data.time}`);
-      setTimeout(() => setSuccessToast(null), 3000);
-      fetchAttendance();
-    } catch (err: any) {
-      alert(err.message || "Clock action failed.");
-    } finally {
-      setClocking(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/";
-  };
-
   const canViewFines = canViewPenaltyAndOvertime(user?.role);
   const currentEmployee = monthlyData?.employee;
   const schedule = currentEmployee?.shiftSchedule;
@@ -470,6 +539,58 @@ function AttendanceContent() {
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   }, []);
+
+  const handleClockAction = async (
+    action: "in" | "out",
+    extraData?: { lateReason?: string; lateInformed?: boolean }
+  ) => {
+    try {
+      setClocking(true);
+      const res = await fetch("/api/attendance/clock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...extraData }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Clock action failed.");
+
+      setSuccessToast(`Successfully clocked ${action.toUpperCase()} at ${data.time}`);
+      setTimeout(() => setSuccessToast(null), 3000);
+      fetchAttendance();
+    } catch (err: any) {
+      alert(err.message || "Clock action failed.");
+    } finally {
+      setClocking(false);
+    }
+  };
+
+  const handleInitiateClockIn = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const currentTimeStr = `${hours}:${minutes}`;
+
+    const todayRecord = monthlyData?.records?.find((r) => r.date === todayStr);
+    const currentShiftStart = todayRecord?.shiftStartTime || shiftStartTime;
+    const lateMin = calculateLateMinutes(currentTimeStr, currentShiftStart);
+
+    // If late, prompt with late modal to record reason & informed checkbox
+    if (lateMin > 0) {
+      setLateCheckInInfo({
+        lateMinutes: lateMin,
+        shiftStartTime: currentShiftStart,
+        currentTimeStr,
+      });
+      setLateCheckInModalOpen(true);
+    } else {
+      handleClockAction("in");
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
 
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
@@ -544,11 +665,18 @@ function AttendanceContent() {
         ? calculateLateMinutes(rowState.inTime, rowShiftStart)
         : record.lateMinutes;
 
+      const isLateInformed =
+        rowState.lateInformed !== undefined
+          ? Boolean(rowState.lateInformed)
+          : Boolean(record.lateInformed);
+
       const currentPenalty =
-        !enableLatePenalty || isHoliday || isLeave || isWeekend
+        !enableLatePenalty || isHoliday || isLeave || isWeekend || isLateInformed
           ? 0
           : rowState.inTime
           ? calculateLatePenalty(currentLateMin)
+          : isLateInformed
+          ? 0
           : record.latePenalty;
 
       const currentOvertime =
@@ -658,7 +786,7 @@ function AttendanceContent() {
                 <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
                   <button
                     type="button"
-                    onClick={() => handleClockAction("in")}
+                    onClick={handleInitiateClockIn}
                     disabled={clocking}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
                   >
@@ -1084,11 +1212,22 @@ function AttendanceContent() {
                         ? calculateLateMinutes(rowState.inTime, rowShiftStart)
                         : record.lateMinutes;
 
+                      const rowLateReason =
+                        rowState.lateReason !== undefined
+                          ? rowState.lateReason || ""
+                          : record.lateReason || "";
+                      const rowLateInformed =
+                        rowState.lateInformed !== undefined
+                          ? Boolean(rowState.lateInformed)
+                          : Boolean(record.lateInformed);
+
                       const currentPenalty =
-                        !enableLatePenalty || isHoliday || isLeave || isWeekend
+                        !enableLatePenalty || isHoliday || isLeave || isWeekend || rowLateInformed
                           ? 0
                           : rowState.inTime
                           ? calculateLatePenalty(currentLateMin)
+                          : rowLateInformed
+                          ? 0
                           : record.latePenalty;
 
                       const currentOvertime =
@@ -1352,6 +1491,41 @@ function AttendanceContent() {
                                 )}
                               </div>
 
+                              {/* Late Reason & Informed Section */}
+                              {(currentLateMin > 0 || record.lateReason || rowLateReason) && (
+                                <div className="p-3 rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                                      Late Reason & Information
+                                    </span>
+                                    <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                                      <input
+                                        type="checkbox"
+                                        checked={rowLateInformed}
+                                        onChange={(e) => handleLateInformedToggle(date, e.target.checked)}
+                                        className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500"
+                                      />
+                                      <span
+                                        className={
+                                          rowLateInformed
+                                            ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                                            : "text-slate-600 dark:text-slate-400 font-medium"
+                                        }
+                                      >
+                                        Informed (Fine 0 BDT)
+                                      </span>
+                                    </label>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder="Enter reason for late arrival..."
+                                    value={rowLateReason}
+                                    onChange={(e) => handleLateReasonChange(date, e.target.value)}
+                                    className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                  />
+                                </div>
+                              )}
+
                               {/* Admin Quick Action Buttons */}
                               {isCompanyAdminOrManager && (
                                 <div className="flex items-center justify-end gap-2 pt-1">
@@ -1412,6 +1586,7 @@ function AttendanceContent() {
                         {enableLatePenalty && canViewFines && (
                           <th className="py-3 px-3 text-center">Penalty</th>
                         )}
+                        <th className="py-3 px-3 min-w-[170px]">Late Reason & Informed</th>
                         {canViewFines && (
                           <th className="py-3 px-3 text-center">Overtime</th>
                         )}
@@ -1454,11 +1629,22 @@ function AttendanceContent() {
                           ? calculateLateMinutes(rowState.inTime, rowShiftStart)
                           : record.lateMinutes;
 
+                        const rowLateReason =
+                          rowState.lateReason !== undefined
+                            ? rowState.lateReason || ""
+                            : record.lateReason || "";
+                        const rowLateInformed =
+                          rowState.lateInformed !== undefined
+                            ? Boolean(rowState.lateInformed)
+                            : Boolean(record.lateInformed);
+
                         const currentPenalty =
-                          !enableLatePenalty || isHoliday || isLeave || isWeekend
+                          !enableLatePenalty || isHoliday || isLeave || isWeekend || rowLateInformed
                             ? 0
                             : rowState.inTime
                             ? calculateLatePenalty(currentLateMin)
+                            : rowLateInformed
+                            ? 0
                             : record.latePenalty;
 
                         const currentOvertime =
@@ -1622,7 +1808,13 @@ function AttendanceContent() {
 
                             {enableLatePenalty && canViewFines && (
                               <td className="py-2.5 px-3 text-center font-bold">
-                                {currentPenalty > 0 ? (
+                                {rowLateInformed ? (
+                                  <div className="inline-flex flex-col items-center">
+                                    <span className="text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 text-[10px]">
+                                      Informed (0 BDT)
+                                    </span>
+                                  </div>
+                                ) : currentPenalty > 0 ? (
                                   <span className="text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">
                                     BDT {currentPenalty}
                                   </span>
@@ -1631,6 +1823,39 @@ function AttendanceContent() {
                                 )}
                               </td>
                             )}
+
+                            <td className="py-2.5 px-3">
+                              {currentLateMin > 0 || record.lateReason || rowLateReason ? (
+                                <div className="flex flex-col gap-1 min-w-[170px]">
+                                  <input
+                                    type="text"
+                                    placeholder="Reason for late..."
+                                    value={rowLateReason}
+                                    onChange={(e) => handleLateReasonChange(date, e.target.value)}
+                                    className="w-full px-2 py-1 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                  />
+                                  <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-600 dark:text-slate-400 select-none">
+                                    <input
+                                      type="checkbox"
+                                      checked={rowLateInformed}
+                                      onChange={(e) => handleLateInformedToggle(date, e.target.checked)}
+                                      className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <span
+                                      className={
+                                        rowLateInformed
+                                          ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                                          : ""
+                                      }
+                                    >
+                                      Informed (0 fine)
+                                    </span>
+                                  </label>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-600 font-normal text-center block">-</span>
+                              )}
+                            </td>
 
                             {canViewFines && (
                               <td className="py-2.5 px-3 text-center font-mono">
@@ -1755,6 +1980,17 @@ function AttendanceContent() {
         }
         enableLatePenalty={enableLatePenalty && canViewFines}
         isManagerOrAdmin={canViewFines}
+      />
+
+      <LateCheckInModal
+        isOpen={lateCheckInModalOpen}
+        onClose={() => setLateCheckInModalOpen(false)}
+        onConfirm={async ({ lateReason, lateInformed }) => {
+          await handleClockAction("in", { lateReason, lateInformed });
+        }}
+        lateMinutes={lateCheckInInfo.lateMinutes}
+        shiftStartTime={lateCheckInInfo.shiftStartTime}
+        currentTimeStr={lateCheckInInfo.currentTimeStr}
       />
 
       {/* Leave Modals */}

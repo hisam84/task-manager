@@ -151,12 +151,16 @@ export async function GET(req: Request) {
       let workingMinutes = 0;
       let notes = null;
       let attendanceId = null;
+      let lateReason = null;
+      let lateInformed = false;
 
       if (record) {
         attendanceId = record.id;
         inTime = record.inTime;
         outTime = record.outTime;
         notes = record.notes;
+        lateReason = record.lateReason;
+        lateInformed = record.lateInformed || false;
 
         if (inTime || outTime) {
           const isLeaveRecord = record.status === "LEAVE";
@@ -168,6 +172,7 @@ export async function GET(req: Request) {
             isWeekend,
             shiftStartTime,
             shiftEndTime,
+            lateInformed,
           });
 
           status = isLeaveRecord && !inTime ? "LEAVE" : m.status;
@@ -234,6 +239,8 @@ export async function GET(req: Request) {
         overtimeMinutes: canViewFinesAndOvertime ? overtimeMinutes : 0,
         workingMinutes,
         notes,
+        lateReason,
+        lateInformed,
         shiftName: dayShift.shiftName,
         shiftStartTime: dayShift.shiftStartTime,
         shiftEndTime: dayShift.shiftEndTime,
@@ -285,6 +292,8 @@ export async function POST(req: Request) {
       outTime,
       status: explicitStatus,
       notes,
+      lateReason,
+      lateInformed,
     } = body || {};
 
     const targetUserId = requestedUserId || sessionUser.id;
@@ -305,6 +314,13 @@ export async function POST(req: Request) {
       where: { id: targetUserId },
       include: {
         shift: true,
+        shiftSchedule: {
+          include: {
+            days: {
+              include: { shift: true },
+            },
+          },
+        },
       },
     });
 
@@ -317,13 +333,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Company ID is missing." }, { status: 400 });
     }
 
+    const existing = await prisma.attendance.findUnique({
+      where: {
+        userId_date: {
+          userId: targetUserId,
+          date: dateObj,
+        },
+      },
+    });
+
+    const effectiveLateInformed =
+      lateInformed !== undefined ? Boolean(lateInformed) : existing?.lateInformed || false;
+    const effectiveLateReason =
+      lateReason !== undefined ? (lateReason?.trim() || null) : existing?.lateReason || null;
+
     // Check if it's marked as Holiday or Leave
     const isHoliday = explicitStatus === "HOLIDAY";
     const isLeave = explicitStatus === "LEAVE";
-    const isWeekend = explicitStatus === "WEEKEND";
 
-    const shiftStartTime = targetUser.shift?.startTime || "09:00";
-    const shiftEndTime = targetUser.shift?.endTime || "18:00";
+    const effectiveShift = getEffectiveShiftForDate(targetUser, dateObj);
+    const isWeekend = explicitStatus === "WEEKEND" || effectiveShift.isWeekend;
+    const shiftStartTime = effectiveShift.shiftStartTime;
+    const shiftEndTime = effectiveShift.shiftEndTime;
 
     const metrics = computeDailyAttendanceMetrics({
       inTime,
@@ -333,6 +364,7 @@ export async function POST(req: Request) {
       isWeekend,
       shiftStartTime,
       shiftEndTime,
+      lateInformed: effectiveLateInformed,
     });
 
     const finalStatus =
@@ -353,6 +385,8 @@ export async function POST(req: Request) {
         status: finalStatus,
         lateMinutes: metrics.lateMinutes,
         latePenalty: metrics.latePenalty,
+        lateReason: effectiveLateReason,
+        lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
         notes: notes ?? undefined,
@@ -366,6 +400,8 @@ export async function POST(req: Request) {
         status: finalStatus,
         lateMinutes: metrics.lateMinutes,
         latePenalty: metrics.latePenalty,
+        lateReason: effectiveLateReason,
+        lateInformed: effectiveLateInformed,
         overtimeMinutes: metrics.overtimeMinutes,
         workingMinutes: metrics.workingMinutes,
         notes: notes ?? null,

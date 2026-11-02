@@ -224,6 +224,8 @@ model Attendance {
   status          String   @default("PRESENT") // PRESENT, LATE, ABSENT, HOLIDAY, WEEKEND, LEAVE, HALF_DAY
   lateMinutes     Int      @default(0)
   latePenalty     Float    @default(0)
+  lateReason      String?  @db.Text
+  lateInformed    Boolean  @default(false)
   overtimeMinutes Int      @default(0)
   workingMinutes  Int      @default(0)
   notes           String?
