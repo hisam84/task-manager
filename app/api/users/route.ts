@@ -14,6 +14,7 @@ const createUserSchema = z.object({
   department: z.string().max(120).optional().nullable(),
   departmentId: z.string().optional().nullable(),
   shiftId: z.string().optional().nullable(),
+  shiftScheduleId: z.string().optional().nullable(),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
   companyId: z.string().optional().nullable(),
   order: z.number().int().min(0).optional(),
@@ -56,6 +57,10 @@ export async function GET(req: Request) {
         shiftId: true,
         shift: {
           select: { id: true, name: true, startTime: true, endTime: true },
+        },
+        shiftScheduleId: true,
+        shiftSchedule: {
+          select: { id: true, name: true },
         },
         order: true,
         createdAt: true,
@@ -166,6 +171,7 @@ export async function POST(req: Request) {
         department: deptName,
         departmentId: data.departmentId || null,
         shiftId: data.shiftId || null,
+        shiftScheduleId: data.shiftScheduleId || null,
         phone: data.phone?.trim() || null,
         companyId: targetCompanyId,
         order: userOrder,
@@ -180,9 +186,13 @@ export async function POST(req: Request) {
         department: true,
         departmentId: true,
         shiftId: true,
+        shiftScheduleId: true,
         order: true,
         shift: {
           select: { id: true, name: true, startTime: true, endTime: true },
+        },
+        shiftSchedule: {
+          select: { id: true, name: true },
         },
         createdAt: true,
       },

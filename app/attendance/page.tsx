@@ -61,6 +61,9 @@ interface AttendanceRecord {
   overtimeMinutes: number;
   workingMinutes: number;
   notes: string | null;
+  shiftName?: string | null;
+  shiftStartTime?: string | null;
+  shiftEndTime?: string | null;
 }
 
 interface MonthlyData {
@@ -335,9 +338,10 @@ function AttendanceContent() {
 
     // Automatic status determination:
     let newStatus = existing.status;
+    const targetShiftStart = currentRecord?.shiftStartTime || shiftStartTime;
     if (newStatus !== "LEAVE") {
       if (newInTime) {
-        const lateMin = calculateLateMinutes(newInTime, shiftStartTime);
+        const lateMin = calculateLateMinutes(newInTime, targetShiftStart);
         newStatus = lateMin > 15 ? "LATE" : "PRESENT";
       } else {
         if (currentRecord?.isHoliday) {
@@ -451,10 +455,13 @@ function AttendanceContent() {
 
   const canViewFines = canViewPenaltyAndOvertime(user?.role);
   const currentEmployee = monthlyData?.employee;
+  const schedule = currentEmployee?.shiftSchedule;
   const shift = currentEmployee?.shift;
   const shiftStartTime = shift?.startTime || "09:00";
   const shiftEndTime = shift?.endTime || "18:00";
-  const shiftName = shift?.name || "Standard Work Shift";
+  const shiftName = schedule
+    ? `${schedule.name} (Weekly Schedule)`
+    : shift?.name || "Standard Work Shift";
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -518,11 +525,13 @@ function AttendanceContent() {
       const isHoliday = record.isHoliday || rowState.status === "HOLIDAY";
       const isLeave = record.isLeave || rowState.status === "LEAVE";
       const isWeekend = record.isWeekend;
+      const rowShiftStart = record.shiftStartTime || shiftStartTime;
+      const rowShiftEnd = record.shiftEndTime || shiftEndTime;
 
       let effectiveStatus = rowState.status;
       if (effectiveStatus !== "LEAVE") {
         if (rowState.inTime) {
-          const lateMin = calculateLateMinutes(rowState.inTime, shiftStartTime);
+          const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
           effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
         } else {
           if (isHoliday) effectiveStatus = "HOLIDAY";
@@ -532,7 +541,7 @@ function AttendanceContent() {
       }
 
       const currentLateMin = rowState.inTime
-        ? calculateLateMinutes(rowState.inTime, shiftStartTime)
+        ? calculateLateMinutes(rowState.inTime, rowShiftStart)
         : record.lateMinutes;
 
       const currentPenalty =
@@ -546,9 +555,9 @@ function AttendanceContent() {
         rowState.outTime
           ? calculateOvertimeMinutes(
               rowState.outTime,
-              shiftEndTime,
+              rowShiftEnd,
               rowState.inTime,
-              shiftStartTime,
+              rowShiftStart,
               isHoliday || isWeekend
             )
           : record.overtimeMinutes;
@@ -841,14 +850,27 @@ function AttendanceContent() {
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-600 dark:text-slate-300">
                   <span className="inline-flex items-center gap-1">
-                    Working Hours:{" "}
-                    <strong className="font-semibold text-slate-900 dark:text-white font-mono">
-                      {shiftStartTime}
-                    </strong>{" "}
-                    to{" "}
-                    <strong className="font-semibold text-slate-900 dark:text-white font-mono">
-                      {shiftEndTime}
-                    </strong>
+                    {schedule ? (
+                      <>
+                        Today&apos;s Schedule:{" "}
+                        <strong className="font-semibold text-slate-900 dark:text-white font-mono">
+                          {monthlyData?.records?.find((r) => r.date === todayStr)?.isWeekend
+                            ? "Off Day / Weekend"
+                            : `${monthlyData?.records?.find((r) => r.date === todayStr)?.shiftStartTime || shiftStartTime} to ${monthlyData?.records?.find((r) => r.date === todayStr)?.shiftEndTime || shiftEndTime}`}
+                        </strong>
+                      </>
+                    ) : (
+                      <>
+                        Working Hours:{" "}
+                        <strong className="font-semibold text-slate-900 dark:text-white font-mono">
+                          {shiftStartTime}
+                        </strong>{" "}
+                        to{" "}
+                        <strong className="font-semibold text-slate-900 dark:text-white font-mono">
+                          {shiftEndTime}
+                        </strong>
+                      </>
+                    )}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     Grace Period:{" "}
@@ -1035,10 +1057,13 @@ function AttendanceContent() {
                         status: record.status,
                       };
 
+                      const rowShiftStart = record.shiftStartTime || shiftStartTime;
+                      const rowShiftEnd = record.shiftEndTime || shiftEndTime;
+
                       let effectiveStatus = rowState.status;
                       if (effectiveStatus !== "LEAVE") {
                         if (rowState.inTime) {
-                          const lateMin = calculateLateMinutes(rowState.inTime, shiftStartTime);
+                          const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
                           effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                         } else {
                           if (record.isHoliday) effectiveStatus = "HOLIDAY";
@@ -1056,7 +1081,7 @@ function AttendanceContent() {
                       const isExpanded = !!expandedDates[date];
 
                       const currentLateMin = rowState.inTime
-                        ? calculateLateMinutes(rowState.inTime, shiftStartTime)
+                        ? calculateLateMinutes(rowState.inTime, rowShiftStart)
                         : record.lateMinutes;
 
                       const currentPenalty =
@@ -1070,9 +1095,9 @@ function AttendanceContent() {
                         rowState.outTime
                           ? calculateOvertimeMinutes(
                               rowState.outTime,
-                              shiftEndTime,
+                              rowShiftEnd,
                               rowState.inTime,
-                              shiftStartTime,
+                              rowShiftStart,
                               isHoliday || isWeekend
                             )
                           : record.overtimeMinutes;
@@ -1403,10 +1428,13 @@ function AttendanceContent() {
                           status: record.status,
                         };
 
+                        const rowShiftStart = record.shiftStartTime || shiftStartTime;
+                        const rowShiftEnd = record.shiftEndTime || shiftEndTime;
+
                         let effectiveStatus = rowState.status;
                         if (effectiveStatus !== "LEAVE") {
                           if (rowState.inTime) {
-                            const lateMin = calculateLateMinutes(rowState.inTime, shiftStartTime);
+                            const lateMin = calculateLateMinutes(rowState.inTime, rowShiftStart);
                             effectiveStatus = lateMin > 15 ? "LATE" : "PRESENT";
                           } else {
                             if (record.isHoliday) effectiveStatus = "HOLIDAY";
@@ -1423,7 +1451,7 @@ function AttendanceContent() {
                         const isSaved = savedDates[date];
 
                         const currentLateMin = rowState.inTime
-                          ? calculateLateMinutes(rowState.inTime, shiftStartTime)
+                          ? calculateLateMinutes(rowState.inTime, rowShiftStart)
                           : record.lateMinutes;
 
                         const currentPenalty =
@@ -1437,9 +1465,9 @@ function AttendanceContent() {
                           rowState.outTime
                             ? calculateOvertimeMinutes(
                                 rowState.outTime,
-                                shiftEndTime,
+                                rowShiftEnd,
                                 rowState.inTime,
-                                shiftStartTime,
+                                rowShiftStart,
                                 isHoliday || isWeekend
                               )
                             : record.overtimeMinutes;
@@ -1479,6 +1507,11 @@ function AttendanceContent() {
                                   {!record.holidayName && isLeave && (
                                     <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold block">
                                       Approved Leave
+                                    </span>
+                                  )}
+                                  {schedule && !record.holidayName && !isLeave && !isWeekend && (
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">
+                                      {record.shiftStartTime}-{record.shiftEndTime}
                                     </span>
                                   )}
                                 </div>

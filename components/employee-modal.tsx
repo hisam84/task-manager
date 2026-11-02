@@ -13,6 +13,7 @@ interface Employee {
   departmentId?: string | null;
   department?: string | null;
   shiftId?: string | null;
+  shiftScheduleId?: string | null;
   order?: number | null;
 }
 
@@ -28,6 +29,11 @@ export interface ShiftOption {
   endTime: string;
 }
 
+export interface ShiftScheduleOption {
+  id: string;
+  name: string;
+}
+
 interface EmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,6 +41,7 @@ interface EmployeeModalProps {
   employeeToEdit?: Employee | null;
   departments: Department[];
   shifts?: ShiftOption[];
+  schedules?: ShiftScheduleOption[];
 }
 
 export function EmployeeModal({
@@ -44,6 +51,7 @@ export function EmployeeModal({
   employeeToEdit,
   departments,
   shifts: propShifts,
+  schedules: propSchedules,
 }: EmployeeModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -53,8 +61,10 @@ export function EmployeeModal({
   const [role, setRole] = useState("EMPLOYEE");
   const [departmentId, setDepartmentId] = useState("");
   const [shiftId, setShiftId] = useState("");
+  const [shiftScheduleId, setShiftScheduleId] = useState("");
   const [order, setOrder] = useState<number | string>("");
   const [shifts, setShifts] = useState<ShiftOption[]>(propShifts || []);
+  const [schedules, setSchedules] = useState<ShiftScheduleOption[]>(propSchedules || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,6 +82,19 @@ export function EmployeeModal({
   }, [propShifts, isOpen]);
 
   useEffect(() => {
+    if (propSchedules && propSchedules.length > 0) {
+      setSchedules(propSchedules);
+    } else if (isOpen) {
+      fetch("/api/shift-schedules")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setSchedules(data);
+        })
+        .catch(console.error);
+    }
+  }, [propSchedules, isOpen]);
+
+  useEffect(() => {
     if (employeeToEdit) {
       setName(employeeToEdit.name);
       setEmail(employeeToEdit.email);
@@ -80,6 +103,7 @@ export function EmployeeModal({
       setRole(employeeToEdit.role);
       setDepartmentId(employeeToEdit.departmentId || "");
       setShiftId(employeeToEdit.shiftId || "");
+      setShiftScheduleId(employeeToEdit.shiftScheduleId || "");
       setOrder(
         employeeToEdit.order !== undefined && employeeToEdit.order !== null
           ? employeeToEdit.order + 1
@@ -95,6 +119,7 @@ export function EmployeeModal({
       setRole("EMPLOYEE");
       setDepartmentId(departments[0]?.id || "");
       setShiftId("");
+      setShiftScheduleId("");
       setOrder("");
     }
     setError(null);
@@ -130,6 +155,7 @@ export function EmployeeModal({
         designation: designation.trim() || null,
         departmentId: departmentId || null,
         shiftId: shiftId || null,
+        shiftScheduleId: shiftScheduleId || null,
       };
 
       if (order !== "" && !isNaN(Number(order))) {
@@ -278,22 +304,48 @@ export function EmployeeModal({
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Assigned Work Shift
-            </label>
-            <select
-              value={shiftId}
-              onChange={(e) => setShiftId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-500"
-            >
-              <option value="">Default (09:00 - 18:00)</option>
-              {shifts.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.startTime} - {s.endTime})
-                </option>
-              ))}
-            </select>
+          <div className="space-y-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-emerald-400">
+                  Weekly Shift Schedule (Day-wise)
+                </label>
+                <span className="text-[10px] text-slate-400 font-mono">Recommended</span>
+              </div>
+              <select
+                value={shiftScheduleId}
+                onChange={(e) => setShiftScheduleId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-emerald-500"
+              >
+                <option value="">None (Use single fixed shift below)</option>
+                {schedules.map((sch) => (
+                  <option key={sch.id} value={sch.id}>
+                    {sch.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Applies day-by-day shifts and off-days (e.g. Sat-Fri routines).
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Single Fixed Shift (Default / Fallback)
+              </label>
+              <select
+                value={shiftId}
+                onChange={(e) => setShiftId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-emerald-500"
+              >
+                <option value="">Default (09:00 - 18:00)</option>
+                {shifts.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.startTime} - {s.endTime})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

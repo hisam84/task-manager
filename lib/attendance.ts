@@ -4,6 +4,96 @@ export interface ShiftTimes {
   graceMinutes?: number;
 }
 
+export interface ScheduleDayInfo {
+  dayOfWeek: number; // 0=Sun, 1=Mon, ..., 6=Sat
+  isWeekend: boolean;
+  shift?: {
+    id?: string;
+    name?: string;
+    startTime: string;
+    endTime: string;
+    graceMinutes?: number;
+  } | null;
+}
+
+export interface ShiftScheduleWithDays {
+  id: string;
+  name: string;
+  days: ScheduleDayInfo[];
+}
+
+export interface UserShiftConfig {
+  shift?: {
+    id?: string;
+    name?: string;
+    startTime: string;
+    endTime: string;
+    graceMinutes?: number;
+  } | null;
+  shiftSchedule?: ShiftScheduleWithDays | null;
+}
+
+export interface EffectiveShiftResult {
+  isWeekend: boolean;
+  shiftStartTime: string;
+  shiftEndTime: string;
+  graceMinutes: number;
+  shiftName: string;
+  isCustomSchedule: boolean;
+}
+
+/**
+ * Determines the effective shift timing and weekend status for a user on a given date.
+ * If user has a shiftSchedule, it looks up the specific day's configuration (by dayOfWeek 0-6).
+ * Otherwise, it falls back to user.shift (or default 09:00-18:00) and Friday (5) as weekend.
+ */
+export function getEffectiveShiftForDate(
+  userConfig: UserShiftConfig | null | undefined,
+  date: Date
+): EffectiveShiftResult {
+  const dayOfWeek = date.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+
+  if (userConfig?.shiftSchedule && Array.isArray(userConfig.shiftSchedule.days)) {
+    const dayConfig = userConfig.shiftSchedule.days.find((d) => d.dayOfWeek === dayOfWeek);
+    if (dayConfig) {
+      if (dayConfig.isWeekend || !dayConfig.shift) {
+        return {
+          isWeekend: true,
+          shiftStartTime: "09:00",
+          shiftEndTime: "18:00",
+          graceMinutes: 15,
+          shiftName: "Off Day / Weekend",
+          isCustomSchedule: true,
+        };
+      }
+      return {
+        isWeekend: false,
+        shiftStartTime: dayConfig.shift.startTime || "09:00",
+        shiftEndTime: dayConfig.shift.endTime || "18:00",
+        graceMinutes: dayConfig.shift.graceMinutes ?? 15,
+        shiftName: dayConfig.shift.name || "Scheduled Shift",
+        isCustomSchedule: true,
+      };
+    }
+  }
+
+  // Fallback to legacy single shift
+  const defaultWeekend = dayOfWeek === 5; // Friday
+  const shiftStartTime = userConfig?.shift?.startTime || "09:00";
+  const shiftEndTime = userConfig?.shift?.endTime || "18:00";
+  const graceMinutes = userConfig?.shift?.graceMinutes ?? 15;
+  const shiftName = userConfig?.shift?.name || "Regular Shift";
+
+  return {
+    isWeekend: defaultWeekend,
+    shiftStartTime,
+    shiftEndTime,
+    graceMinutes,
+    shiftName,
+    isCustomSchedule: false,
+  };
+}
+
 /**
  * Converts "HH:mm" string into minutes from midnight.
  */

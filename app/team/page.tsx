@@ -498,7 +498,16 @@ export default function TeamPage() {
                       </td>
                       <td className="p-4">
                         <span className="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-indigo-700 dark:text-indigo-300 text-[11px] font-mono font-medium">
-                          {emp.shift ? `${emp.shift.name} (${emp.shift.startTime}-${emp.shift.endTime})` : "Default (09:00-18:00)"}
+                          {emp.shiftSchedule ? (
+                            <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              {emp.shiftSchedule.name} (Weekly)
+                            </span>
+                          ) : emp.shift ? (
+                            `${emp.shift.name} (${emp.shift.startTime}-${emp.shift.endTime})`
+                          ) : (
+                            "Default (09:00-18:00)"
+                          )}
                         </span>
                       </td>
                       <td className="p-4">

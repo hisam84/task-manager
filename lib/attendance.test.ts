@@ -6,6 +6,7 @@ import {
   calculateOvertimeMinutes,
   calculateWorkingMinutes,
   computeDailyAttendanceMetrics,
+  getEffectiveShiftForDate,
 } from "./attendance";
 
 test("calculateLatePenalty - within 15 minutes grace period should be 0", () => {
@@ -101,4 +102,91 @@ test("computeDailyAttendanceMetrics - leave has 0 penalty and status LEAVE", () 
   assert.equal(result.status, "LEAVE");
   assert.equal(result.latePenalty, 0);
   assert.equal(result.lateMinutes, 0);
+});
+
+test("getEffectiveShiftForDate - falls back to single shift and Friday weekend when no schedule", () => {
+  const userConfig = {
+    shift: {
+      name: "Day Shift",
+      startTime: "10:00",
+      endTime: "19:00",
+      graceMinutes: 20,
+    },
+  };
+
+  // 2026-11-06 is a Friday (dayOfWeek = 5)
+  const fridayDate = new Date("2026-11-06T00:00:00.000Z");
+  const friResult = getEffectiveShiftForDate(userConfig, fridayDate);
+  assert.equal(friResult.isWeekend, true);
+  assert.equal(friResult.shiftStartTime, "10:00");
+
+  // 2026-11-02 is a Monday (dayOfWeek = 1)
+  const mondayDate = new Date("2026-11-02T00:00:00.000Z");
+  const monResult = getEffectiveShiftForDate(userConfig, mondayDate);
+  assert.equal(monResult.isWeekend, false);
+  assert.equal(monResult.shiftStartTime, "10:00");
+  assert.equal(monResult.shiftEndTime, "19:00");
+  assert.equal(monResult.graceMinutes, 20);
+});
+
+test("getEffectiveShiftForDate - uses weekly schedule day configuration", () => {
+  const userConfig = {
+    shift: {
+      name: "Fallback Shift",
+      startTime: "09:00",
+      endTime: "18:00",
+    },
+    shiftSchedule: {
+      id: "sched_1",
+      name: "Custom Support Schedule",
+      days: [
+        {
+          dayOfWeek: 0, // Sunday: Morning Shift
+          isWeekend: false,
+          shift: { name: "Morning", startTime: "07:00", endTime: "15:00", graceMinutes: 10 },
+        },
+        {
+          dayOfWeek: 1, // Monday: Evening Shift
+          isWeekend: false,
+          shift: { name: "Evening", startTime: "15:00", endTime: "23:00", graceMinutes: 15 },
+        },
+        {
+          dayOfWeek: 5, // Friday: Working Shift (not weekend in this custom schedule!)
+          isWeekend: false,
+          shift: { name: "Friday Special", startTime: "08:00", endTime: "12:00", graceMinutes: 10 },
+        },
+        {
+          dayOfWeek: 6, // Saturday: Off Day
+          isWeekend: true,
+          shift: null,
+        },
+      ],
+    },
+  };
+
+  // Sunday (2026-11-01) -> Morning Shift
+  const sunDate = new Date("2026-11-01T00:00:00.000Z");
+  const sunRes = getEffectiveShiftForDate(userConfig, sunDate);
+  assert.equal(sunRes.isWeekend, false);
+  assert.equal(sunRes.shiftStartTime, "07:00");
+  assert.equal(sunRes.shiftEndTime, "15:00");
+
+  // Monday (2026-11-02) -> Evening Shift
+  const monDate = new Date("2026-11-02T00:00:00.000Z");
+  const monRes = getEffectiveShiftForDate(userConfig, monDate);
+  assert.equal(monRes.isWeekend, false);
+  assert.equal(monRes.shiftStartTime, "15:00");
+  assert.equal(monRes.shiftEndTime, "23:00");
+
+  // Friday (2026-11-06) -> Working Day according to template
+  const friDate = new Date("2026-11-06T00:00:00.000Z");
+  const friRes = getEffectiveShiftForDate(userConfig, friDate);
+  assert.equal(friRes.isWeekend, false);
+  assert.equal(friRes.shiftStartTime, "08:00");
+  assert.equal(friRes.shiftEndTime, "12:00");
+
+  // Saturday (2026-11-07) -> Weekend / Off Day
+  const satDate = new Date("2026-11-07T00:00:00.000Z");
+  const satRes = getEffectiveShiftForDate(userConfig, satDate);
+  assert.equal(satRes.isWeekend, true);
 });

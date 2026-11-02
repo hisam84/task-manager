@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { computeDailyAttendanceMetrics } from "@/lib/attendance";
+import { computeDailyAttendanceMetrics, getEffectiveShiftForDate } from "@/lib/attendance";
 import { logActivity } from "@/lib/activity-log";
 
 export async function POST(req: Request) {
@@ -25,7 +25,16 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { id: sessionUser.id },
-      include: { shift: true },
+      include: {
+        shift: true,
+        shiftSchedule: {
+          include: {
+            days: {
+              include: { shift: true },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -47,8 +56,19 @@ export async function POST(req: Request) {
       },
     });
 
-    const shiftStartTime = user.shift?.startTime || "09:00";
-    const shiftEndTime = user.shift?.endTime || "18:00";
+    // Check if today is a company holiday
+    const holiday = await prisma.holiday.findFirst({
+      where: {
+        companyId,
+        date: dateObj,
+      },
+    });
+    const isHoliday = !!holiday;
+
+    const effectiveShift = getEffectiveShiftForDate(user, dateObj);
+    const shiftStartTime = effectiveShift.shiftStartTime;
+    const shiftEndTime = effectiveShift.shiftEndTime;
+    const isWeekend = effectiveShift.isWeekend;
 
     const inTime = action === "in" ? currentTimeStr : existing?.inTime || null;
     const outTime = action === "out" ? currentTimeStr : existing?.outTime || null;
@@ -56,6 +76,8 @@ export async function POST(req: Request) {
     const metrics = computeDailyAttendanceMetrics({
       inTime,
       outTime,
+      isHoliday,
+      isWeekend,
       shiftStartTime,
       shiftEndTime,
     });

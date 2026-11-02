@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isManagerOrAdmin, canViewPenaltyAndOvertime } from "@/lib/access";
-import { computeDailyAttendanceMetrics } from "@/lib/attendance";
+import { computeDailyAttendanceMetrics, getEffectiveShiftForDate } from "@/lib/attendance";
 
 export async function GET(req: Request) {
   try {
@@ -44,6 +44,14 @@ export async function GET(req: Request) {
             startTime: true,
             endTime: true,
             graceMinutes: true,
+          },
+        },
+        shiftScheduleId: true,
+        shiftSchedule: {
+          include: {
+            days: {
+              include: { shift: true },
+            },
           },
         },
       },
@@ -119,14 +127,15 @@ export async function GET(req: Request) {
     const enableLatePenalty = targetUser.company?.enableLatePenalty ?? false;
     const canViewFinesAndOvertime = canViewPenaltyAndOvertime(sessionUser.role);
 
-    const shiftStartTime = targetUser.shift?.startTime || "09:00";
-    const shiftEndTime = targetUser.shift?.endTime || "18:00";
-
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(Date.UTC(year, month - 1, day));
       const dateKey = dateObj.toISOString().slice(0, 10);
       const dayOfWeek = dateObj.getUTCDay(); // 0 = Sunday, 5 = Friday, 6 = Saturday
-      const isWeekend = dayOfWeek === 5; // Friday weekend standard in Bangladesh/local setup
+
+      const dayShift = getEffectiveShiftForDate(targetUser, dateObj);
+      const isWeekend = dayShift.isWeekend;
+      const shiftStartTime = dayShift.shiftStartTime;
+      const shiftEndTime = dayShift.shiftEndTime;
 
       const holidayName = holidayMap.get(dateKey) || null;
       const isHoliday = !!holidayName;
@@ -225,6 +234,9 @@ export async function GET(req: Request) {
         overtimeMinutes: canViewFinesAndOvertime ? overtimeMinutes : 0,
         workingMinutes,
         notes,
+        shiftName: dayShift.shiftName,
+        shiftStartTime: dayShift.shiftStartTime,
+        shiftEndTime: dayShift.shiftEndTime,
       });
     }
 
